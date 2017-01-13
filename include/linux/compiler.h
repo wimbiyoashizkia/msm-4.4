@@ -26,7 +26,11 @@
 extern void __chk_user_ptr(const volatile void __user *);
 extern void __chk_io_ptr(const volatile void __iomem *);
 #else
-# define __user
+# ifdef STRUCTLEAK_PLUGIN
+#  define __user __attribute__((user))
+# else
+#  define __user
+# endif
 # define __kernel
 # define __safe
 # define __force

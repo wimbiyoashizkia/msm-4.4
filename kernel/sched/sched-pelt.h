@@ -11,7 +11,6 @@ static const u32 pelt32_runnable_avg_yN_inv[] __maybe_unused = {
 
 #define PELT32_LOAD_AVG_PERIOD 32
 #define PELT32_LOAD_AVG_MAX 47742
-#define PELT32_LOAD_AVG_MAX_N 345
 
 static const u32 pelt16_runnable_avg_yN_inv[] __maybe_unused= {
 	0xffffffff, 0xf5257d14, 0xeac0c6e6, 0xe0ccdeeb, 0xd744fcc9, 0xce248c14,
@@ -21,7 +20,6 @@ static const u32 pelt16_runnable_avg_yN_inv[] __maybe_unused= {
 
 #define PELT16_LOAD_AVG_PERIOD 16
 #define PELT16_LOAD_AVG_MAX 24130
-#define PELT16_LOAD_AVG_MAX_N 172
 
 static const u32 pelt8_runnable_avg_yN_inv[] __maybe_unused= {
 	0xffffffff, 0xeac0c6e6, 0xd744fcc9, 0xc5672a10, 0xb504f333, 0xa5fed6a9,
@@ -30,13 +28,10 @@ static const u32 pelt8_runnable_avg_yN_inv[] __maybe_unused= {
 
 #define PELT8_LOAD_AVG_PERIOD 8
 #define PELT8_LOAD_AVG_MAX 12326
-#define PELT8_LOAD_AVG_MAX_N 85
 
 extern const u32 *pelt_runnable_avg_yN_inv;
 extern int pelt_load_avg_period;
 extern int pelt_load_avg_max;
-extern int pelt_load_avg_max_n;
 
 #define LOAD_AVG_PERIOD pelt_load_avg_period
 #define LOAD_AVG_MAX pelt_load_avg_max
-#define LOAD_AVG_MAX_N pelt_load_avg_max_n

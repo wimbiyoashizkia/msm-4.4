@@ -76,7 +76,7 @@ void calc_converged_max(void)
     n--;
     printf("#define LOAD_AVG_PERIOD %d\n", HALFLIFE);
     printf("#define LOAD_AVG_MAX %ld\n", max);
-    printf("#define LOAD_AVG_MAX_N %d\n\n", n);
+    //printf("#define LOAD_AVG_MAX_N %d\n\n", n);
 }
 
 void calc_accumulated_sum_32(void)
@@ -103,7 +103,7 @@ void main(void)
     y = pow(0.5, 1/(double)HALFLIFE);
 
     calc_runnable_avg_yN_inv();
-    calc_runnable_avg_yN_sum();
+    //calc_runnable_avg_yN_sum();
     calc_converged_max();
-    calc_accumulated_sum_32();
+    //calc_accumulated_sum_32();
 }

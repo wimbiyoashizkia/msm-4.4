@@ -2130,6 +2130,7 @@ struct task_struct {
     struct task_struct      *simple_lmk_next;
 #endif
 	int pagefault_disabled;
+    atomic64_t *concurrent_active_time;
 /* CPU-specific state of this task */
 	struct thread_struct thread;
 /*

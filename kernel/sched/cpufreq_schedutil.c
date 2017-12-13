@@ -243,8 +243,7 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, u64 time, in
 #endif
 }
 
-static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
-				   unsigned int flags)
+static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time)
 {
 	struct sugov_policy *sg_policy = sg_cpu->sg_policy;
 
@@ -260,7 +259,8 @@ static void sugov_set_iowait_boost(struct sugov_cpu *sg_cpu, u64 time,
 			sg_cpu->iowait_boost_pending = false;
 		}
 	}
-	if (flags & SCHED_CPUFREQ_IOWAIT) {
+
+	if (sg_cpu->flags & SCHED_CPUFREQ_IOWAIT) {
 		if (sg_cpu->iowait_boost_pending)
 			return;
 
@@ -326,7 +326,7 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 	unsigned int next_f;
 	bool busy;
 
-	sugov_set_iowait_boost(sg_cpu, time, flags);
+	sugov_set_iowait_boost(sg_cpu, time);
 	sg_cpu->last_update = time;
 
 	/*
@@ -419,7 +419,7 @@ static void sugov_update_shared(struct update_util_data *hook, u64 time,
 	sg_cpu->max = max;
 	sg_cpu->flags = flags;
 
-	sugov_set_iowait_boost(sg_cpu, time, flags);
+	sugov_set_iowait_boost(sg_cpu, time);
 	sg_cpu->last_update = time;
 
 	if (sugov_should_update_freq(sg_policy, time)) {

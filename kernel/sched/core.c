@@ -3115,7 +3115,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 		p->sched_class->task_waking(p);
 
 	if (p->in_iowait) {
-		delayacct_blkio_end();
+		delayacct_blkio_end(p);
 		atomic_dec(&task_rq(p)->nr_iowait);
 	}
 
@@ -3133,7 +3133,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 #else /* CONFIG_SMP */
 
 	if (p->in_iowait) {
-		delayacct_blkio_end();
+		delayacct_blkio_end(p);
 		atomic_dec(&task_rq(p)->nr_iowait);
 	}
 
@@ -3214,7 +3214,7 @@ static void try_to_wake_up_local(struct task_struct *p)
 		note_task_waking(p, wallclock);
 
 		if (p->in_iowait) {
-			delayacct_blkio_end();
+			delayacct_blkio_end(p);
 			atomic_dec(&rq->nr_iowait);
 		}
 	}

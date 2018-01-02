@@ -2610,7 +2610,8 @@ static void fg_ttf_update(struct fg_chip *chip)
 	chip->ttf.last_ttf = 0;
 	chip->ttf.last_ms = 0;
 	mutex_unlock(&chip->ttf.lock);
-	schedule_delayed_work(&chip->ttf_work, msecs_to_jiffies(delay_ms));
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->ttf_work, msecs_to_jiffies(delay_ms));
 }
 
 static ssize_t fg_get_cycle_counts_bins(struct device *dev,
@@ -5754,9 +5755,11 @@ static int fg_gen3_resume(struct device *dev)
 	if (rc < 0)
 		pr_err("Error in configuring ESR timer, rc=%d\n", rc);
 
-	schedule_delayed_work(&chip->ttf_work, 0);
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->ttf_work, 0);
 	if (fg_sram_dump)
-		schedule_delayed_work(&chip->sram_dump_work,
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->sram_dump_work,
 				msecs_to_jiffies(fg_sram_dump_period_ms));
 
 	if (!work_pending(&chip->status_change_work)) {

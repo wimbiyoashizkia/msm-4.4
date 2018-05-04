@@ -2407,7 +2407,7 @@ extern bool walt_disabled;
 
 static inline unsigned long task_util(struct task_struct *p)
 {
-	return p->se.avg.util_avg;
+	return READ_ONCE(p->se.avg.util_avg);
 }
 
 /*

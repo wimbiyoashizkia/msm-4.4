@@ -80,6 +80,11 @@ SCHED_FEAT(ENERGY_AWARE, false)
 #endif
 
 /*
+ * UtilEstimation. Use estimated CPU utilization.
+ */
+SCHED_FEAT(UTIL_EST, false)
+
+/*
  * Minimum capacity capping. Keep track of minimum capacity factor when
  * minimum frequency available to a policy is modified.
  * If enabled, this can be used to inform the scheduler about capacity

@@ -769,6 +769,9 @@ static ssize_t store_##file_name					\
 	int ret, temp;							\
 	struct cpufreq_policy new_policy;				\
 									\
+	if (&policy->object == &policy->min)				\
+		return count;						\
+									\
 	if (IS_ENABLED(CONFIG_MSM_THERMAL_SIMPLE) &&			\
 		&policy->object == &policy->max)			\
 		return count;						\

@@ -546,7 +546,7 @@ static void smugov_irq_work(struct irq_work *irq_work)
 	 * after the work_in_progress flag is cleared. The effects of that are
 	 * neglected for now.
 	 */
-	queue_kthread_work(&sg_policy->worker, &sg_policy->work);
+	kthread_queue_work(&sg_policy->worker, &sg_policy->work);
 }
 
 /************************** sysfs interface ************************/
@@ -903,8 +903,8 @@ static int smugov_kthread_create(struct smugov_policy *sg_policy)
 	if (policy->fast_switch_enabled)
 		return 0;
 
-	init_kthread_work(&sg_policy->work, smugov_work);
-	init_kthread_worker(&sg_policy->worker);
+	kthread_init_work(&sg_policy->work, smugov_work);
+	kthread_init_worker(&sg_policy->worker);
 	thread = kthread_create(kthread_worker_fn, &sg_policy->worker,
 				"smugov:%d",
 				cpumask_first(policy->related_cpus));
@@ -936,7 +936,7 @@ static void smugov_kthread_stop(struct smugov_policy *sg_policy)
 	if (sg_policy->policy->fast_switch_enabled)
 		return;
 
-	flush_kthread_worker(&sg_policy->worker);
+	kthread_flush_worker(&sg_policy->worker);
 	kthread_stop(sg_policy->thread);
 	mutex_destroy(&sg_policy->work_lock);
 }

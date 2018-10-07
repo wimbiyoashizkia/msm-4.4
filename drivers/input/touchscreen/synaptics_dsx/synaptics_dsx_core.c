@@ -3487,7 +3487,7 @@ exit:
 	mutex_unlock(&exp_data.mutex);
 
 	if (exp_data.queue_work) {
-		queue_kthread_work(&exp_data.touch_worker, &exp_data.touch_work);
+		kthread_queue_work(&exp_data.touch_worker, &exp_data.touch_work);
 	}
 
 	return;
@@ -3809,7 +3809,7 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 		goto err_enable_irq;
 	}
 
-	init_kthread_worker(&exp_data.touch_worker);
+	kthread_init_worker(&exp_data.touch_worker);
 	exp_data.touch_worker_thread = kthread_create(kthread_worker_fn, &exp_data.touch_worker, "dsx_exp_workqueue");
 	if (IS_ERR(exp_data.touch_worker_thread)) {
 		pr_err("%s: Cannot init touch_worker kthread", __func__);
@@ -3817,11 +3817,11 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	}
 	sched_setscheduler(exp_data.touch_worker_thread, SCHED_FIFO, &param);
 	wake_up_process(exp_data.touch_worker_thread);
-	init_kthread_work(&exp_data.touch_work, synaptics_rmi4_exp_fn_work);
+	kthread_init_work(&exp_data.touch_work, synaptics_rmi4_exp_fn_work);
 
 	exp_data.rmi4_data = rmi4_data;
 	exp_data.queue_work = true;
-	queue_kthread_work(&exp_data.touch_worker, &exp_data.touch_work);
+	kthread_queue_work(&exp_data.touch_worker, &exp_data.touch_work);
 
 	rmi4_data->dir = debugfs_create_dir(DEBUGFS_DIR_NAME, NULL);
 	if (rmi4_data->dir == NULL || IS_ERR(rmi4_data->dir)) {

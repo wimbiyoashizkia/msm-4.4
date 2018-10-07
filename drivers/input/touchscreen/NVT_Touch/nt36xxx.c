@@ -1438,7 +1438,7 @@ static irqreturn_t nvt_ts_irq_handler(int32_t irq, void *dev_id)
 	}
 #endif
 
-	queue_kthread_work(&touch_worker, &work);
+	kthread_queue_work(&touch_worker, &work);
 
 	return IRQ_HANDLED;
 }
@@ -1600,7 +1600,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	mutex_unlock(&ts->lock);
 
 	//---create workqueue---
-	init_kthread_worker(&touch_worker);
+	kthread_init_worker(&touch_worker);
 	touch_worker_thread = kthread_create(kthread_worker_fn,&touch_worker,"touch_worker_thread");
 	if (IS_ERR(touch_worker_thread)) {
 		pr_err("%s: Cannot set touch_worker_thread", __func__);
@@ -1611,7 +1611,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	wake_up_process(touch_worker_thread);
 
 	//---allocate input device---
-	init_kthread_work(&work, nvt_ts_work_func);
+	kthread_init_work(&work, nvt_ts_work_func);
 
 	ts->input_dev = input_allocate_device();
 	if (ts->input_dev == NULL) {

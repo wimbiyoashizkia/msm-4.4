@@ -483,11 +483,6 @@
 			size = <0 0x2c00000>;
 			linux,cma-default;
 		};
-
-		cont_splash_mem: splash_region@9d400000 {
-			reg = <0x0 0x9d400000 0x0 0x23ff000>;
-			label = "cont_splash_mem";
-		};
 		
 		/* Huaqin add for ZQL1650-358 by liunianliang at 2018/02/08 start */
 		pstore_reserve_mem: pstore_reserve_mem_region@0 {

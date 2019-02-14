@@ -673,7 +673,7 @@ KBUILD_CFLAGS	+= -Werror
 endif
 
 ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS	+= -Wno-psabi
+KBUILD_CFLAGS	+= -Wno-psabi -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53
 endif
 
 KBUILD_CFLAGS += $(call cc-ifversion, -gt, 0900, \

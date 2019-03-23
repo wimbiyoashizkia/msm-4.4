@@ -28,9 +28,12 @@
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
+#include <linux/binfmts.h>
 #include <linux/cgroup.h>
+#include <linux/cpu_input_boost.h>
 #include <linux/cred.h>
 #include <linux/ctype.h>
+#include <linux/devfreq_boost.h>
 #include <linux/errno.h>
 #include <linux/init_task.h>
 #include <linux/kernel.h>
@@ -2973,6 +2976,14 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 	ret = cgroup_procs_write_permission(tsk, cgrp, of);
 	if (!ret)
 		ret = cgroup_attach_task(cgrp, tsk, threadgroup);
+
+	/* This covers boosting for app launches and app transitions */
+	if (!ret && !threadgroup &&
+	    !strcmp(of->kn->parent->name, "top-app") &&
+	    task_is_zygote(tsk->parent)) {
+		cpu_input_boost_kick_max(500);
+		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 500);
+	}
 
 	put_task_struct(tsk);
 	goto out_unlock_threadgroup;

@@ -3424,6 +3424,7 @@ void asus_batt_RTC_work(struct work_struct *dat)
 #define ICL_2500mA	0x64
 #define ICL_2850mA	0x72
 #define ICL_3000mA	0x78
+#define ICL_4000mA	0xF8
 #define ASUS_MONITOR_CYCLE		60000
 #define TITAN_750K_MIN	675
 #define TITAN_750K_MAX	851
@@ -3447,8 +3448,8 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P064		0x4D
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P350		0x73
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P357		0x74
-#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P385		0xF8
-#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P392		0xF9
+#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P485		0xF8
+#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P492		0xF9
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_850MA 	0x22
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1400MA 	0x38
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1475MA 	0x3B
@@ -3457,7 +3458,7 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA 	0x52
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2500MA	0x64
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA	0x72
-#define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA 	0xF8
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_4000MA 	0xF8
 enum JEITA_state {
 	JEITA_STATE_INITIAL,
 	JEITA_STATE_LESS_THAN_0,
@@ -3709,7 +3710,7 @@ void jeita_rule(void)
 		/* reg=1070 */
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P385;
 		/* reg=1061 */
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_4000MA;
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0) {
 			printk("%s: SW_recharge failed rc = %d\n", __func__, rc);
@@ -3721,7 +3722,7 @@ void jeita_rule(void)
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P385;
 
 		/* reg=1061 */
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_4000MA;
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0) {
 			printk("%s: SW_recharge failed rc = %d\n", __func__, rc);
@@ -3730,7 +3731,7 @@ void jeita_rule(void)
 	case JEITA_STATE_RANGE_500_to_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P385;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_4000MA;
 		printk("%s: 50 <= temperature < 60\n", __func__);
 		break;
 	case JEITA_STATE_LARGER_THAN_600:
@@ -3744,8 +3745,8 @@ void jeita_rule(void)
 		printk("%s: Stop charging, smart = %d\n", __func__, smartchg_stop_flag);
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 	} else {
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P385;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P485;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_4000MA;
 	}
 
 	rc = jeita_status_regs_write(charging_enable, FV_CFG_reg_value, FCC_reg_value);
@@ -3830,7 +3831,7 @@ void asus_chg_flow_work(struct work_struct *work)
 		if (rc < 0)
 			printk("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n", __func__);
 #endif
-			set_icl = ICL_1500mA;
+			set_icl = ICL_4000mA;
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 			USBIN_CURRENT_LIMIT_MASK, set_icl);
 		if (rc < 0)
@@ -3840,7 +3841,7 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	case CDP_CHARGER_BIT:
-		set_icl = ICL_3000mA;
+		set_icl = ICL_4000mA;
 		/* reg=1370 bit7-bit0=USBIN_CURRENT_LIMIT */
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 			USBIN_CURRENT_LIMIT_MASK, set_icl);
@@ -3858,7 +3859,7 @@ void asus_chg_flow_work(struct work_struct *work)
 
 	case OCP_CHARGER_BIT:
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_1500mA;
+		set_icl = ICL_4000mA;
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 			USBIN_CURRENT_LIMIT_MASK, set_icl);
 		if (rc < 0)
@@ -3878,7 +3879,7 @@ void asus_chg_flow_work(struct work_struct *work)
 		printk("asus_chg_flow_work dcp_USBIN_1_cc=0x%x\n",USBIN_1_cc);
 
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_1500mA;
+		set_icl = ICL_4000mA;
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 			USBIN_CURRENT_LIMIT_MASK, set_icl);
 		if (rc < 0)
@@ -3984,7 +3985,8 @@ void asus_adapter_adc_work(struct work_struct *work)
 	msleep(5);
        	CHG_TYPE_judge(smbchg_dev);
 
-    	usb_max_current = ICL_3000mA;
+    	usb_max_current = ICL_4000mA;
+
 	rc = smblib_set_usb_suspend(smbchg_dev, 0);
 	if (rc < 0)
 		printk("%s: Couldn't set 1340_USBIN_SUSPEND_BIT 0\n", __func__);

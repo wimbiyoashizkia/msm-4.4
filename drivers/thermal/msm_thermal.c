@@ -1125,9 +1125,9 @@ static void update_cpu_freq(int cpu, enum freq_limits changed)
 			cpumask_or(&throttling_mask, &mask, &throttling_mask);
 			set_cpu_throttled(&mask, true);
 		}
-		trace_thermal_pre_frequency_mit(cpu,
-			cpus[cpu].limited_max_freq,
-			cpus[cpu].limited_min_freq);
+//		trace_thermal_pre_frequency_mit(cpu,
+//			cpus[cpu].limited_max_freq,
+//			cpus[cpu].limited_min_freq);
 
 		/*
 		 * If LMH DCVS is available, we update the hardware directly
@@ -1144,20 +1144,20 @@ static void update_cpu_freq(int cpu, enum freq_limits changed)
 			cpufreq_update_policy(cpu);
 		}
 
-		trace_thermal_post_frequency_mit(cpu,
-			cpufreq_quick_get_max(cpu),
-			cpus[cpu].limited_min_freq);
+//		trace_thermal_post_frequency_mit(cpu,
+//			cpufreq_quick_get_max(cpu),
+//			cpus[cpu].limited_min_freq);
 		if (ret)
 			pr_err("Unable to update policy for cpu:%d. err:%d\n",
 				cpu, ret);
 	} else if (lmh_dcvs_available) {
-		trace_thermal_pre_frequency_mit(cpu,
-			cpus[cpu].limited_max_freq,
-			cpus[cpu].limited_min_freq);
+//		trace_thermal_pre_frequency_mit(cpu,
+//			cpus[cpu].limited_max_freq,
+//			cpus[cpu].limited_min_freq);
 		msm_lmh_dcvs_update(cpu);
-		trace_thermal_post_frequency_mit(cpu,
-			cpufreq_quick_get_max(cpu),
-			cpus[cpu].limited_min_freq);
+//		trace_thermal_post_frequency_mit(cpu,
+//			cpufreq_quick_get_max(cpu),
+//			cpus[cpu].limited_min_freq);
 	}
 }
 

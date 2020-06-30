@@ -13,6 +13,10 @@ obj-$(CONFIG_ZSTD_DECOMPRESS) += zstd_decompress.o
 
 ccflags-y += -Wno-error=deprecated-declarations
 
+# optimise for size
+ccflags-y += $(call cc-option, -g0)
+ccflags-y += $(call cc-option, -Os)
+
 # Object files unique to zstd_compress and zstd_decompress
 zstd_compress-y := \
 		zstd_compress_module.o \

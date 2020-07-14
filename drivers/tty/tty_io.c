@@ -1857,7 +1857,7 @@ int tty_release(struct inode *inode, struct file *filp)
 			       __func__, tty_name(tty));
 		}
 		schedule_timeout_killable(timeout);
-		if (timeout < 120 * HZ)
+		if (timeout < msecs_to_jiffies(120000))
 			timeout = 2 * timeout + 1;
 		else
 			timeout = MAX_SCHEDULE_TIMEOUT;

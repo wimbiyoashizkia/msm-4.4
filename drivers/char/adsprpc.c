@@ -65,7 +65,7 @@
 #define UL_SIZE 25
 #define PID_SIZE 10
 
-#define RPC_TIMEOUT	(5 * HZ)
+#define RPC_TIMEOUT	msecs_to_jiffies(5000)
 #define BALIGN		128
 #define NUM_CHANNELS	4		/* adsp,sdsp,mdsp,cdsp */
 #define NUM_SESSIONS	9		/*8 compute, 1 cpz*/

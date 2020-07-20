@@ -2826,9 +2826,8 @@ long do_mount(const char *dev_name, const char __user *dir_name,
 	if (retval)
 		goto dput_out;
 
-	/* Default to NOATIME and NODIRATIME */
+	/* Default to NOATIME */
 	mnt_flags |= MNT_NOATIME;
-	mnt_flags |= MNT_NODIRATIME;
 
 	/* Separate the per-mountpoint flags */
 	if (flags & MS_NOSUID)

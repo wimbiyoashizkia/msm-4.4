@@ -752,6 +752,7 @@ config DEFAULT_TCP_CONG
 	default "sociopath" if DEFAULT_SOCIOPATH
 	default "agilesd" if DEFAULT_AGILESD
         default "china" if DEFAULT_CHINA
+	default "bbr" if DEFAULT_BBR
 	default "cubic"
 
 config TCP_MD5SIG

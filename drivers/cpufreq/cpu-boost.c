@@ -217,7 +217,7 @@ static void do_dynamic_stune_boost_rem(struct work_struct *work)
 {
 	/* Reset dynamic stune boost value to the default value */
 	if (stune_boost_active) {
-		reset_stune_boost("top-app", boost_slot);
+		reset_stune_boost(boost_slot);
 		stune_boost_active = false;
 	}
 }
@@ -238,7 +238,7 @@ static void do_input_boost(struct kthread_work *work)
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
-		reset_stune_boost("top-app", boost_slot);
+		reset_stune_boost(boost_slot);
 		stune_boost_active = false;
 	}
 #endif
@@ -255,7 +255,7 @@ static void do_input_boost(struct kthread_work *work)
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Set dynamic stune boost value */
-	ret = do_stune_boost("top-app", dynamic_stune_boost, &boost_slot);
+	ret = do_stune_boost(dynamic_stune_boost, &boost_slot);
 	if (!ret)
 		stune_boost_active = true;
 
@@ -320,7 +320,7 @@ static void cpuboost_input_disconnect(struct input_handle *handle)
 {
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app", boost_slot);
+	reset_stune_boost(boost_slot);
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 	input_close_device(handle);
 	input_unregister_handle(handle);

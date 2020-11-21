@@ -126,7 +126,7 @@
 		dma-names = "tx", "rx";
 		qcom,master-id = <86>;
 		qcom,disable-dma;
-		qcom,clk-freq-out = <400000>;
+		qcom,clk-freq-out = <1000000>;
 		qcom,clk-freq-in  = <19200000>;
 		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc GCC_BLSP1_AHB_CLK>,

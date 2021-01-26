@@ -758,3 +758,10 @@ config PROCESS_RECLAIM
 config VMSTAT_INTERVAL
 	int "Default interval in seconds to update vmstat"
 	default 1
+
+config ANDROID_PR_KILL
+	bool "Enable PRLMK"
+	depends on PROCESS_RECLAIM && TASK_XACCT && !PSI && !MEMCG && !ANDROID_LOW_MEMORY_KILLER && !ANDROID_SIMPLE_LMK
+	default n
+	help
+	  PRLMK is a custom low-memory-killer for Android, based on the process reclaim driver.

@@ -296,6 +296,11 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, u64 time, in
 
 	*util = min(*util, max_cap);
 	*max = max_cap;
+	
+#ifdef CONFIG_UCLAMP_TASK
+	*util = uclamp_util_with(rq, *util, NULL);
+	*util = min(*max, *util);
+#endif
 }
 
 #ifdef CONFIG_NO_HZ_COMMON

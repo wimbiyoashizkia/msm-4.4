@@ -44,8 +44,8 @@ static bool mdss_check_te_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 	 */
 	ret = !atomic_read(&ctrl_pdata->te_irq_ready);
 	if (ret) {
-		schedule_delayed_work(&pstatus_data->check_status,
-			msecs_to_jiffies(interval));
+		queue_delayed_work(system_power_efficient_wq, 
+			&pstatus_data->check_status, msecs_to_jiffies(interval));
 		pr_debug("%s: TE IRQ line not enabled yet\n", __func__);
 	}
 
@@ -97,8 +97,8 @@ void mdss_check_dsi_ctrl_status(struct work_struct *work, uint32_t interval)
 	if (!pdata->panel_info.esd_rdy) {
 		pr_debug("%s: unblank not complete, reschedule check status\n",
 			__func__);
-		schedule_delayed_work(&pstatus_data->check_status,
-				msecs_to_jiffies(interval));
+		queue_delayed_work(system_power_efficient_wq, 
+			&pstatus_data->check_status, msecs_to_jiffies(interval));
 		return;
 	}
 
@@ -172,8 +172,8 @@ void mdss_check_dsi_ctrl_status(struct work_struct *work, uint32_t interval)
 /* Huaqin duchangguo modify for disabling esd check when panel is not connect before boot start*/
 		if (ret > 0) {
 			pstatus_data->is_first_check = 0;
-			schedule_delayed_work(&pstatus_data->check_status,
-				msecs_to_jiffies(interval));
+			queue_delayed_work(system_power_efficient_wq, 
+				&pstatus_data->check_status, msecs_to_jiffies(interval));
 		}
 		else if (ret == -ENOTSUPP && pstatus_data->is_first_check) {
 			pr_err("%s: DSI read fail, panel may not link, no more esd until next unblank\n", __func__);

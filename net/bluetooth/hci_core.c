@@ -3369,14 +3369,14 @@ int hci_register_dev(struct hci_dev *hdev)
 	BT_DBG("%pK name %s bus %d", hdev, hdev->name, hdev->bus);
 
 	hdev->workqueue = alloc_workqueue("%s", WQ_HIGHPRI | WQ_UNBOUND |
-					  WQ_MEM_RECLAIM, 1, hdev->name);
+				WQ_POWER_EFFICIENT | WQ_MEM_RECLAIM, 1, hdev->name);
 	if (!hdev->workqueue) {
 		error = -ENOMEM;
 		goto err;
 	}
 
 	hdev->req_workqueue = alloc_workqueue("%s", WQ_HIGHPRI | WQ_UNBOUND |
-					      WQ_MEM_RECLAIM, 1, hdev->name);
+				WQ_POWER_EFFICIENT | WQ_MEM_RECLAIM, 1, hdev->name);
 	if (!hdev->req_workqueue) {
 		destroy_workqueue(hdev->workqueue);
 		error = -ENOMEM;
@@ -4521,8 +4521,8 @@ static void hci_cmd_work(struct work_struct *work)
 			if (test_bit(HCI_RESET, &hdev->flags))
 				cancel_delayed_work(&hdev->cmd_timer);
 			else
-				schedule_delayed_work(&hdev->cmd_timer,
-						      HCI_CMD_TIMEOUT);
+				queue_delayed_work(system_power_efficient_wq, 
+					&hdev->cmd_timer, HCI_CMD_TIMEOUT);
 		} else {
 			skb_queue_head(&hdev->cmd_q, skb);
 			queue_work(hdev->workqueue, &hdev->cmd_work);

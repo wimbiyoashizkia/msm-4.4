@@ -352,6 +352,8 @@ static int map_lookup_elem(union bpf_attr *attr)
 	int ufd = attr->map_fd;
 	struct bpf_map *map;
 	void *key, *value, *ptr;
+	u8 key_onstack[SZ_16] __aligned(sizeof(long));
+	u8 value_onstack[SZ_64] __aligned(sizeof(long));
 	u32 value_size;
 	struct fd f;
 	int err;
@@ -370,13 +372,20 @@ static int map_lookup_elem(union bpf_attr *attr)
 	}
 
 	err = -ENOMEM;
-	key = kmalloc(map->key_size, GFP_USER);
-	if (!key)
-		goto err_put;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+	} else {
+		key = kmalloc(map->key_size, GFP_USER);
+		if (!key)
+			goto err_put;
+	}
 
 	err = -EFAULT;
-	if (copy_from_user(key, ukey, map->key_size) != 0)
-		goto free_key;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+		if (copy_from_user(key, ukey, map->key_size) != 0)
+			goto free_key;
+	}
 
 	if (map->map_type == BPF_MAP_TYPE_PERCPU_HASH ||
 	    map->map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
@@ -385,9 +394,13 @@ static int map_lookup_elem(union bpf_attr *attr)
 		value_size = map->value_size;
 
 	err = -ENOMEM;
-	value = kmalloc(value_size, GFP_USER | __GFP_NOWARN);
-	if (!value)
-		goto free_key;
+	if (value_size <= sizeof(value_onstack)) {
+		value = value_onstack;
+	} else {
+		value = kmalloc(value_size, GFP_USER | __GFP_NOWARN);
+		if (!value)
+			goto free_key;
+	}
 
 	if (map->map_type == BPF_MAP_TYPE_PERCPU_HASH) {
 		err = bpf_percpu_hash_copy(map, key, value);
@@ -414,9 +427,11 @@ static int map_lookup_elem(union bpf_attr *attr)
 	err = 0;
 
 free_value:
-	kfree(value);
+	if (value != value_onstack)
+		kfree(value);
 free_key:
-	kfree(key);
+	if (key != key_onstack)
+		kfree(key);
 err_put:
 	fdput(f);
 	return err;
@@ -431,6 +446,8 @@ static int map_update_elem(union bpf_attr *attr)
 	int ufd = attr->map_fd;
 	struct bpf_map *map;
 	void *key, *value;
+	u8 key_onstack[SZ_16] __aligned(sizeof(long));
+	u8 value_onstack[SZ_64] __aligned(sizeof(long));
 	u32 value_size;
 	struct fd f;
 	int err;
@@ -449,13 +466,20 @@ static int map_update_elem(union bpf_attr *attr)
 	}
 
 	err = -ENOMEM;
-	key = kmalloc(map->key_size, GFP_USER);
-	if (!key)
-		goto err_put;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+	} else {
+		key = kmalloc(map->key_size, GFP_USER);
+		if (!key)
+			goto err_put;
+	}
 
 	err = -EFAULT;
-	if (copy_from_user(key, ukey, map->key_size) != 0)
-		goto free_key;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+		if (copy_from_user(key, ukey, map->key_size) != 0)
+			goto free_key;
+	}
 
 	if (map->map_type == BPF_MAP_TYPE_PERCPU_HASH ||
 	    map->map_type == BPF_MAP_TYPE_PERCPU_ARRAY)
@@ -464,13 +488,20 @@ static int map_update_elem(union bpf_attr *attr)
 		value_size = map->value_size;
 
 	err = -ENOMEM;
-	value = kmalloc(value_size, GFP_USER | __GFP_NOWARN);
-	if (!value)
-		goto free_key;
+	if (value_size <= sizeof(value_onstack)) {
+		value = value_onstack;
+	} else {
+		value = kmalloc(value_size, GFP_USER | __GFP_NOWARN);
+		if (!value)
+			goto free_key;
+	}
 
 	err = -EFAULT;
-	if (copy_from_user(value, uvalue, value_size) != 0)
-		goto free_value;
+	if (value_size <= sizeof(value_onstack)) {
+		value = value_onstack;
+		if (copy_from_user(value, uvalue, value_size) != 0)
+			goto free_value;
+	}
 
 	/* must increment bpf_prog_active to avoid kprobe+bpf triggering from
 	 * inside bpf map update or delete otherwise deadlocks are possible
@@ -497,9 +528,11 @@ static int map_update_elem(union bpf_attr *attr)
 	preempt_enable();
 
 free_value:
-	kfree(value);
+	if (value != value_onstack)
+		kfree(value);
 free_key:
-	kfree(key);
+	if (key != key_onstack)
+		kfree(key);
 err_put:
 	fdput(f);
 	return err;
@@ -514,6 +547,7 @@ static int map_delete_elem(union bpf_attr *attr)
 	struct bpf_map *map;
 	struct fd f;
 	void *key;
+	u8 key_onstack[SZ_16] __aligned(sizeof(long));
 	int err;
 
 	if (CHECK_ATTR(BPF_MAP_DELETE_ELEM))
@@ -530,13 +564,20 @@ static int map_delete_elem(union bpf_attr *attr)
 	}
 
 	err = -ENOMEM;
-	key = kmalloc(map->key_size, GFP_USER);
-	if (!key)
-		goto err_put;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+	} else {
+		key = kmalloc(map->key_size, GFP_USER);
+		if (!key)
+			goto err_put;
+	}
 
 	err = -EFAULT;
-	if (copy_from_user(key, ukey, map->key_size) != 0)
-		goto free_key;
+	if (map->key_size <= sizeof(key_onstack)) {
+		key = key_onstack;
+		if (copy_from_user(key, ukey, map->key_size) != 0)
+			goto free_key;
+	}
 
 	preempt_disable();
 	__this_cpu_inc(bpf_prog_active);
@@ -547,7 +588,8 @@ static int map_delete_elem(union bpf_attr *attr)
 	preempt_enable();
 
 free_key:
-	kfree(key);
+	if (key != key_onstack)
+		kfree(key);
 err_put:
 	fdput(f);
 	return err;
@@ -563,6 +605,8 @@ static int map_get_next_key(union bpf_attr *attr)
 	int ufd = attr->map_fd;
 	struct bpf_map *map;
 	void *key, *next_key;
+	u8 key_onstack[SZ_16] __aligned(sizeof(long));
+	u8 next_key_onstack[SZ_64] __aligned(sizeof(long));
 	struct fd f;
 	int err;
 
@@ -581,21 +625,32 @@ static int map_get_next_key(union bpf_attr *attr)
 
 	if (ukey) {
 		err = -ENOMEM;
-		key = kmalloc(map->key_size, GFP_USER);
-		if (!key)
-			goto err_put;
+		if (map->key_size <= sizeof(key_onstack)) {
+			key = key_onstack;
+		} else {
+			key = kmalloc(map->key_size, GFP_USER);
+			if (!key)
+				goto err_put;
+		}
 
 		err = -EFAULT;
-		if (copy_from_user(key, ukey, map->key_size) != 0)
-			goto free_key;
+		if (map->key_size <= sizeof(key_onstack)) {
+			key = key_onstack;
+			if (copy_from_user(key, ukey, map->key_size) != 0)
+				goto free_key;
+		}
 	} else {
 		key = NULL;
 	}
 
 	err = -ENOMEM;
-	next_key = kmalloc(map->key_size, GFP_USER);
-	if (!next_key)
-		goto free_key;
+	if (map->key_size <= sizeof(next_key_onstack)) {
+		next_key = next_key_onstack;
+	} else {
+		next_key = kmalloc(map->key_size, GFP_USER);
+		if (!next_key)
+			goto free_key;
+	}
 
 	rcu_read_lock();
 	err = map->ops->map_get_next_key(map, key, next_key);
@@ -610,9 +665,11 @@ static int map_get_next_key(union bpf_attr *attr)
 	err = 0;
 
 free_next_key:
-	kfree(next_key);
+	if (next_key != next_key_onstack)
+		kfree(next_key);
 free_key:
-	kfree(key);
+	if (key != key_onstack)
+		kfree(key);
 err_put:
 	fdput(f);
 	return err;

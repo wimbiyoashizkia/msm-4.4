@@ -1660,7 +1660,8 @@ static void flip_insert_work(struct work_struct *work)
 				retval << 8 | (rx_count - retval) << 16;
 	}
 	if (msm_uport->rx.buffer_pending) {
-		schedule_delayed_work(&msm_uport->rx.flip_insert_work,
+		queue_delayed_work(system_power_efficient_wq, 
+				&msm_uport->rx.flip_insert_work,
 				      msecs_to_jiffies(RETRY_TIMEOUT));
 	} else if (msm_uport->rx.flush <= FLUSH_IGNORE) {
 			MSM_HS_WARN("Pending buffers cleared, restarting");
@@ -1842,7 +1843,8 @@ static void msm_serial_hs_rx_work(struct kthread_work *work)
 out:
 	if (msm_uport->rx.buffer_pending) {
 		MSM_HS_WARN("%s: tty buffer exhausted. Stalling\n", __func__);
-		schedule_delayed_work(&msm_uport->rx.flip_insert_work
+		queue_delayed_work(system_power_efficient_wq, 
+				&msm_uport->rx.flip_insert_work
 				      , msecs_to_jiffies(RETRY_TIMEOUT));
 	}
 	/* tty_flip_buffer_push() might call msm_hs_start(), so unlock */
@@ -3597,7 +3599,8 @@ static int msm_hs_probe(struct platform_device *pdev)
 		msm_uport->pclk = NULL;
 
 	msm_uport->hsuart_wq = alloc_workqueue("k_hsuart",
-					WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+					WQ_UNBOUND | WQ_POWER_EFFICIENT
+					| WQ_MEM_RECLAIM, 1);
 	if (!msm_uport->hsuart_wq) {
 		MSM_HS_ERR("%s(): Unable to create workqueue hsuart_wq\n",
 								__func__);

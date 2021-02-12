@@ -3429,7 +3429,8 @@ void asus_batt_RTC_work(struct work_struct *dat)
 void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 {
 	cancel_delayed_work(&chg->asus_min_monitor_work);
-	schedule_delayed_work(&chg->asus_min_monitor_work, msecs_to_jiffies(time));
+	queue_delayed_work(system_power_efficient_wq, 
+		&chg->asus_min_monitor_work, msecs_to_jiffies(time));
 }
 #define EN_BAT_CHG_EN_COMMAND_TRUE		0
 #define EN_BAT_CHG_EN_COMMAND_FALSE 	BIT(0)
@@ -3775,8 +3776,10 @@ void asus_min_monitor_work(struct work_struct *work)
 
 	if (asus_get_prop_usb_present(smbchg_dev)) {
 		last_jeita_time = current_kernel_time();
-		schedule_delayed_work(&smbchg_dev->asus_min_monitor_work, msecs_to_jiffies(ASUS_MONITOR_CYCLE));
-		schedule_delayed_work(&smbchg_dev->asus_batt_RTC_work, 0);
+		queue_delayed_work(system_power_efficient_wq, 
+			&smbchg_dev->asus_min_monitor_work, msecs_to_jiffies(ASUS_MONITOR_CYCLE));
+		queue_delayed_work(system_power_efficient_wq, 
+				&smbchg_dev->asus_batt_RTC_work, 0);
 	}
 	asus_smblib_relax(smbchg_dev);
 }
@@ -3877,7 +3880,8 @@ void asus_chg_flow_work(struct work_struct *work)
 		} else {
 			printk("%s: Pull high USBSW_S\n", __func__);
 		}
-		schedule_delayed_work(&smbchg_dev->asus_adapter_adc_work, msecs_to_jiffies(15000));
+		queue_delayed_work(system_power_efficient_wq, 
+			&smbchg_dev->asus_adapter_adc_work, msecs_to_jiffies(15000));
 		break;
 	default:
 		asus_smblib_relax(smbchg_dev);
@@ -4226,7 +4230,8 @@ static void smblib_micro_usb_plugin(struct smb_charger *chg, bool vbus_rising)
 			asus_flow_processing = 1;
 			asus_insertion_initial_settings(smbchg_dev);
 			asus_smblib_stay_awake(smbchg_dev);
-			schedule_delayed_work(&smbchg_dev->asus_chg_flow_work, msecs_to_jiffies(12000));
+			queue_delayed_work(system_power_efficient_wq, 
+				&smbchg_dev->asus_chg_flow_work, msecs_to_jiffies(12000));
 			asus_update_usb_connector_state(smbchg_dev);
 		}
 
@@ -4305,7 +4310,7 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 			vote(chg->fcc_votable, FCC_STEPPER_VOTER, false, 0);
 		/* Schedule work to enable parallel charger */
 		vote(chg->awake_votable, PL_DELAY_VOTER, true, 0);
-		schedule_delayed_work(&chg->pl_enable_work,
+		queue_delayed_work(system_power_efficient_wq, &chg->pl_enable_work,
 					msecs_to_jiffies(PL_DELAY_MS));
 	} else {
 		if (chg->wa_flags & BOOST_BACK_WA) {
@@ -4382,7 +4387,7 @@ irqreturn_t smblib_handle_icl_change(int irq, void *data)
 			delay = 0;
 
 		cancel_delayed_work_sync(&chg->icl_change_work);
-		schedule_delayed_work(&chg->icl_change_work,
+		queue_delayed_work(system_power_efficient_wq, &chg->icl_change_work,
 						msecs_to_jiffies(delay));
 	}
 
@@ -4699,8 +4704,9 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 		break;
 	case DCP_CHARGER_BIT:
 		if (chg->wa_flags & QC_CHARGER_DETECTION_WA_BIT)
-			schedule_delayed_work(&chg->hvdcp_detect_work,
-					      msecs_to_jiffies(HVDCP_DET_MS));
+			queue_delayed_work(system_power_efficient_wq, 
+							&chg->hvdcp_detect_work,
+					     		msecs_to_jiffies(HVDCP_DET_MS));
 		break;
 	default:
 		break;
@@ -5230,7 +5236,7 @@ irqreturn_t smblib_handle_usb_typec_change(int irq, void *data)
 		cancel_delayed_work_sync(&chg->uusb_otg_work);
 		vote(chg->awake_votable, OTG_DELAY_VOTER, true, 0);
 		smblib_dbg(chg, PR_INTERRUPT, "Scheduling OTG work\n");
-		schedule_delayed_work(&chg->uusb_otg_work,
+		queue_delayed_work(system_power_efficient_wq, &chg->uusb_otg_work,
 				msecs_to_jiffies(chg->otg_delay_ms));
 		return IRQ_HANDLED;
 	}
@@ -5272,7 +5278,8 @@ irqreturn_t smblib_handle_high_duty_cycle(int irq, void *data)
 	if (chg->irq_info[HIGH_DUTY_CYCLE_IRQ].irq)
 		disable_irq_nosync(chg->irq_info[HIGH_DUTY_CYCLE_IRQ].irq);
 
-	schedule_delayed_work(&chg->clear_hdc_work, msecs_to_jiffies(60));
+	queue_delayed_work(system_power_efficient_wq, 
+			&chg->clear_hdc_work, msecs_to_jiffies(60));
 
 	return IRQ_HANDLED;
 }
@@ -5338,8 +5345,9 @@ irqreturn_t smblib_handle_switcher_power_ok(int irq, void *data)
 			 * permanently suspending the input if the boost-back
 			 * condition is unintentionally hit.
 			 */
-			schedule_delayed_work(&chg->bb_removal_work,
-				msecs_to_jiffies(BOOST_BACK_UNVOTE_DELAY_MS));
+			queue_delayed_work(system_power_efficient_wq, 
+						&chg->bb_removal_work,
+					msecs_to_jiffies(BOOST_BACK_UNVOTE_DELAY_MS));
 		}
 	}
 
@@ -5569,7 +5577,8 @@ static void smblib_otg_oc_work(struct work_struct *work)
 	 * triggered then it is likely that the software based soft start was
 	 * successful and the VBUS < 1V restriction should be re-enabled.
 	 */
-	schedule_delayed_work(&chg->otg_ss_done_work, msecs_to_jiffies(500));
+	queue_delayed_work(system_power_efficient_wq,&chg->otg_ss_done_work,
+								msecs_to_jiffies(500));
 
 	rc = _smblib_vbus_regulator_disable(chg->vbus_vreg->rdev);
 	if (rc < 0) {

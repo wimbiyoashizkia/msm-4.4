@@ -660,7 +660,7 @@ ARCH_CFLAGS :=
 include arch/$(SRCARCH)/Makefile
 
 KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
-KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, frame-address,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, int-in-bool-context)
@@ -694,7 +694,9 @@ KBUILD_CFLAGS	+= -Werror
 endif
 
 ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS	+= -Wno-psabi -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53
+KBUILD_CFLAGS	+= -Wno-psabi
+KBUILD_CFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
+KBUILD_AFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
 endif
 
 KBUILD_CFLAGS += $(call cc-ifversion, -gt, 0900, \

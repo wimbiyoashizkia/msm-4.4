@@ -31,7 +31,10 @@ obj-$(CONFIG_CRYPTO_DEV_VMX) += vmx/
 obj-$(CONFIG_CRYPTO_DEV_SUN4I_SS) += sunxi-ss/
 obj-$(CONFIG_ARCH_QCOM) += msm/
 
-ifeq ($(cc-name),clang)
+ifeq ($(cc-name),gcc)
+ccflags-y += -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+asflags-y += -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+else ifeq ($(cc-name),clang)
 ccflags-y += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a+crc+crypto
 asflags-y += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a+crc+crypto
 endif

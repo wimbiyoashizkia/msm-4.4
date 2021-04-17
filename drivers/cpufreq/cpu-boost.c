@@ -46,7 +46,10 @@ struct cpu_sync {
 static DEFINE_PER_CPU(struct cpu_sync, sync_info);
 static struct kthread_work input_boost_work;
 
-static bool input_boost_enabled;
+static unsigned int input_boost_enabled = 1;
+show_one(input_boost_enabled);
+store_one(input_boost_enabled);
+cpu_boost_attr_rw(input_boost_enabled);
 
 static unsigned int input_boost_ms = 40;
 show_one(input_boost_ms);
@@ -67,7 +70,6 @@ static ssize_t store_input_boost_freq(struct kobject *kobj,
 	int i, ntokens = 0;
 	unsigned int val, cpu;
 	const char *cp = buf;
-	bool enabled = false;
 
 	while ((cp = strpbrk(cp + 1, " :")))
 		ntokens++;
@@ -78,7 +80,7 @@ static ssize_t store_input_boost_freq(struct kobject *kobj,
 			return -EINVAL;
 		for_each_possible_cpu(i)
 			per_cpu(sync_info, i).input_boost_freq = val;
-		goto check_enable;
+		goto out;
 	}
 
 	/* CPU:value pair */
@@ -97,14 +99,7 @@ static ssize_t store_input_boost_freq(struct kobject *kobj,
 		cp++;
 	}
 
-check_enable:
-	for_each_possible_cpu(i) {
-		if (per_cpu(sync_info, i).input_boost_freq) {
-			enabled = true;
-			break;
-		}
-	}
-	input_boost_enabled = enabled;
+out:
 
 	return count;
 }
@@ -218,7 +213,7 @@ static void cpuboost_input_event(struct input_handle *handle,
 {
 	u64 now;
 
-	if (!input_boost_enabled)
+	if (input_boost_enabled < 1)
 		return;
 
 	now = ktime_to_us(ktime_get());
@@ -350,6 +345,10 @@ static int cpu_boost_init(void)
 						&cpu_subsys.dev_root->kobj);
 	if (!cpu_boost_kobj)
 		pr_err("Failed to initialize sysfs node for cpu_boost.\n");
+
+	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_enabled_attr.attr);
+	if (ret)
+		pr_err("Failed to create input_boost_enabled node: %d\n", ret);
 
 	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_ms_attr.attr);
 	if (ret)

@@ -1812,6 +1812,8 @@ static irqreturn_t test_hw_vsync_handler(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+extern int resume_cpufreq_underclock(void);
+
 static int mdss_dsi_disp_wake_thread(void *data)
 {
 	static const struct sched_param max_rt_param = {
@@ -1846,6 +1848,7 @@ static int mdss_dsi_disp_wake_thread(void *data)
 		/* MDSS_EVENT_PANEL_ON */
 		ctrl_pdata->ctrl_state |= CTRL_STATE_MDP_ACTIVE;
 		pdata->panel_info.esd_rdy = true;
+		resume_cpufreq_underclock();
 
 		complete_all(&ctrl_pdata->wake_comp);
 	}
@@ -2950,6 +2953,8 @@ static struct attribute_group mdss_dsi_fs_attrs_group = {
 	.attrs = dynamic_bitclk_fs_attrs,
 };
 
+extern int trigger_cpufreq_underclock(void);
+
 static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 				  int event, void *arg)
 {
@@ -3004,6 +3009,7 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		if (ctrl_pdata->off_cmds.link_state == DSI_LP_MODE)
 			rc = mdss_dsi_blank(pdata, power_state);
 		rc = mdss_dsi_off(pdata, power_state);
+		trigger_cpufreq_underclock();
 		reinit_completion(&ctrl_pdata->wake_comp);
 		atomic_set(&ctrl_pdata->disp_en, MDSS_DISPLAY_OFF);
 		break;

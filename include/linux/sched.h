@@ -2137,6 +2137,9 @@ struct task_struct {
 	unsigned long	task_state_change;
 #endif
 	int pagefault_disabled;
+#ifdef CONFIG_ANDROID_SIMPLE_LMK
+	struct task_struct		*simple_lmk_next;
+#endif
     atomic64_t *concurrent_active_time;
     atomic64_t *concurrent_policy_time;
 /* CPU-specific state of this task */

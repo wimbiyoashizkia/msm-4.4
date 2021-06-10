@@ -589,12 +589,13 @@ static int adrenoboost_debug(struct devfreq *devfreq, unsigned long *freq,
 	int val, level = 0;
 	int last_level = priv->bin.last_level;
 	if (!jump_dir)
-		pr_info("ADRENO jumping\n");
+		pr_debug("ADRENO jumping\n");
 	else if (jump_dir == 1)
-		pr_info("ADRENO NOT jumping UP\n");
+		pr_debug("ADRENO NOT jumping UP\n");
 	else
-		pr_info("ADRENO NOT jumping DOWN\n");
-	pr_info("level = %d last_level = %d total=%d busy=%d original busy_time=%d\n",
+		pr_debug("ADRENO NOT jumping DOWN\n");
+
+	pr_debug("level = %d last_level = %d total=%d busy=%d original busy_time=%d\n",
 			level, priv->bin.last_level,
 			(int)priv->bin.total_time,
 			(int)priv->bin.busy_time, (int)stats.busy_time);

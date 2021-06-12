@@ -153,6 +153,13 @@ enum dsi_pm_type {
 	DSI_MAX_PM
 };
 
+enum alpm_mode_type {
+	ALPM_MODE_OFF,
+	ALPM_MODE_LOW,
+	ALPM_MODE_HIGH,
+	ALPM_MODE_MAX,
+};
+
 /*
  * DSI controller states.
  *	CTRL_STATE_UNKNOWN - Unknown state of DSI controller.
@@ -597,6 +604,10 @@ struct mdss_dsi_ctrl_pdata {
 	bool update_phy_timing; /* flag to recalculate PHY timings */
 
 	bool phy_power_off;
+
+	/* alpm brightness setting */
+	struct dsi_panel_cmds alpm_mode_cmds[ALPM_MODE_MAX];
+	enum alpm_mode_type alpm_mode;
 
 	struct notifier_block wake_notif;
 	struct task_struct *wake_thread;

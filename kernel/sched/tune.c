@@ -845,7 +845,7 @@ schedtune_css_alloc(struct cgroup_subsys_state *parent_css)
 	}
 
 	/* Allow only a limited number of boosting groups */
-	for (idx = 1; idx < BOOSTGROUPS_COUNT; ++idx)
+	for (idx = 0; idx < BOOSTGROUPS_COUNT; ++idx
 		if (!allocated_group[idx])
 			break;
 	if (idx == BOOSTGROUPS_COUNT) {

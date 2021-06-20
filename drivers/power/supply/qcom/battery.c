@@ -60,7 +60,6 @@ struct pl_data {
 	struct delayed_work	status_change_work;
 	struct work_struct	pl_disable_forever_work;
 	struct delayed_work	pl_taper_work;
-	struct delayed_work	pl_awake_work;
 	struct delayed_work	fcc_step_update_work;
 	struct power_supply	*main_psy;
 	struct power_supply	*pl_psy;
@@ -917,14 +916,6 @@ static void pl_disable_forever_work(struct work_struct *work)
 		vote(chip->hvdcp_hw_inov_dis_votable, PL_VOTER, false, 0);
 }
 
-static void pl_awake_work(struct work_struct *work)
-{
-	struct pl_data *chip = container_of(work,
-			struct pl_data, pl_awake_work.work);
-
-	vote(chip->pl_awake_votable, PL_VOTER, false, 0);
-}
-
 static int pl_disable_vote_callback(struct votable *votable,
 		void *data, int pl_disable, const char *client)
 {
@@ -940,11 +931,6 @@ static int pl_disable_vote_callback(struct votable *votable,
 	cancel_delayed_work_sync(&chip->fcc_step_update_work);
 
 	if (!pl_disable) { /* enable */
-		/* keep system awake to talk to slave charger through i2c */
-		cancel_delayed_work_sync(&chip->pl_awake_work);
-		if (chip->pl_awake_votable)
-			vote(chip->pl_awake_votable, PL_VOTER, true, 0);
-
 		rc = power_supply_get_property(chip->pl_psy,
 				POWER_SUPPLY_PROP_CHARGE_TYPE, &pval);
 		if (rc == -ENODEV) {
@@ -1011,11 +997,6 @@ static int pl_disable_vote_callback(struct votable *votable,
 
 		rerun_election(chip->fcc_votable);
 		rerun_election(chip->fv_votable);
-
-		cancel_delayed_work_sync(&chip->pl_awake_work);
-		if (chip->pl_awake_votable)
-			schedule_delayed_work(&chip->pl_awake_work,
-							msecs_to_jiffies(5000));
 	}
 
 	pl_dbg(chip, PR_PARALLEL, "parallel charging %s\n",
@@ -1348,7 +1329,6 @@ int qcom_batt_init(void)
 	INIT_DELAYED_WORK(&chip->status_change_work, status_change_work);
 	INIT_DELAYED_WORK(&chip->pl_taper_work, pl_taper_work);
 	INIT_WORK(&chip->pl_disable_forever_work, pl_disable_forever_work);
-	INIT_DELAYED_WORK(&chip->pl_awake_work, pl_awake_work);
 	INIT_DELAYED_WORK(&chip->fcc_step_update_work, fcc_step_update_work);
 
 	chip->fcc_votable = create_votable("FCC", VOTE_MIN,
@@ -1457,7 +1437,6 @@ void qcom_batt_deinit(void)
 	cancel_delayed_work_sync(&chip->status_change_work);
 	cancel_delayed_work_sync(&chip->pl_taper_work);
 	cancel_work_sync(&chip->pl_disable_forever_work);
-	cancel_delayed_work_sync(&chip->pl_awake_work);
 	cancel_delayed_work_sync(&chip->fcc_step_update_work);
 
 	power_supply_unreg_notifier(&chip->nb);

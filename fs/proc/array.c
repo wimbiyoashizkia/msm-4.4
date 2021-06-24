@@ -194,7 +194,7 @@ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
 	group_info = cred->group_info;
 	for (g = 0; g < group_info->ngroups; g++)
 		seq_printf(m, "%d ",
-			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+			   from_kgid_munged(user_ns, group_info->gid[g]));
 	put_cred(cred);
 
 #ifdef CONFIG_PID_NS

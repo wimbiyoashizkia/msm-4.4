@@ -29,6 +29,7 @@ static const struct adreno_gpu_core adreno_gpulist[] = {
 		.gmem_size = (SZ_256K + SZ_16K),
 		.num_protected_regs = 0x20,
 		.busy_mask = 0xFFFFFFFE,
+		.bus_width = 32,
 	},
         {
 		.gpurev = ADRENO_REV_A509,
@@ -45,5 +46,6 @@ static const struct adreno_gpu_core adreno_gpulist[] = {
 		.gmem_size = (SZ_256K + SZ_16K),
    		.num_protected_regs = 0x20,
 		.busy_mask = 0xFFFFFFFE,
+		.bus_width = 32,
 	}
 };

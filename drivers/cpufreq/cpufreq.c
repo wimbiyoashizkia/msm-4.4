@@ -699,17 +699,13 @@ static int cpufreq_parse_governor(char *str_governor, unsigned int *policy,
 			 * fine; the one scenario where it's not is when a ROM
 			 * has a boot script that requests a governor that
 			 * exists in the default kernel but not in this one.
-			 * This kernel (and nearly every other Android kernel)
-			 * has the performance governor as default for boot
-			 * performance which is then changed to another,
-			 * usually interactive. So, instead of just exiting if
-			 * the requested governor wasn't found, let's try
-			 * falling back to interactive before falling out.
+			 * So, instead of just exiting if the requested governor wasn't found, 
+			 * let's try falling back to schedutil before falling out.
 			 */
 			if (ret == 0)
 				t = find_governor(str_governor);
 			else
-				t = find_governor("interactive");
+				t = find_governor("schedutil");
 		}
 
 		if (t != NULL) {

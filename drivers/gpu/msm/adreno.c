@@ -1339,7 +1339,7 @@ static int _adreno_start(struct adreno_device *adreno_dev)
 	/* Clear FSR here in case it is set from a previous pagefault */
 	kgsl_mmu_clear_fsr(&device->mmu);
 
-	status = adreno_ringbuffer_start(adreno_dev, ADRENO_START_COLD);
+	status = adreno_ringbuffer_start(adreno_dev);
 	if (status)
 		goto error_mmu_off;
 
@@ -2112,10 +2112,7 @@ static int adreno_soft_reset(struct kgsl_device *device)
 	 * otherwise do a full ringbuffer restart
 	 */
 
-	if (ADRENO_FEATURE(adreno_dev, ADRENO_WARM_START))
-		ret = adreno_ringbuffer_start(adreno_dev, ADRENO_START_WARM);
-	else
-		ret = adreno_ringbuffer_start(adreno_dev, ADRENO_START_COLD);
+	ret = adreno_ringbuffer_start(adreno_dev);
 	if (ret == 0) {
 		device->reset_counter++;
 		set_bit(ADRENO_DEVICE_STARTED, &adreno_dev->priv);

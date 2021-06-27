@@ -881,6 +881,8 @@ static int adreno_probe(struct platform_device *pdev)
 	if (adreno_support_64bit(adreno_dev))
 		device->mmu.features |= KGSL_MMU_64BIT;
 
+	device->pwrctrl.bus_width = adreno_dev->gpucore->bus_width;
+
 	/* Default to 4K alignment (in other words, no additional padding) */
 	device->mmu.va_padding = PAGE_SIZE;
 

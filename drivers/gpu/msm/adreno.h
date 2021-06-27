@@ -301,6 +301,7 @@ struct adreno_device_private {
  * @gpmu_tsens: ID for the temporature sensor used by the GPMU
  * @max_power: Max possible power draw of a core, units elephant tail hairs
  * @va_padding: Size to pad allocations to, zero if not required
+ * @bus_width: Bytes transferred in 1 cycle
  */
 struct adreno_gpu_core {
 	enum adreno_gpurev gpurev;
@@ -319,6 +320,7 @@ struct adreno_gpu_core {
 	unsigned int gpmu_minor;
 	unsigned int gpmu_features;
 	unsigned int busy_mask;
+	u32 bus_width;
 	unsigned int lm_major, lm_minor;
 	const char *regfw_name;
 	unsigned int gpmu_tsens;

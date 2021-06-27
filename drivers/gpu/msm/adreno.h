@@ -88,8 +88,6 @@
 /* Adreno core features */
 /* The core uses OCMEM for GMEM/binning memory */
 #define ADRENO_USES_OCMEM     BIT(0)
-/* The core supports an accelerated warm start */
-#define ADRENO_WARM_START     BIT(1)
 /* The core supports the microcode bootstrap functionality */
 #define ADRENO_USE_BOOTSTRAP  BIT(2)
 /* The core supports SP/TP hw controlled power collapse */
@@ -179,9 +177,6 @@ enum adreno_gpurev {
 	ADRENO_REV_A530 = 530,
 	ADRENO_REV_A540 = 540,
 };
-
-#define ADRENO_START_WARM 0
-#define ADRENO_START_COLD 1
 
 #define ADRENO_SOFT_FAULT BIT(0)
 #define ADRENO_HARD_FAULT BIT(1)
@@ -292,13 +287,6 @@ struct adreno_device_private {
  * @zap_name: Filename for the Zap Shader ucode
  * @gpudev: Pointer to the GPU family specific functions for this core
  * @gmem_size: Amount of binning memory (GMEM/OCMEM) to reserve for the core
- * @pm4_jt_idx: Index of the jump table in the PM4 microcode
- * @pm4_jt_addr: Address offset to load the jump table for the PM4 microcode
- * @pfp_jt_idx: Index of the jump table in the PFP microcode
- * @pfp_jt_addr: Address offset to load the jump table for the PFP microcode
- * @pm4_bstrp_size: Size of the bootstrap loader for PM4 microcode
- * @pfp_bstrp_size: Size of the bootstrap loader for PFP microcde
- * @pfp_bstrp_ver: Version of the PFP microcode that supports bootstraping
  * @shader_offset: Offset of shader from gpu reg base
  * @shader_size: Shader size
  * @num_protected_regs: number of protected registers
@@ -323,13 +311,6 @@ struct adreno_gpu_core {
 	const char *zap_name;
 	struct adreno_gpudev *gpudev;
 	size_t gmem_size;
-	unsigned int pm4_jt_idx;
-	unsigned int pm4_jt_addr;
-	unsigned int pfp_jt_idx;
-	unsigned int pfp_jt_addr;
-	unsigned int pm4_bstrp_size;
-	unsigned int pfp_bstrp_size;
-	unsigned int pfp_bstrp_ver;
 	unsigned long shader_offset;
 	unsigned int shader_size;
 	unsigned int num_protected_regs;
@@ -792,7 +773,7 @@ struct adreno_gpudev {
 	void (*platform_setup)(struct adreno_device *);
 	void (*init)(struct adreno_device *);
 	void (*remove)(struct adreno_device *);
-	int (*rb_start)(struct adreno_device *, unsigned int start_type);
+	int (*rb_start)(struct adreno_device *adreno_dev);
 	int (*microcode_read)(struct adreno_device *);
 	void (*perfcounter_init)(struct adreno_device *);
 	void (*perfcounter_close)(struct adreno_device *);
@@ -1379,7 +1360,7 @@ static inline int adreno_bootstrap_ucode(struct adreno_device *adreno_dev)
 {
 	return (ADRENO_FEATURE(adreno_dev, ADRENO_USE_BOOTSTRAP) &&
 		adreno_compare_pfp_version(adreno_dev,
-			adreno_dev->gpucore->pfp_bstrp_ver) >= 0) ? 1 : 0;
+			adreno_dev->gpucore) >= 0) ? 1 : 0;
 }
 
 /**

@@ -692,8 +692,9 @@ static int a3xx_send_me_init(struct adreno_device *adreno_dev,
 	return ret;
 }
 
-static int a3xx_rb_start(struct adreno_device *adreno_dev,
-			 unsigned int start_type)
+static int a3xx_microcode_load(struct adreno_device *adreno_dev);
+
+static int a3xx_rb_start(struct adreno_device *adreno_dev
 {
 	struct adreno_ringbuffer *rb = ADRENO_CURRENT_RINGBUFFER(adreno_dev);
 	int ret;
@@ -712,7 +713,7 @@ static int a3xx_rb_start(struct adreno_device *adreno_dev,
 	adreno_writereg(adreno_dev, ADRENO_REG_CP_RB_BASE,
 			rb->buffer_desc.gpuaddr);
 
-	ret = a3xx_microcode_load(adreno_dev, start_type);
+	ret = a3xx_microcode_load(adreno_dev);
 	if (ret == 0) {
 		/* clear ME_HALT to start micro engine */
 		adreno_writereg(adreno_dev, ADRENO_REG_CP_ME_CNTL, 0);
@@ -1594,7 +1595,7 @@ static int _load_firmware(struct kgsl_device *device, const char *fwfile,
 	return (*buf != NULL) ? 0 : -ENOMEM;
 }
 
-int a3xx_microcode_read(struct adreno_device *adreno_dev)
+static int a3xx_microcode_read(struct adreno_device *adreno_dev)
 {
 	struct kgsl_device *device = KGSL_DEVICE(adreno_dev);
 
@@ -1831,70 +1832,16 @@ static int _ringbuffer_bootstrap_ucode(struct adreno_device *adreno_dev,
 	return ret;
 }
 
-int a3xx_microcode_load(struct adreno_device *adreno_dev,
-				unsigned int start_type)
+static int a3xx_microcode_load(struct adreno_device *adreno_dev)
 {
 	int status;
 	struct adreno_ringbuffer *rb = ADRENO_CURRENT_RINGBUFFER(adreno_dev);
 
-	if (start_type == ADRENO_START_COLD) {
-		/* If bootstrapping if supported to load ucode */
-		if (adreno_bootstrap_ucode(adreno_dev)) {
+	/* load the CP ucode using AHB writes */
+	load_pm4_ucode(adreno_dev, 1, pm4_size, 0);
 
-			/*
-			 * load first pm4_bstrp_size + pfp_bstrp_size microcode
-			 * dwords using AHB write, this small microcode has
-			 * dispatcher + booter this initial microcode enables
-			 * CP to understand CP_BOOTSTRAP_UCODE packet in
-			 * function _ringbuffer_bootstrap_ucode.
-			 * CP_BOOTSTRAP_UCODE packet loads rest of the
-			 * microcode.
-			 */
-
-			load_pm4_ucode(adreno_dev, 1,
-				adreno_dev->gpucore->pm4_bstrp_size+1, 0);
-
-			load_pfp_ucode(adreno_dev, 1,
-				adreno_dev->gpucore->pfp_bstrp_size+1, 0);
-
-			/* Bootstrap rest of the ucode here */
-			status = _ringbuffer_bootstrap_ucode(adreno_dev, rb, 0);
-			if (status != 0)
-				return status;
-
-		} else {
-			/* load the CP ucode using AHB writes */
-			load_pm4_ucode(adreno_dev, 1, adreno_dev->pm4_fw_size,
-				0);
-
-			/* load the prefetch parser ucode using AHB writes */
-			load_pfp_ucode(adreno_dev, 1, adreno_dev->pfp_fw_size,
-				0);
-		}
-	} else if (start_type == ADRENO_START_WARM) {
-			/* If bootstrapping if supported to load jump tables */
-		if (adreno_bootstrap_ucode(adreno_dev)) {
-			status = _ringbuffer_bootstrap_ucode(adreno_dev, rb, 1);
-			if (status != 0)
-				return status;
-
-		} else {
-			/* load the CP jump tables using AHB writes */
-			load_pm4_ucode(adreno_dev,
-				adreno_dev->gpucore->pm4_jt_idx,
-				adreno_dev->pm4_fw_size,
-				adreno_dev->gpucore->pm4_jt_addr);
-
-			/*
-			 * load the prefetch parser jump tables using AHB writes
-			 */
-			load_pfp_ucode(adreno_dev,
-				adreno_dev->gpucore->pfp_jt_idx,
-				adreno_dev->pfp_fw_size,
-				adreno_dev->gpucore->pfp_jt_addr);
-		}
-	} else
-		return -EINVAL;
+	/* load the prefetch parser ucode using AHB writes */
+	load_pfp_ucode(adreno_dev, 1, pfp_size, 0);
 
 	return 0;
 }

@@ -34,7 +34,7 @@
 #define USF_VERSION_ID 0x0171
 
 /* Standard timeout in the asynchronous ops */
-#define USF_TIMEOUT_JIFFIES 1000 /* 1 sec */
+#define USF_TIMEOUT_JIFFIES (msecs_to_jiffies(1000)) /* 1 sec */
 
 /* Undefined USF device */
 #define USF_UNDEF_DEV_ID 0xffff

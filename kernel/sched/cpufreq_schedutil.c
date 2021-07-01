@@ -711,6 +711,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 {
 	struct sugov_policy *sg_policy;
 	struct sugov_tunables *tunables;
+	unsigned int lat;
 	int ret = 0;
 
 	/* State should be equivalent to EXIT */
@@ -753,15 +754,25 @@ static int sugov_init(struct cpufreq_policy *policy)
 		tunables->up_rate_limit_us = policy->up_transition_delay_us;
 		tunables->down_rate_limit_us = policy->down_transition_delay_us;
 	} else {
-		unsigned int lat;
+		if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+			tunables->up_rate_limit_us =
+					CONFIG_SCHEDUTIL_UP_RATE_LIMIT_BIG;
+			tunables->down_rate_limit_us =
+					CONFIG_SCHEDUTIL_DOWN_RATE_LIMIT_BIG;
+		}
 
-                tunables->up_rate_limit_us = LATENCY_MULTIPLIER;
-                tunables->down_rate_limit_us = LATENCY_MULTIPLIER;
+		if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+			tunables->up_rate_limit_us =
+					CONFIG_SCHEDUTIL_UP_RATE_LIMIT_LITTLE;
+			tunables->down_rate_limit_us =
+					CONFIG_SCHEDUTIL_DOWN_RATE_LIMIT_LITTLE;
+		}
+
 		lat = policy->cpuinfo.transition_latency / NSEC_PER_USEC;
 		if (lat) {
-                        tunables->up_rate_limit_us *= lat;
-                        tunables->down_rate_limit_us *= lat;
-                }
+			tunables->up_rate_limit_us *= lat;
+			tunables->down_rate_limit_us *= lat;
+		}
 	}
 
 	tunables->iowait_boost_enable = policy->iowait_boost_enable;

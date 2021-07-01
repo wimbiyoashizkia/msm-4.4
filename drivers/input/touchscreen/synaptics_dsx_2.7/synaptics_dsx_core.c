@@ -1342,8 +1342,10 @@ static int synaptics_rmi4_f11_abs_report(struct synaptics_rmi4_data *rmi4_data,
 
 		if (detected_gestures) {
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 1);
+			input_report_key(rmi4_data->input_dev, KEY_DOUBLE_TAP, 1);
 			input_sync(rmi4_data->input_dev);
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 0);
+			input_report_key(rmi4_data->input_dev, KEY_DOUBLE_TAP, 0);
 			input_sync(rmi4_data->input_dev);
 			rmi4_data->suspend = false;
 		}
@@ -1609,12 +1611,14 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 #else
 		if (gesture_type && gesture_type != F12_UDG_DETECT) {
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 1);
+			input_report_key(rmi4_data->input_dev, KEY_DOUBLE_TAP, 1);
 #endif /* CONFIG_MACH_ASUS_X00T */
 			input_sync(rmi4_data->input_dev);
 #ifdef CONFIG_MACH_ASUS_X00T
 			input_report_key(rmi4_data->input_dev, keycode, 0);
 #else
 			input_report_key(rmi4_data->input_dev, KEY_WAKEUP, 0);
+			input_report_key(rmi4_data->input_dev, KEY_DOUBLE_TAP, 0);
 #endif
 			input_sync(rmi4_data->input_dev);
 #ifdef CONFIG_MACH_ASUS_X00T
@@ -3794,6 +3798,7 @@ static void synaptics_rmi4_set_params(struct synaptics_rmi4_data *rmi4_data)
 
 	if (rmi4_data->f11_wakeup_gesture || rmi4_data->f12_wakeup_gesture) {
 		set_bit(KEY_WAKEUP, rmi4_data->input_dev->keybit);
+		set_bit(KEY_DOUBLE_TAP, rmi4_data->input_dev->keybit);
 #ifdef CONFIG_MACH_ASUS_X00T
 		input_set_capability(rmi4_data->input_dev, EV_KEY,
 					GESTURE_EVENT_DOUBLE_CLICK);
@@ -3820,6 +3825,7 @@ static void synaptics_rmi4_set_params(struct synaptics_rmi4_data *rmi4_data)
 					GESTURE_EVENT_SWIPE_UP);
 #else
 		input_set_capability(rmi4_data->input_dev, EV_KEY, KEY_WAKEUP);
+		input_set_capability(rmi4_data->input_dev, EV_KEY, KEY_DOUBLE_TAP);
 #endif
 	}
 

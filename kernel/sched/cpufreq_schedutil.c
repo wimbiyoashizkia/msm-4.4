@@ -26,8 +26,6 @@ unsigned long boosted_cpu_util(int cpu);
 #define cpufreq_driver_fast_switch(x, y) 0
 #define cpufreq_enable_fast_switch(x)
 #define cpufreq_disable_fast_switch(x)
-#define LATENCY_MULTIPLIER			(1000)
-
 #define DEFAULT_DOWN_TOLERANCE_LP (20 * NSEC_PER_MSEC)
 #define DEFAULT_DOWN_TOLERANCE_PERF (20 * NSEC_PER_MSEC)
 

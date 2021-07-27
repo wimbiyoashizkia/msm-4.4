@@ -41,6 +41,11 @@ aes-arm64-y := aes-cipher-core.o aes-cipher-glue.o
 AFLAGS_aes-ce.o		:= -DINTERLEAVE=4
 AFLAGS_aes-neon.o	:= -DINTERLEAVE=4
 
+ifeq ($(cc-name),gcc)
+ccflags-y += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+asflags-y += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+endif
+
 CFLAGS_aes-glue-ce.o	:= -DUSE_V8_CRYPTO_EXTENSIONS
 
 $(obj)/aes-glue-%.o: $(src)/aes-glue.c FORCE

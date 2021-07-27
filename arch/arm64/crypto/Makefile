@@ -42,8 +42,8 @@ AFLAGS_aes-ce.o		:= -DINTERLEAVE=4
 AFLAGS_aes-neon.o	:= -DINTERLEAVE=4
 
 ifeq ($(cc-name),gcc)
-ccflags-y += -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
-asflags-y += -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+ccflags-y += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
+asflags-y += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a+crc+crypto
 else ifeq ($(cc-name),clang)
 ccflags-y += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a+crc+crypto
 asflags-y += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a+crc+crypto

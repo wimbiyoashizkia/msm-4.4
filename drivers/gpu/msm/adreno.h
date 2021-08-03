@@ -1362,7 +1362,7 @@ static inline int adreno_bootstrap_ucode(struct adreno_device *adreno_dev)
 {
 	return (ADRENO_FEATURE(adreno_dev, ADRENO_USE_BOOTSTRAP) &&
 		adreno_compare_pfp_version(adreno_dev,
-			adreno_dev->gpucore) >= 0) ? 1 : 0;
+			adreno_dev->pfp_fw_version) >= 0) ? 1 : 0;
 }
 
 /**

@@ -136,4 +136,9 @@ extern int sysctl_sched_lib_name_handler(struct ctl_table *table, int write,
 					 loff_t *ppos);
 extern bool is_sched_lib_based_app(pid_t pid);
 
+extern unsigned int sysctl_sched_boost;
+
+extern int sched_boost_handler(struct ctl_table *table, int write,
+			       void __user *buffer, size_t *lenp, loff_t *ppos);
+
 #endif /* _SCHED_SYSCTL_H */

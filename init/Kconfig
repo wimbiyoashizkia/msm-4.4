@@ -1347,6 +1347,16 @@ config SCHED_TUNE
 
 	  If unsure, say N.
 
+config DYNAMIC_STUNE_BOOST
+	bool "Dynamic schedtune boosting support"
+	depends on SCHED_TUNE && CGROUP_SCHEDTUNE
+	default y
+	help
+	  This option extends the schedtune framework and provides APIs to
+	  activate and reset schedtune boosting from anywhere in the kernel.
+
+	  If unsure, say N.
+
 config DEFAULT_USE_ENERGY_AWARE
 	bool "Default to enabling the Energy Aware Scheduler feature"
 	default n

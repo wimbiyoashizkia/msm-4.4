@@ -3590,4 +3590,11 @@ void cpufreq_add_update_util_hook(int cpu, struct update_util_data *data,
 void cpufreq_remove_update_util_hook(int cpu);
 #endif /* CONFIG_CPU_FREQ */
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+int do_stune_boost(int boost, int *slot);
+int do_stune_sched_boost(int *slot);
+int reset_stune_boost(int slot);
+int get_sched_boost(void);
+#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
+
 #endif

@@ -102,6 +102,25 @@ config CPU_BOOST
 
 	  If in doubt, say N.
 
+if CPU_BOOST
+
+config STUNE_BOOST
+	int "Foreground app SchedTune boost value"
+	depends on DYNAMIC_STUNE_BOOST
+	default "0"
+	help
+	  SchedTune boost value for the foreground app. This alters the
+	  perceived load in order to bias CPU and frequency selection.
+
+config STUNE_BOOST_DURATION
+	int "Foreground app SchedTune boost duration"
+	depends on DYNAMIC_STUNE_BOOST
+	default "40"
+	help
+	  SchedTune boost duration in milliseconds.
+
+endif
+
 comment "CPU frequency scaling drivers"
 
 config CPUFREQ_DT

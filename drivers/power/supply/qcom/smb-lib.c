@@ -30,7 +30,6 @@
 #include <linux/qpnp/qpnp-adc.h>
 #include "fg-core.h"
 #include <linux/gpio.h>
-#include <linux/fs.h>
 #include <linux/alarmtimer.h>
 #include <linux/unistd.h>
 #include <linux/fcntl.h>

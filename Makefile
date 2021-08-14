@@ -651,11 +651,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, integer-overflow)
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
-ifdef CONFIG_PROFILE_ALL_BRANCHES
-KBUILD_CFLAGS	+= -O3
-else
 KBUILD_CFLAGS   += -O3
-endif
 endif
 
 ifdef CONFIG_CC_WERROR

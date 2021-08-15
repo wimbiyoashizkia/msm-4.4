@@ -39,7 +39,7 @@ KERNEL_DIR=$PWD
 KERNEL="NEON"
 
 # Kernel zip name type
-TYPE="nightly"
+TYPE="Stable"
 
 #The name of the device for which the kernel is built
 MODEL="Asus Zenfone Max Pro M1"
@@ -74,7 +74,7 @@ PTTG=1
 	if [ $PTTG = 1 ]
 	then
 		# Set Telegram Chat ID
-		CHATID="-1001520174422"
+		CHATID="-1001347363864"
 	fi
 
 # Generate a full DEFCONFIG prior building. 1 is YES | 0 is NO(default)
@@ -198,11 +198,7 @@ tg_post_build() {
 
 # Function to replace defconfig versioning
 setversioning() {
-if [[ "$CI_BRANCH" == "personal" ]]; then
-    KERNELNAME="$KERNEL-$DEVICE-$KERNELTYPE-$TYPE-$DATE"
-    export KERNELTYPE KERNELNAME
-    export ZIPNAME="$KERNELNAME.zip"
-else
+if [[ "$CI_BRANCH" == "sdm660-eas" ]]; then
     KERNELNAME="$KERNEL-$DEVICE-$KERNELTYPE-$TYPE-$DATE"
     export KERNELTYPE KERNELNAME
     export ZIPNAME="$KERNELNAME.zip"

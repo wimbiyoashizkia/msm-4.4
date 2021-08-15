@@ -29,3 +29,4 @@ obj-$(CONFIG_CPU_FREQ) += cpufreq.o
 obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 obj-$(CONFIG_CPU_FREQ_GOV_PIXUTIL) += cpufreq_pixutil.o
 obj-$(CONFIG_CPU_FREQ_GOV_ENERGY) += cpufreq_energy_dcfc.o
+obj-$(CONFIG_CPU_FREQ_GOV_SMURFUTIL) += cpufreq_smurfutil.o

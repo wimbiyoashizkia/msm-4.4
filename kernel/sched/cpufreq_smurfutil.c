@@ -38,8 +38,8 @@ unsigned long boosted_cpu_util(int cpu);
 #define TARGET_LOAD_1_BIGC 			25
 #define TARGET_LOAD_2_BIGC 			75
 
-#define DEFAULT_SUSPEND_MAX_FREQ_SILVER 300000
-#define DEFAULT_SUSPEND_MAX_FREQ_GOLD 825600
+#define DEFAULT_SUSPEND_MAX_FREQ_SILVER 633600
+#define DEFAULT_SUSPEND_MAX_FREQ_GOLD 1113600
 #define DEFAULT_SUSPEND_CAPACITY_FACTOR 10
 
 /* Stub out fast switch routines present on mainline to reduce the backport

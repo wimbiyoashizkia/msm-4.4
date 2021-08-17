@@ -771,3 +771,7 @@ config SPECULATIVE_PAGE_FAULT
 	  is detected or because underlying PMD or PTE tables are not yet
 	  allocated, the speculative page fault fails and a classic page fault
 	  is then tried.
+
+config ZSWAP_DEFAULT_COMPRESSOR
+	string "Default ZSWAP compressor"
+	default "lzo"

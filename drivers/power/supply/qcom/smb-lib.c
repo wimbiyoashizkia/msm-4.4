@@ -3963,58 +3963,50 @@ static void CHG_TYPE_judge(struct smb_charger *chg)
 	/* read charger ID via pm660 gpio3 */
 	adc_result = get_ID_vadc_voltage();
 
-        if(flag_repeat == 0)
-   {
-	/* vdm1 < 0.3v */
-	if (adc_result <= VADC_THD_300MV) {
-		ret = gpio_direction_output(global_gpio->ADCPWREN_PMI_GP1, 1);
-		if (ret)
-			pr_err("%s: failed to pull-high ADCPWREN_PMI_GP1-gpios34\n",
-				__func__);
-		else
-			pr_debug("%s: Pull high ADC_VH_EN\n", __func__);
-
-		msleep(500);
-                
-        if(flag_repeat == 0)
-		/* vdm2 > 1v */
-		adc_result = get_ID_vadc_voltage();
-		if (adc_result >= VADC_THD_1000MV) { //For Others only
-		   { 	ASUS_ADAPTER_ID = OTHERS;
-                        flag_repeat = 1;
-                   }
-		} else {
-			/* 0.675 < adc_result < 0.851 */         //For asus only             
-			if (adc_result >= MIN_750K && adc_result <= MAX_750K) {
-				ASUS_ADAPTER_ID = ASUS_750K;
-                                flag_repeat = 1;
-			/* 0.306 < adc_result <  0.406 */
-			} else if (adc_result >= MIN_200K &&
-					adc_result <= MAX_200K){
-				ASUS_ADAPTER_ID = ASUS_200K;
-                                flag_repeat = 1;
-			} 
-                                
-                }
-	/* vdm1 */
-	} else {
-		if (adc_result >= VADC_THD_900MV)
-		    ASUS_ADAPTER_ID = PB;
-                   else
+	if (flag_repeat == 0) {
+		/* vdm1 < 0.3v */
+		if (adc_result <= VADC_THD_300MV) {
+			ret = gpio_direction_output(global_gpio->ADCPWREN_PMI_GP1, 1);
+			if (ret) {
+				pr_err("%s: failed to pull-high ADCPWREN_PMI_GP1-gpios34\n",
+					__func__);
+			} else {
+				pr_debug("%s: Pull high ADC_VH_EN\n", __func__);
+			}
+			msleep(500);
+		} else if (adc_result >= VADC_THD_1000MV) {
+		 	 /* vdm2 > 1v */
+		  	/* For Others only */
 			ASUS_ADAPTER_ID = OTHERS;
-                } 
+			flag_repeat = 1;
+		} else if (adc_result >= MIN_750K && adc_result <= MAX_750K) {
+			/* 0.675 < adc_result < 0.851 */
+			/* For asus only */   
+			ASUS_ADAPTER_ID = ASUS_750K;
+			flag_repeat = 1;
+		} else if (adc_result >= MIN_200K && adc_result <= MAX_200K) {
+			/* 0.306 < adc_result < 0.406 */
+			ASUS_ADAPTER_ID = ASUS_200K;
+			flag_repeat = 1;
+		} else {
+			/* vdm1 */
+			if (adc_result >= VADC_THD_900MV) {
+				ASUS_ADAPTER_ID = PB;
+			} else {
+				ASUS_ADAPTER_ID = OTHERS;
+			}
+		}
+	}
 
-    }
-
-    if(ASUS_ADAPTER_ID == 4||ASUS_ADAPTER_ID == 3) //Non-Asus-Charger
-        printk("OTHER_CHARGER\n");
-   
-       else if(ASUS_ADAPTER_ID == 1||ASUS_ADAPTER_ID == 2)//Asus-Charger
-                printk("ASUS_CHARGER\n");
-    
-               else if(ASUS_ADAPTER_ID == 3)
-                        printk("POWER_BANK");
-        
+	if (ASUS_ADAPTER_ID == 4 || ASUS_ADAPTER_ID == 3) {
+		/* Non-Asus-Charger */
+		printk("OTHER_CHARGER\n");
+	} else if (ASUS_ADAPTER_ID == 1 || ASUS_ADAPTER_ID == 2) {
+		/* Asus-Charger */
+		printk("ASUS_CHARGER\n");
+	} else {
+		printk("POWER_BANK");
+	}
 }
 
 void asus_adapter_adc_work(struct work_struct *work)
@@ -4038,9 +4030,9 @@ void asus_adapter_adc_work(struct work_struct *work)
 			__func__);
 
 	msleep(5);
-       	CHG_TYPE_judge(smbchg_dev);
+	CHG_TYPE_judge(smbchg_dev);
 
-    	usb_max_current = ICL_4000mA;
+	usb_max_current = ICL_4000mA;
 
 	rc = smblib_set_usb_suspend(smbchg_dev, 0);
 	if (rc < 0)
@@ -4083,7 +4075,7 @@ void asus_insertion_initial_settings(struct smb_charger *chg)
 {
 	int rc;
 	u8 USBIN_cc;
-        flag_repeat = 0;
+	flag_repeat = 0;
 
 	/* reg=1060, 0x03, 75mA, gaiwei, 0x06, 150mA */
 	rc = smblib_write(chg, PRE_CHARGE_CURRENT_CFG_REG, 0x06);

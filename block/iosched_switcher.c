@@ -69,11 +69,11 @@ static void change_all_elevators(struct list_head *head, bool use_noop)
 static int fb_notifier_callback(struct notifier_block *nb,
 		unsigned long action, void *data)
 {
-	if (!enabled)
-		return NOTIFY_OK;
-
 	struct fb_event *evdata = data;
 	int *blank = evdata->data;
+
+	if (!enabled)
+		return NOTIFY_OK;
 
 	/* Parse framebuffer events as soon as they occur */
 	if (action != FB_EARLY_EVENT_BLANK)

@@ -65,7 +65,7 @@
 #include <linux/kthread.h>
 #include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
-#include <linux/state_notifier.h>
+#include <linux/display_state.h>
 
 #include <asm/sections.h>
 #include <asm/tlbflush.h>
@@ -3317,7 +3317,7 @@ retry:
 		goto noretry;
 
 	/* Boost when memory is low so allocation latency doesn't get too bad */
-	if (!state_suspended) {
+	if (is_display_on()) {
 		cpu_input_boost_kick_max(100);
 		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 	}

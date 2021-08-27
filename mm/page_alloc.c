@@ -63,6 +63,7 @@
 #include <linux/page_owner.h>
 #include <linux/kthread.h>
 #include <linux/devfreq_boost.h>
+#include <linux/display_state.h>
 
 #include <asm/sections.h>
 #include <asm/tlbflush.h>
@@ -3282,7 +3283,9 @@ retry:
 		goto noretry;
 
 	/* Boost when memory is low so allocation latency doesn't get too bad */
-	devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
+	if (is_display_on()) {
+		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
+	}
 
 	/* Keep reclaiming pages as long as there is reasonable progress */
 	pages_reclaimed += did_some_progress;

@@ -1747,7 +1747,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 /********************add protect , 20170908***********************/
 #if NVT_TOUCH_ESD_PROTECT
 	INIT_DELAYED_WORK(&nvt_esd_check_work, nvt_esd_check_func);
-	nvt_esd_check_wq = create_workqueue("nvt_esd_check_wq");
+	nvt_esd_check_wq = alloc_workqueue("nvt_esd_check_wq", WQ_HIGHPRI | WQ_UNBOUND, 0);
 	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
 	msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
 #endif

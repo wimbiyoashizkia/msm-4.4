@@ -809,7 +809,6 @@ info_retry:
 *******************************************************/
 #if NVT_TOUCH_PROC
 static struct proc_dir_entry *NVT_proc_entry;
-#define DEVICE_NAME	"NVTflash"
 
 /*******************************************************
 Description:
@@ -945,7 +944,7 @@ return:
 *******************************************************/
 static int32_t nvt_flash_proc_init(void)
 {
-	NVT_proc_entry = proc_create(DEVICE_NAME, 0444, NULL,&nvt_flash_fops);
+	NVT_proc_entry = proc_create("wake_node", 0444, NULL,&nvt_flash_fops);
 	if (NVT_proc_entry == NULL) {
 		NVT_ERR("Failed!\n");
 		return -ENOMEM;

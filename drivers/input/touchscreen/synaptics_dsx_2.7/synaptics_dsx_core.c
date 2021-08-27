@@ -4574,7 +4574,7 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 	struct synaptics_rmi4_data *rmi4_data;
 	const struct synaptics_dsx_hw_interface *hw_if;
 	const struct synaptics_dsx_board_data *bdata;
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
+	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO - 1 };
 
 	hw_if = pdev->dev.platform_data;
 	if (!hw_if) {

@@ -18,98 +18,60 @@
 #ifndef 	_LINUX_NVT_TOUCH_H
 #define		_LINUX_NVT_TOUCH_H
 
-#if 0
-/* Huaqin add by yuexinghan for ITO test start */
-#include <linux/platform_device.h>
-#include <linux/device.h>
-/* Huaqin add by yuexinghan for ITO test end */
-#endif
-
 #include <linux/i2c.h>
 #include <linux/input.h>
-/* Huaqin add by yuexinghan for ITO test start */
 #include <linux/regulator/consumer.h>
-//#include <linux/debugfs.h>
-/* Huaqin add by yuexinghan for ITO test end */
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
 
 #define NVT_DEBUG 0
-
-//---GPIO number---
+/* ---GPIO number--- */
 #define NVTTOUCH_INT_PIN 943
-// Huaqin add for vsp/vsn. by zhengwu.lu. at 2018/03/07  start
 #define NVT_POWER_SOURCE_CUST_EN  1
-
 #if NVT_POWER_SOURCE_CUST_EN
 #define LCM_LAB_MIN_UV                      6000000
 #define LCM_LAB_MAX_UV                      6000000
 #define LCM_IBB_MIN_UV                      6000000
 #define LCM_IBB_MAX_UV                      6000000
 #endif
-// Huaqin add for vsp/vsn. by zhengwu.lu. at 2018/03/07  end
-
-//---INT trigger mode---
-//#define IRQ_TYPE_EDGE_RISING 1
-//#define IRQ_TYPE_EDGE_FALLING 2
 #define INT_TRIGGER_TYPE IRQ_TYPE_EDGE_RISING
-
-
-//---I2C driver info.---
+/* ---I2C driver info.--- */
 #define NVT_I2C_NAME "NVT-ts"
 #define I2C_BLDR_Address 0x01
 #define I2C_FW_Address 0x01
 #define I2C_HW_Address 0x62
-
 #if NVT_DEBUG
 #define NVT_LOG(fmt, args...)    pr_err("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
 #else
 #define NVT_LOG(fmt, args...)    pr_info("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
 #endif
 #define NVT_ERR(fmt, args...)    pr_err("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
-
-//---Input device info.---
+/* ---Input device info.--- */
 #define NVT_TS_NAME "NVTCapacitiveTouchScreen"
-
-#if 0
-/* Huaqin add by yuexinghan for ITO test start */
-#define HWINFO_NAME		"tp_wake_switch"
-//-------------add ito test
-extern int32_t ito_selftest_open(void);
-/* Huaqin add by yuexinghan for ITO test end */
-#endif
-
-//---Touch info.---
+/* ---Touch info.--- */
 #define TOUCH_MAX_FINGER_NUM 10
 #define TOUCH_KEY_NUM 0
-#if TOUCH_KEY_NUM > 0
-extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
-#endif
 #define TOUCH_FORCE_NUM 1000
-
-//---Customerized func.---
+/* ---Customerized func.--- */
 #define NVT_TOUCH_PROC 1
 #define NVT_TOUCH_EXT_PROC 1
 #define NVT_TOUCH_MP 0
 #define MT_PROTOCOL_B 1
 #define WAKEUP_GESTURE 1
-#if WAKEUP_GESTURE
-extern const uint16_t gesture_key_array[];
-#endif
-
-// Huaqin add for nvt_tp check function. by zhengwu.lu. at  2018/03/01  start
 #define BOOT_UPDATE_FIRMWARE 1
 #define DJ_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_dj.bin"
 #define TXD_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_txd.bin"
-//#define BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw.bin"
-// Huaqin add for nvt_tp check function. by zhengwu.lu. at  2018/03/01  end
-
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-//---ESD Protect.---
+/* ---ESD Protect.--- */
 #define NVT_TOUCH_ESD_PROTECT 0
-#define NVT_TOUCH_ESD_CHECK_PERIOD 1500	/* ms */
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
+#define NVT_TOUCH_ESD_CHECK_PERIOD 1500
+
+#if TOUCH_KEY_NUM > 0
+extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
+#endif
+#if WAKEUP_GESTURE
+extern const uint16_t gesture_key_array[];
+#endif
 
 struct nvt_ts_mem_map {
 	uint32_t EVENT_BUF_ADDR;
@@ -164,14 +126,12 @@ struct nvt_ts_data {
 	const struct nvt_ts_mem_map *mmap;
 	uint8_t carrier_system;
 	uint16_t nvt_pid;
-// Huaqin add for vsp/vsn. by zhengwu.lu. at 2018/03/07  start
 #if NVT_POWER_SOURCE_CUST_EN
 	struct regulator *lcm_lab;
 	struct regulator *lcm_ibb;
 	atomic_t lcm_lab_power;
 	atomic_t lcm_ibb_power;
 #endif
-// Huaqin add for vsp/vsn. by zhengwu.lu. at 2018/03/07  end
 };
 
 #if NVT_TOUCH_PROC
@@ -182,10 +142,10 @@ struct nvt_flash_data{
 #endif
 
 typedef enum {
-	RESET_STATE_INIT = 0xA0,// IC reset
-	RESET_STATE_REK,		// ReK baseline
-	RESET_STATE_REK_FINISH,	// baseline is ready
-	RESET_STATE_NORMAL_RUN,	// normal run
+	RESET_STATE_INIT = 0xA0,	/* IC reset */
+	RESET_STATE_REK,			/* ReK baseline */
+	RESET_STATE_REK_FINISH,		/* baseline is ready */
+	RESET_STATE_NORMAL_RUN,		/* normal run */
 	RESET_STATE_MAX  = 0xAF
 } RST_COMPLETE_STATE;
 
@@ -197,15 +157,10 @@ typedef enum {
     EVENT_MAP_PROJECTID                     = 0x9A,
 } I2C_EVENT_MAP;
 
-//---extern structures---
+/* ---extern structures--- */
 extern struct nvt_ts_data *ts;
-#if 0
-/* Huaqin add by yuexinghan for ITO test start */
-extern int nvt_TestResultLen;
-/* Huaqin add by yuexinghan for ITO test end */
-#endif
 
-//---extern functions---
+/* ---extern functions--- */
 extern int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address, uint8_t *buf, uint16_t len);
 extern int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address, uint8_t *buf, uint16_t len);
 extern void nvt_bootloader_reset(void);
@@ -214,11 +169,8 @@ extern int32_t nvt_check_fw_reset_state(RST_COMPLETE_STATE check_reset_state);
 extern int32_t nvt_get_fw_info(void);
 extern int32_t nvt_clear_fw_status(void);
 extern int32_t nvt_check_fw_status(void);
-
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
 #if NVT_TOUCH_ESD_PROTECT
 extern void nvt_esd_check_enable(uint8_t enable);
 #endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 #endif /* _LINUX_NVT_TOUCH_H */

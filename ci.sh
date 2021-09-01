@@ -137,7 +137,7 @@ clone() {
 	if [ $COMPILER = "clang" ]
 	then
 		msg "|| Cloning Clang ||"
-		git clone --depth=1 https://github.com/NEONxDroid/NEON-Clang clang
+		git clone --depth=1 https://github.com/wimbiyoashizkia/NEON-Clang clang
 
 		# Toolchain Directory defaults to clang
 		TC_DIR=$KERNEL_DIR/clang

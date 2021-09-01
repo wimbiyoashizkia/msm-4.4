@@ -9,7 +9,7 @@ jobs:
           no_output_timeout: 50m
           command: |
            apt-get -y update && apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get -y install bc build-essential bison flex zip gcc clang libc6 curl libstdc++6 git wget libssl-dev zstd openjdk-11-jdk openjdk-11-jre
-           git clone https://wimbiyoashizkia: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@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas-test --depth=1 msm-4.4
+           git clone https://wimbiyoashizkia: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@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas-test --depth=1 msm-4.4
            cd msm-4.4
            source ci.sh
 workflows:

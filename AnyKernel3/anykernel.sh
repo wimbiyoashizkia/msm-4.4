@@ -51,36 +51,6 @@ else
 fi
 # end EAS patch changes
 
-# begin Screen OC
-ui_print " " "Detecting Screen OC..."
-case "$ZIPFILE" in
-	*63fps*|*63hz*)
-		ui_print "Detected 63hz! Set to 63hz refresh rate..."
-		ui_print "WARNING: AT YOUR RISK!!!"
-		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=63"
-		;;
-	*65fps*|*65hz*)
-		ui_print "Detected 65hz! Set to 65hz refresh rate..."
-		ui_print "WARNING: AT YOUR RISK!!!"
-		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=65"
-		;;
-	*67fps*|*67hz*)
-		ui_print "Detected 67hz! Set to 67hz refresh rate..."
-		ui_print "WARNING: AT YOUR RISK!!!"
-		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=67"
-		;;
-	*69fps*|*69hz*)
-		ui_print "Detected 69hz! Set to 69hz refresh rate..."
-		ui_print "WARNING: AT YOUR RISK!!!"
-		ui_print "You’re using the max refresh rate for X00T/D currently."
-		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=69"
-		;;
-	*)
-		ui_print "Screen OC no Detected! Set to 60hz refresh rate..."
-		patch_cmdline "mdss_dsi.custom_refresh_rate" ""
-esac
-# end Screen OC
-
 write_boot;
 ## end boot install
 

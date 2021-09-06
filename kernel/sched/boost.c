@@ -12,9 +12,10 @@
 
 #include "sched.h"
 
+unsigned int sysctl_sched_boost;
+
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 static int boost_slot;
-#endif // CONFIG_DYNAMIC_STUNE_BOOST
 
 /*
  * Scheduler boost is a mechanism to temporarily place tasks on CPUs
@@ -22,9 +23,6 @@ static int boost_slot;
  * ended up with their load characteristics. Any entity enabling
  * boost is responsible for disabling it as well.
  */
-
-unsigned int sysctl_sched_boost;
-
 static bool verify_boost_params(int old_val, int new_val)
 {
 	/*
@@ -34,6 +32,7 @@ static bool verify_boost_params(int old_val, int new_val)
 	 */
 	return !(!!old_val == !!new_val);
 }
+#endif // CONFIG_DYNAMIC_STUNE_BOOST
 
 int sched_boost_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,

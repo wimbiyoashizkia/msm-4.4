@@ -758,9 +758,6 @@ void pagefault_out_of_memory(void)
 		.order = 0,
 	};
 
-	if (IS_ENABLED(CONFIG_ANDROID_SIMPLE_LMK))
-		return;
-
 	if (mem_cgroup_oom_synchronize(true))
 		return;
 

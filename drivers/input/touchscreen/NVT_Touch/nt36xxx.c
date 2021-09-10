@@ -183,7 +183,6 @@ extern int32_t nvt_mp_proc_init(void);
 #endif
 
 struct nvt_ts_data *ts;
-static struct kmem_cache *kmem_ts_data_pool;
 
 static struct kthread_work work;
 static struct kthread_worker touch_worker;
@@ -885,7 +884,7 @@ static int32_t nvt_flash_close(struct inode *inode, struct file *file)
 	struct nvt_flash_data *dev = file->private_data;
 
 	if (dev)
-		kmem_cache_free(kmem_ts_data_pool, dev);
+		kfree(dev);
 
 	return 0;
 }
@@ -1364,7 +1363,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 
 	NVT_LOG("start\n");
 
-	ts = kmem_cache_zalloc(kmem_ts_data_pool, GFP_KERNEL);
+	ts = kmalloc(sizeof(struct nvt_ts_data), GFP_KERNEL);
 	if (ts == NULL) {
 		NVT_ERR("failed to allocated memory for nvt ts data\n");
 		return -ENOMEM;
@@ -1619,7 +1618,7 @@ err_gpio_config_failed:
 	nvt_lcm_bias_power_deinit(ts);
 err_power_resource_init_fail:
 	i2c_set_clientdata(client, NULL);
-	kmem_cache_free(kmem_ts_data_pool, ts);
+	kfree(ts);
 	return ret;
 }
 
@@ -1646,7 +1645,7 @@ static int32_t nvt_ts_remove(struct i2c_client *client)
 	free_irq(client->irq, ts);
 	input_unregister_device(ts->input_dev);
 	i2c_set_clientdata(client, NULL);
-	kmem_cache_free(kmem_ts_data_pool, ts);
+	kfree(ts);
 
 	return 0;
 }
@@ -1872,8 +1871,6 @@ static int32_t __init nvt_driver_init(void)
 {
 	int32_t ret = 0;
 
-	kmem_ts_data_pool = KMEM_CACHE(nvt_ts_data, SLAB_HWCACHE_ALIGN | SLAB_PANIC);
-
 	NVT_LOG("start\n");
 	/* ---add i2c driver--- */
 	ret = i2c_add_driver(&nvt_i2c_driver);
@@ -1898,7 +1895,6 @@ err_driver:
 static void __exit nvt_driver_exit(void)
 {
 	i2c_del_driver(&nvt_i2c_driver);
-	kmem_cache_destroy(kmem_ts_data_pool);
 	destroy_gesture();
 
 #if BOOT_UPDATE_FIRMWARE

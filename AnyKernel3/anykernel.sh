@@ -42,12 +42,12 @@ dump_boot;
 # begin EAS patch changes
 if [ ! -e "/vendor/etc/powerhint.json" ]; then
     ui_print " " "HMP ROM Detected!"
-    ui_print "Installing Module EAS Perf HAL..."
+    ui_print "Installing Module EAS PowerHAL!!!"
     rm -rf /data/adb/modules/neon;
     cp -rf $home/patch/eas-perfhal /data/adb/modules/neon;
 else
     ui_print " " "EAS ROM Detected!"
-    ui_print "No need Module EAS Perf HAL!!!"
+    ui_print "No need Module EAS PowerHAL..."
 fi
 # end EAS patch changes
 

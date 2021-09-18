@@ -109,26 +109,26 @@ static int match_nearest_efficient_step(int freq,int maxstep,int *freq_table)
     return i;
 }
 
-static void do_freq_limit(struct sugov_policy *sg_policy, unsigned int *freq, u64 time)
+static void do_freq_limit(struct sugov_policy *sg_policy, unsigned int *freq)
 {
     if (*freq > sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step] && !sg_policy->first_hp_request_time) {
 	    /* First request */
 	    *freq = sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step];
-	    sg_policy->first_hp_request_time = time;
+	    sg_policy->first_hp_request_time = jiffies;
 	} else if (*freq < sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step]) {
 		/* It's already under current efficient frequency */
 		/* Goto a lower one */
 		if (sg_policy->first_down_freq_time) {
-			if (time > sg_policy->first_down_freq_time + sg_policy->tunables->down_tolerance) {
+			if (jiffies > sg_policy->first_down_freq_time + sg_policy->tunables->down_tolerance) {
 				/* Goto a lower one */
 				sg_policy->tunables->current_step = match_nearest_efficient_step(*freq, sg_policy->tunables->nefficient_freq, sg_policy->tunables->efficient_freq);
 				sg_policy->first_hp_request_time = 0;
 			}
 		} else {
-			sg_policy->first_down_freq_time = time;
+			sg_policy->first_down_freq_time = jiffies;
 		}
 	} else if ((sg_policy->first_hp_request_time 
-		&& time_before(time, sg_policy->first_hp_request_time + msecs_to_jiffies(sg_policy->tunables->up_delay[sg_policy->tunables->current_step])))){
+		&& time_before(jiffies, sg_policy->first_hp_request_time + msecs_to_jiffies(sg_policy->tunables->up_delay[sg_policy->tunables->current_step])))){
 		/* Restrict it */
 		*freq = sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step];
 	} else {
@@ -137,7 +137,7 @@ static void do_freq_limit(struct sugov_policy *sg_policy, unsigned int *freq, u6
 			&& sg_policy->tunables->current_step + 1 <= sg_policy->tunables->nup_delay - 1) {
 			/* Unlock a higher efficient frequency */
 			sg_policy->tunables->current_step++;
-	 		sg_policy->first_hp_request_time = time;
+	 		sg_policy->first_hp_request_time = jiffies;
 			if (*freq > sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step])
 				*freq = sg_policy->tunables->efficient_freq[sg_policy->tunables->current_step];
 		}
@@ -249,14 +249,14 @@ static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
  * cpufreq driver limitations.
  */
 static unsigned int get_next_freq(struct sugov_policy *sg_policy,
-				  unsigned long util, unsigned long max, u64 time)
+				  unsigned long util, unsigned long max)
 {
 	struct cpufreq_policy *policy = sg_policy->policy;
 	unsigned int freq = arch_scale_freq_invariant() ?
 				policy->cpuinfo.max_freq : policy->cur;
 
 	freq = (freq + (freq >> 2)) * util / max;
-	do_freq_limit(sg_policy, &freq, time);
+	do_freq_limit(sg_policy, &freq);
 
 	if (freq == sg_policy->cached_raw_freq && !sg_policy->need_freq_update)
 		return sg_policy->next_freq;
@@ -339,7 +339,7 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 		next_f = policy->cpuinfo.max_freq;
 	} else {
 		sugov_get_util(&util, &max, time, sg_cpu->cpu);
-		next_f = get_next_freq(sg_policy, util, max, time);
+		next_f = get_next_freq(sg_policy, util, max);
 		/*
 		 * Do not reduce the frequency if the CPU has not been idle
 		 * recently, as the reduction is likely to be premature then.
@@ -377,7 +377,7 @@ static unsigned int sugov_next_freq_shared(struct sugov_cpu *sg_cpu, u64 time)
 		}
 	}
 
-	return get_next_freq(sg_policy, util, max, time);
+	return get_next_freq(sg_policy, util, max);
 }
 
 static void sugov_update_shared(struct update_util_data *hook, u64 time,

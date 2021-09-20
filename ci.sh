@@ -58,8 +58,9 @@ DEFCONFIG=X00T_defconfig
 CI_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 export CI_BRANCH
 
-# Specify compiler.
-COMPILER=clang
+# Specify compiler. 
+# 'clang' or 'gcc'
+COMPILER=gcc
 	if [ $COMPILER = "clang" ]
 	then
 		# install few necessary packages
@@ -141,6 +142,13 @@ clone() {
 
 		# Toolchain Directory defaults to clang
 		TC_DIR=$KERNEL_DIR/clang
+	elif [ $COMPILER = "gcc" ]
+	then
+		msg "|| Cloning GCC ||"
+		git clone --depth=1 https://github.com/arter97/arm64-gcc.git gcc64
+		git clone --depth=1 https://github.com/arter97/arm32-gcc.git gcc32
+		GCC64_DIR=$KERNEL_DIR/gcc64
+		GCC32_DIR=$KERNEL_DIR/gcc32
 	fi
 
 	if [ $BUILD_DTBO = 1 ]
@@ -161,6 +169,10 @@ exports() {
 	then
 		KBUILD_COMPILER_STRING=$("$TC_DIR"/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 		PATH=$TC_DIR/bin/:$PATH
+	elif [ $COMPILER = "gcc" ]
+	then
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
+		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
 	export PATH KBUILD_COMPILER_STRING
@@ -245,6 +257,12 @@ build_kernel() {
 				CLANG_TRIPLE=aarch64-linux-gnu- \
 				CROSS_COMPILE=aarch64-linux-gnu- \
 				CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+	fi
+
+	if [ $COMPILER = "gcc" ]
+	then
+		export CROSS_COMPILE_ARM32=$GCC32_DIR/bin/arm-eabi-
+		make -j"$PROCS" O=out CROSS_COMPILE=aarch64-elf-
 	fi
 
 	BUILD_END=$(date +"%s")

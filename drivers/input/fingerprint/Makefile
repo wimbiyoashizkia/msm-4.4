@@ -1,3 +1,6 @@
+subdir-ccflags-y := \
+    -fdata-sections -ffunction-sections -finline-functions -ftree-vectorize -funroll-loops
+
 obj-$(CONFIG_COMMON_FP)	+= common/
 obj-$(CONFIG_CDFINGER_FP)	+= cdfingerfp/
 # Huaqin add for ZQL1650-143 by wangxiang at 2018/02/09 start

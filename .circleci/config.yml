@@ -3,15 +3,15 @@ version: 2.1
 jobs:
   compile:
    docker:
-      - image: ubuntu:20.04
+      - image: archlinux:base-devel
    steps:
       - run:
           no_output_timeout: 50m
           command: |
-           apt-get -y update && apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get -y install bc build-essential bison flex zip gcc clang libc6 curl libstdc++6 git wget libssl-dev zstd openjdk-11-jdk openjdk-11-jre
+           curl -LO "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && bsdtar -C / -xvf "glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && pacman -Sy && pacman -S git bc inetutils python2 zip jdk-openjdk --noconfirm
            git clone https://wimbiyoashizkia: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@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas --depth=1 msm-4.4
            cd msm-4.4
-           source ci.sh
+           bash ci.sh
 workflows:
   version: 2.1
   cooking:

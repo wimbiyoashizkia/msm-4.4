@@ -1480,6 +1480,10 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 		enqueue_pushable_task(rq, p);
 	*per_cpu_ptr(&incoming_rt_task, cpu_of(rq)) = false;
 
+	/* Only enqueue boosted tasks */
+	if (schedtune_boost_bias(p) > 1)
+		schedtune_enqueue_task(p, cpu_of(rq));
+
 	if (!schedtune_task_boost(p))
 		return;
 
@@ -1504,7 +1508,6 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 		return;
 
 	rt_se->schedtune_enqueued = true;
-	schedtune_enqueue_task(p, cpu_of(rq));
 	cpufreq_update_this_cpu(rq, SCHED_CPUFREQ_RT);
 }
 

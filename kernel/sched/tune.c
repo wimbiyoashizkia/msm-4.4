@@ -858,6 +858,10 @@ int schedtune_task_boost(struct task_struct *p)
 	if (unlikely(!schedtune_initialized))
 		return 0;
 
+	/* Only access boost value if tracked */
+	if (!READ_ONCE(p->schedtune_enqueued))
+		return 0;
+
 	/* Get task boost value */
 	rcu_read_lock();
 	task_boost = schedtune_filter_boost(p);

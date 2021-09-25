@@ -5914,11 +5914,8 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	 *    such a more complex solution.
 	 * Thus, for the time being we go for the simple solution and boost
 	 * also for throttled RQs.
-	 *
-	 * Only track the task if there is a boost value attached to it.
 	 */
-	if (schedtune_boost_bias(p) > 1)
-		schedtune_enqueue_task(p, cpu_of(rq));
+	schedtune_enqueue_task(p, cpu_of(rq));
 #endif
 
 	/*

@@ -657,8 +657,8 @@ ARCH_CFLAGS :=
 include arch/$(SRCARCH)/Makefile
 
 ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
-KBUILD_AFLAGS += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
+KBUILD_CFLAGS += -Wno-psabi -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
+KBUILD_AFLAGS += -Wno-psabi -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
 else ifeq ($(cc-name),clang)
 KBUILD_CFLAGS += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a
 KBUILD_CFLAGS += $(call cc-option, -mllvm -polly) \
@@ -700,10 +700,6 @@ endif
 
 ifdef CONFIG_CC_WERROR
 KBUILD_CFLAGS	+= -Werror
-endif
-
-ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS	+= -Wno-psabi -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53
 endif
 
 KBUILD_CFLAGS += $(call cc-ifversion, -gt, 0900, \

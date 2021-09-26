@@ -7560,8 +7560,14 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
 	if (!task_util(p))
 		goto unlock;
 
+#ifdef CONFIG_CGROUP_SCHEDTUNE
 	prefer_idle = schedtune_prefer_idle(p);
 	boosted = schedtune_task_boost(p) > 0;
+#elif CONFIG_UCLAMP_TASK
+	prefer_idle = uclamp_latency_sensitive(p);
+	boosted = uclamp_boosted(p) > 0;
+#endif
+
 	target_cap = boosted ? 0 : ULONG_MAX;
 
 	for (; pd; pd = pd->next) {

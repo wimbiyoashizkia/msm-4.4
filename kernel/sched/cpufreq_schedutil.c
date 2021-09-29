@@ -702,7 +702,7 @@ static ssize_t efficient_freq_show(struct gov_attr_set *attr_set, char *buf)
 	ssize_t ret = 0;
 
 	for (i = 0; i < tunables->nefficient_freq; i++)
-		ret += sprintf(buf + ret, "%llu%s", tunables->efficient_freq[i], " ");
+		ret += sprintf(buf + ret, "%u%s", tunables->efficient_freq[i], " ");
 
 	sprintf(buf + ret - 1, "\n");
 
@@ -738,7 +738,7 @@ static ssize_t up_delay_show(struct gov_attr_set *attr_set, char *buf)
 	ssize_t ret = 0;
 
 	for (i = 0; i < tunables->nup_delay; i++)
-		ret += sprintf(buf + ret, "%u%s", tunables->up_delay[i] / NSEC_PER_MSEC, " ");
+		ret += sprintf(buf + ret, "%llu%s", tunables->up_delay[i] / NSEC_PER_MSEC, " ");
 
 	sprintf(buf + ret - 1, "\n");
 
@@ -771,7 +771,7 @@ static ssize_t down_tolerance_show(struct gov_attr_set *attr_set, char *buf)
 {
 	struct sugov_tunables *tunables = to_sugov_tunables(attr_set);
 
-	return sprintf(buf, "%u\n", tunables->down_tolerance / NSEC_PER_MSEC);
+	return sprintf(buf, "%llu\n", tunables->down_tolerance / NSEC_PER_MSEC);
 }
 
 static ssize_t down_tolerance_store(struct gov_attr_set *attr_set,

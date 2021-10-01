@@ -1,7 +1,7 @@
 id=neon
 name=NEON EAS PowerHAL
-version=v3
-versionCode=20210926
+version=v4
+versionCode=20211001
 author=neonpoi
 description=A simple module EAS PowerHAL
 support=https://t.me/neonupdate

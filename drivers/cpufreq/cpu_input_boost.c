@@ -10,6 +10,7 @@
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
+#include <linux/cpuset.h>
 #include <linux/moduleparam.h>
 #include <linux/sched/sysctl.h>
 
@@ -132,6 +133,7 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 		return;
 
 	boost_jiffies = msecs_to_jiffies(duration_ms);
+	do_perf_cpuset();
 
 	do {
 		curr_expires = atomic_long_read(&b->max_boost_expires);
@@ -176,6 +178,7 @@ static void max_unboost_worker(struct work_struct *work)
 	wake_up(&b->boost_waitq);
 
 	sysctl_sched_energy_aware = 1;
+	do_lp_cpuset();
 }
 
 static int cpu_boost_thread(void *data)
@@ -337,6 +340,7 @@ free_handle:
 
 static void cpu_input_boost_input_disconnect(struct input_handle *handle)
 {
+	do_lp_cpuset();
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);

@@ -5701,8 +5701,10 @@ bool is_sched_lib_based_app(pid_t pid)
 	struct mm_struct *mm;
 	struct libname_node *pos;
 
+#ifndef CONFIG_CPUINFO_CACHED_FREQ_TASKS
 	if (strnlen(sched_lib_name, LIB_PATH_LENGTH) == 0)
 		return false;
+#endif
 
 	rcu_read_lock();
 
@@ -5745,6 +5747,12 @@ bool is_sched_lib_based_app(pid_t pid)
 			list_for_each_entry (pos, &__sched_lib_name_list,
 						 list) {
 				strlcpy(tmp_lib_name, sched_lib_name, LIB_PATH_LENGTH);
+#ifdef CONFIG_CPUINFO_CACHED_FREQ_TASKS
+			if (strnlen(sched_lib_name, LIB_PATH_LENGTH) != 0)
+				strlcat(tmp_lib_name, ",", LIB_PATH_LENGTH);
+
+			strlcat(tmp_lib_name, CONFIG_LIST_CACHED_FREQ_TASKS, LIB_PATH_LENGTH);
+#endif
 				lib_list = tmp_lib_name;
 				while ((libname = strsep(&lib_list, ","))) {
 					if (strnstr(name, pos->name,

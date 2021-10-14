@@ -59,6 +59,50 @@ append_file fstab.tuna "usbdisk" fstab;
 
 # end ramdisk changes
 
+# begin Screen OC
+ui_print " " "Detecting Screen OC..."
+case "$ZIPFILE" in
+    *61fps*|*61hz*)
+        ui_print "Detected 61hz! Set to 61hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=61"
+        ;;
+    *62fps*|*62hz*)
+        ui_print "Detected 62hz! Set to 62hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=62"
+        ;;
+    *63fps*|*63hz*)
+        ui_print "Detected 63hz! Set to 63hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=63"
+        ;;
+    *64fps*|*64hz*)
+        ui_print "Detected 64hz! Set to 64hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=64"
+        ;;
+    *65fps*|*65hz*)
+        ui_print "Detected 65hz! Set to 65hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=65"
+        ;;
+    *66fps*|*66hz*)
+        ui_print "Detected 66hz! Set to 66hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=66"
+        ;;
+    *67fps*|*67hz*)
+        ui_print "Detected 67hz! Set to 67hz refresh rate..."
+        ui_print "WARNING: AT YOUR RISK!!!"
+        patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=67"
+        ;;
+    *)
+        ui_print "Screen OC no Detected! Set to 60hz refresh rate..."
+        patch_cmdline "mdss_dsi.custom_refresh_rate" ""
+esac
+# end Screen OC
+
 write_boot;
 ## end boot install
 

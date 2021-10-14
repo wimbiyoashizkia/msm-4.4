@@ -502,7 +502,6 @@ int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address, uint8_t *buf, 
 {
 	struct i2c_msg msgs[2];
 	int32_t ret = -1;
-	uint8_t retries;
 
 	msgs[0].flags = !I2C_M_RD;
 	msgs[0].addr  = address;
@@ -514,13 +513,7 @@ int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address, uint8_t *buf, 
 	msgs[1].len   = len - 1;
 	msgs[1].buf   = &buf[1];
 
-	for (retries = 0; retries < 5; retries++) {
-		ret = i2c_transfer(client->adapter, msgs, 2);
-		if (ret == 2)
-			return ret;
-	}
-
-	return -EIO;
+	ret = i2c_transfer(client->adapter, msgs, 2);
 }
 
 /*******************************************************
@@ -553,20 +546,13 @@ int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address, uint8_t *buf,
 {
 	struct i2c_msg msg;
 	int32_t ret = -1;
-	uint8_t retries;
 
 	msg.flags = !I2C_M_RD;
 	msg.addr  = address;
 	msg.len   = len;
 	msg.buf   = buf;
 
-	for (retries = 0; retries < 5; retries++) {
-		ret = i2c_transfer(client->adapter, &msg, 1);
-		if (ret == 1)
-			return ret;
-	}
-
-	return -EIO;
+	ret = i2c_transfer(client->adapter, &msg, 1);
 }
 
 

@@ -1054,7 +1054,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 					CONFIG_SCHEDUTIL_UP_RATE_LIMIT_BIG;
 			tunables->down_rate_limit_us =
 					CONFIG_SCHEDUTIL_DOWN_RATE_LIMIT_BIG;
-			tunables->iowait_boost_enable = 1;
+			tunables->iowait_boost_enable = 0;
 			tunables->efficient_freq = default_efficient_freq_perf;
 			tunables->nefficient_freq = ARRAY_SIZE(default_efficient_freq_perf);
 			tunables->up_delay = default_up_delay_perf;
@@ -1067,7 +1067,7 @@ static int sugov_init(struct cpufreq_policy *policy)
 					CONFIG_SCHEDUTIL_UP_RATE_LIMIT_LITTLE;
 			tunables->down_rate_limit_us =
 					CONFIG_SCHEDUTIL_DOWN_RATE_LIMIT_LITTLE;
-			tunables->iowait_boost_enable = 1;
+			tunables->iowait_boost_enable = 0;
 			tunables->efficient_freq = default_efficient_freq_lp;
     		tunables->nefficient_freq = ARRAY_SIZE(default_efficient_freq_lp);
 			tunables->up_delay = default_up_delay_lp;

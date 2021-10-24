@@ -231,7 +231,7 @@ static void cpu_idle_loop(void)
 			check_pgt_cache();
 			rmb();
 
-			if (unlikely(cpu_is_offline(cpu))) {
+			if (cpu_is_offline(cpu)) {
 				rcu_cpu_notify(NULL, CPU_DYING_IDLE,
 					       (void *)(long)cpu);
 				smp_mb(); /* all activity before dead. */
@@ -251,7 +251,7 @@ static void cpu_idle_loop(void)
 			 * know that the IPI is going to arrive right
 			 * away
 			 */
-			if (unlikely(cpu_idle_force_poll || tick_check_broadcast_expired()))
+			if (cpu_idle_force_poll || tick_check_broadcast_expired())
 				cpu_idle_poll();
 			else
 				cpuidle_idle_call();

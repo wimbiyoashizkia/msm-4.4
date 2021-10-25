@@ -9,7 +9,7 @@ jobs:
           no_output_timeout: 50m
           command: |
            curl -LO "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && bsdtar -C / -xvf "glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && pacman -Sy && pacman -S git bc inetutils python2 zip jdk-openjdk --noconfirm
-           git clone https://$GH_TOKEN@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas-test --depth=1 msm-4.4
+           git clone https://$GH_TOKEN@github.com/wimbiyoashizkia/msm-4.4.git -b personal --depth=1 msm-4.4
            cd msm-4.4
            bash ci.sh
 workflows:

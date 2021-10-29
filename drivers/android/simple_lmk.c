@@ -12,7 +12,6 @@
 #include <linux/sort.h>
 #include <linux/vmpressure.h>
 #include <linux/fb.h>
-#include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/display_state.h>
 
@@ -255,7 +254,6 @@ static void scan_and_kill(void)
 		lmk_count[adj_index]++;
 
 		if (is_display_on()) {
-			cpu_input_boost_kick_max(500);
 			devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW,500);
 		}
 

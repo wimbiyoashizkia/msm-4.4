@@ -7,6 +7,7 @@
 
 #include <linux/devfreq_boost.h>
 #include <linux/fb.h>
+#include <linux/cpuset.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
 
@@ -78,6 +79,8 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
 		return;
 
+	do_perf_cpuset();
+
 	do {
 		curr_expires = atomic_long_read(&b->max_boost_expires);
 		new_expires = jiffies + boost_jiffies;
@@ -118,6 +121,7 @@ static void devfreq_input_unboost(struct work_struct *work)
 
 	clear_bit(INPUT_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
+	do_lp_cpuset();
 }
 
 static void devfreq_max_unboost(struct work_struct *work)
@@ -247,6 +251,7 @@ free_handle:
 
 static void devfreq_boost_input_disconnect(struct input_handle *handle)
 {
+	do_lp_cpuset();
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);

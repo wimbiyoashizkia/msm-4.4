@@ -91,8 +91,8 @@ clone() {
 		PATH=$TC_DIR/bin/:$PATH
 	elif [[ $COMPILER == "gcc" ]]; then
 		# Clone GCC ARM64 and ARM32
-		git clone --depth=1 https://github.com/arter97/arm64-gcc.git gcc64
-		git clone --depth=1 https://github.com/arter97/arm32-gcc.git gcc32
+		git clone --depth=1 https://github.com/fiqri19102002/aarch64-gcc -b elf-gcc-10-tarballs gcc64
+		git clone --depth=1 https://github.com/fiqri19102002/arm-gcc -b elf-gcc-10-tarballs gcc32
 		# Set environment for GCC ARM64 and ARM32
 		GCC64_DIR=$KERNEL_DIR/gcc64
 		GCC32_DIR=$KERNEL_DIR/gcc32

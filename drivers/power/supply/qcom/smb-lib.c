@@ -30,7 +30,6 @@
 #include <linux/gpio.h>
 #include <linux/fs.h>
 #include <linux/alarmtimer.h>
-#include <linux/wakelock.h>
 #include <linux/unistd.h>
 #include <linux/fcntl.h>
 #include <linux/slab.h>
@@ -116,17 +115,6 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 	/* reg=1380, bit2=0, USBIN_AICL_EN=enable */
 	smblib_masked_write(chg, USBIN_AICL_OPTIONS_CFG_REG,
 				USBIN_AICL_EN_BIT, USBIN_AICL_EN_BIT);
-}
-
-extern struct wake_lock asus_chg_lock;
-void asus_smblib_stay_awake(struct smb_charger *chg)
-{
-	wake_lock(&asus_chg_lock);
-}
-
-void asus_smblib_relax(struct smb_charger *chg)
-{
-	wake_unlock(&asus_chg_lock);
 }
 #endif
 
@@ -837,8 +825,6 @@ static void smblib_uusb_removal(struct smb_charger *chg)
 
 	asus_flow_processing = 0;
 	ASUS_ADAPTER_ID = 0;
-
-	asus_smblib_relax(smbchg_dev);
 #endif
 }
 
@@ -1574,7 +1560,6 @@ static int _smblib_vbus_regulator_enable(struct regulator_dev *rdev)
 
 #ifdef CONFIG_MACH_ASUS_SDM660
 	smblib_asus_monitor_start(smbchg_dev, 10000);
-	asus_smblib_stay_awake(chg);
 #endif
 
 	return rc;
@@ -1632,7 +1617,6 @@ static int _smblib_vbus_regulator_disable(struct regulator_dev *rdev)
 	cancel_delayed_work(&chg->asus_min_monitor_work);
 	cancel_delayed_work(&chg->asus_batt_RTC_work);
 	alarm_cancel(&bat_alarm);
-	asus_smblib_relax(smbchg_dev);
 #endif
 
 	rc = smblib_write(chg, CMD_OTG_REG, 0);
@@ -3829,8 +3813,6 @@ void asus_min_monitor_work(struct work_struct *work)
 		queue_delayed_work(system_power_efficient_wq,
 			&smbchg_dev->asus_batt_RTC_work, 0);
 	}
-
-	asus_smblib_relax(smbchg_dev);
 }
 
 void asus_chg_flow_work(struct work_struct *work)
@@ -3947,7 +3929,6 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	default:
-		asus_smblib_relax(smbchg_dev);
 		break;
 	}
 }
@@ -4302,7 +4283,6 @@ static void smblib_micro_usb_plugin(struct smb_charger *chg, bool vbus_rising)
 		if (!asus_flow_processing) {
 			asus_flow_processing = 1;
 			asus_insertion_initial_settings(smbchg_dev);
-			asus_smblib_stay_awake(smbchg_dev);
 			queue_delayed_work(system_power_efficient_wq,
 				&smbchg_dev->asus_chg_flow_work, msecs_to_jiffies(12000));
 			asus_update_usb_connector_state(smbchg_dev);

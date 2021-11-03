@@ -10,6 +10,8 @@
 #include <linux/input.h>
 #include <linux/kthread.h>
 
+unsigned long last_input_time;
+
 enum {
 	SCREEN_OFF,
 	INPUT_BOOST,

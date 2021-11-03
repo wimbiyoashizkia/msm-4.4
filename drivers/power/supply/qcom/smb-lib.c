@@ -30,7 +30,6 @@
 #include "fg-core.h"
 #include <linux/gpio.h>
 #include <linux/alarmtimer.h>
-#include <linux/wakelock.h>
 #include <linux/unistd.h>
 #include <linux/fcntl.h>
 #include <linux/slab.h>
@@ -129,15 +128,7 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 	smblib_masked_write(chg, USBIN_AICL_OPTIONS_CFG_REG,                          
 			USBIN_AICL_EN_BIT, USBIN_AICL_EN_BIT);
 }
-extern struct wake_lock asus_chg_lock;
-void asus_smblib_stay_awake(struct smb_charger *chg)
-{
-	wake_lock(&asus_chg_lock);
-}
-void asus_smblib_relax(struct smb_charger *chg)
-{
-	wake_unlock(&asus_chg_lock);
-}
+
 static bool is_secure(struct smb_charger *chg, int addr)
 {
 	if (addr == SHIP_MODE_REG || addr == FREQ_CLK_DIV_REG)
@@ -838,7 +829,6 @@ static void smblib_uusb_removal(struct smb_charger *chg)
 	ASUS_ADAPTER_ID = 0;
 
 	need_replugin_usb=true;
-	asus_smblib_relax(smbchg_dev);
 }
 
 void smblib_suspend_on_debug_battery(struct smb_charger *chg)
@@ -1573,7 +1563,6 @@ static int _smblib_vbus_regulator_enable(struct regulator_dev *rdev)
 
 	usb_otg_present=true;
 	smblib_asus_monitor_start(smbchg_dev, 10000);
-	asus_smblib_stay_awake(chg);
 
 	switch_set_state(&usb_otg_dev,1);
 	return rc;
@@ -1639,7 +1628,6 @@ static int _smblib_vbus_regulator_disable(struct regulator_dev *rdev)
 	cancel_delayed_work(&chg->asus_min_monitor_work);
 	cancel_delayed_work(&chg->asus_batt_RTC_work);
 	alarm_cancel(&bat_alarm);
-	asus_smblib_relax(smbchg_dev);
 	switch_set_state(&usb_otg_dev,0);
 
 	rc = smblib_masked_write(chg, OTG_ENG_OTG_CFG_REG,
@@ -3766,7 +3754,6 @@ void asus_min_monitor_work(struct work_struct *work)
 		last_jeita_time = current_kernel_time();
 		schedule_delayed_work(&smbchg_dev->asus_min_monitor_work, msecs_to_jiffies(ASUS_MONITOR_CYCLE));
 		schedule_delayed_work(&smbchg_dev->asus_batt_RTC_work, 0);
-		asus_smblib_relax(smbchg_dev);
 		return;
 	}
 
@@ -3797,7 +3784,6 @@ void asus_min_monitor_work(struct work_struct *work)
 		queue_delayed_work(system_power_efficient_wq, 
 				&smbchg_dev->asus_batt_RTC_work, 0);
 	}
-	asus_smblib_relax(smbchg_dev);
 }
 /* ASUS BSP Add per min monitor jeita & thermal & typeC_DFP --- */
 void asus_chg_flow_work(struct work_struct *work)
@@ -3900,7 +3886,6 @@ void asus_chg_flow_work(struct work_struct *work)
 			&smbchg_dev->asus_adapter_adc_work, msecs_to_jiffies(15000));
 		break;
 	default:
-		asus_smblib_relax(smbchg_dev);
 		break;
 	}
 }
@@ -4246,7 +4231,6 @@ static void smblib_micro_usb_plugin(struct smb_charger *chg, bool vbus_rising)
 		if (!asus_flow_processing) {
 			asus_flow_processing = 1;
 			asus_insertion_initial_settings(smbchg_dev);
-			asus_smblib_stay_awake(smbchg_dev);
 			queue_delayed_work(system_power_efficient_wq, 
 				&smbchg_dev->asus_chg_flow_work, msecs_to_jiffies(12000));
 			asus_update_usb_connector_state(smbchg_dev);

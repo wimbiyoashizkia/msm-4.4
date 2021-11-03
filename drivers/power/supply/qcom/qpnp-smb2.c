@@ -29,7 +29,6 @@
 #include "storm-watch.h"
 #include <linux/pmic-voter.h>
 #include <linux/of_gpio.h>
-#include <linux/wakelock.h>
 #include <linux/uaccess.h>
 #include <linux/proc_fs.h>
 #include <asm-generic/errno-base.h>
@@ -193,11 +192,8 @@ struct smb2 {
 };
 struct smb_charger *smbchg_dev;
 struct timespec last_jeita_time;
-struct wake_lock asus_chg_lock;
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
-extern void asus_smblib_stay_awake(struct smb_charger *chg);
-extern void asus_smblib_relax(struct smb_charger *chg);
 struct gpio_control *global_gpio;	//global gpio_control
 #ifdef HQ_BUILD_FACTORY
 static int __debug_mask = 0x10;
@@ -2555,7 +2551,6 @@ static int smb2_probe(struct platform_device *pdev)
 	chg->irq_info = smb2_irqs;
 	chg->name = "PMI";
 /* Realize jeita start */
-	wake_lock_init(&asus_chg_lock, WAKE_LOCK_SUSPEND, "asus_chg_lock");
 	smbchg_dev = chg;			//ASUS BSP add globe device struct +++
 /* Realize jeita end */
 	global_gpio = gpio_ctrl;	//ASUS BSP add gpio control struct +++
@@ -2779,7 +2774,6 @@ static int smb2_resume(struct device *dev)
 	if (!asus_get_prop_usb_present(smbchg_dev)) {
 		return 0;
 	}
-	asus_smblib_stay_awake(smbchg_dev);
 	mtNow = current_kernel_time();
 
 	/*BSP Austin_Tseng: if next JEITA time less than 30s, do JEITA
@@ -2791,7 +2785,6 @@ static int smb2_resume(struct device *dev)
 		cancel_delayed_work(&smbchg_dev->asus_batt_RTC_work);
 	} else {
 		smblib_asus_monitor_start(smbchg_dev, nextJEITAinterval * 1000);
-		asus_smblib_relax(smbchg_dev);
 	}
 	return 0;
 }

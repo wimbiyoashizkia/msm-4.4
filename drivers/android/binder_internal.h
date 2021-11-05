@@ -20,6 +20,8 @@ struct binder_context {
 	const char *name;
 };
 
+extern bool enable_binder_fs;
+
 /**
  * struct binder_device - information about a binder device node
  * @hlist:          list of binder devices (only used for devices requested via

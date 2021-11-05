@@ -768,6 +768,9 @@ int __init init_binderfs(void)
 	const char *name;
 	size_t len;
 
+	if (!enable_binder_fs)
+		return 0;
+
 	/* Verify that the default binderfs device names are valid. */
 	name = binder_devices_param;
 	for (len = strcspn(name, ","); len > 0; len = strcspn(name, ",")) {

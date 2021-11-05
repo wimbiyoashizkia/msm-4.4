@@ -39,6 +39,14 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel install
 dump_boot;
 
+# Set Android version for kernel
+ver="$(file_getprop /system/build.prop ro.build.version.release)"
+if [ ! -z "$ver" ]; then
+    patch_cmdline "androidboot.version" "androidboot.version=$ver"
+else
+    patch_cmdline "androidboot.version" ""
+fi
+
 # begin EAS patch changes
 if [ ! -e "/vendor/etc/powerhint.json" ]; then
     ui_print " " "HMP ROM Detected!"

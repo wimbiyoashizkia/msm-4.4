@@ -3097,7 +3097,7 @@ static __ref int do_hotplug(void *data)
 	return 0;
 }
 
-static int __ref update_offline_cores(int val)
+static int __ref __maybe_unused update_offline_cores(int val)
 {
 	return 0;
 }

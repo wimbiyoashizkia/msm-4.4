@@ -22,6 +22,8 @@ struct cpuidle_state;
 #define TASK_ON_RQ_QUEUED	1
 #define TASK_ON_RQ_MIGRATING	2
 
+extern unsigned int __read_mostly sysctl_sched_energy_aware;
+
 extern __read_mostly int scheduler_running;
 
 extern unsigned long calc_load_update;
@@ -2518,7 +2520,7 @@ static inline unsigned long cpu_util_freq(int cpu)
 #else
 static inline bool energy_aware(void)
 {
-	return sched_feat(ENERGY_AWARE);
+	return sysctl_sched_energy_aware;
 }
 #endif
 

@@ -129,11 +129,18 @@ static char *initcall_command_line;
 static char *execute_command;
 static char *ramdisk_execute_command;
 
+bool enable_binder_fs = false;
 static unsigned int android_version = 9;
 
 static int __init set_android_version(char *val)
 {
 	get_option(&val, &android_version);
+
+	if (android_version > 10)
+		enable_binder_fs = true;
+	else
+		enable_binder_fs = false;
+
 	return 0;
 }
 __setup("androidboot.version=", set_android_version);

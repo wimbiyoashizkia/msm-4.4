@@ -58,7 +58,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs0>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea0>;
-			efficiency = <1024>;
+			efficiency = <615>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L2_0: l2-cache {
@@ -90,7 +90,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs0>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea1>;
-			efficiency = <1024>;
+			efficiency = <615>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_1: l1-icache {
@@ -116,7 +116,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs0>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea2>;
-			efficiency = <1024>;
+			efficiency = <615>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_2: l1-icache {
@@ -142,7 +142,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs0>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea3>;
-			efficiency = <1024>;
+			efficiency = <615>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_3: l1-icache {
@@ -168,7 +168,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs1>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea4>;
-			efficiency = <1638>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L2_1: l2-cache {
@@ -198,7 +198,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs1>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea5>;
-			efficiency = <1638>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_101: l1-icache {
@@ -224,7 +224,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs1>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea6>;
-			efficiency = <1638>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_102: l1-icache {
@@ -250,7 +250,7 @@
 			qcom,lmh-dcvs = <&lmh_dcvs1>;
 			#cooling-cells = <2>;
 			qcom,ea = <&ea7>;
-			efficiency = <1638>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_103: l1-icache {
@@ -310,10 +310,10 @@
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				 633600 4
-				1113600 14
-				1536000 32
-				1612800 40
+				 633600 51
+				1113600 88
+				1536000 162
+				1612800 181
 			>;
 			idle-cost-data = <
 				20 16 12 8
@@ -321,9 +321,9 @@
 		};
 		CPU_COST_1: core-cost1 {
 			busy-cost-data = <
-				1113600 111
-				1401600 140
-				1804800 180
+				1113600 292
+				1401600 368
+				1804800 559
 			>;
 			idle-cost-data = <
 				100 80 60 40
@@ -332,7 +332,7 @@
 		CLUSTER_COST_0: cluster-cost0 {
 			busy-cost-data = <
 				 633600 3
-				1113600 13
+				1113600 8
 				1536000 32
 				1612800 39
 			>;

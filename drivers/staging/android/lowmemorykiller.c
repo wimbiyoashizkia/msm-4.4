@@ -543,6 +543,34 @@ void tune_lmk_param(int *other_free, int *other_file, struct shrink_control *sc)
 	}
 }
 
+#define MAX_WHITELISTAPPS 50
+char whitelist_apps[][MAX_WHITELISTAPPS] = {
+	"com.whatsapp",
+	"com.discord",
+	"tw.nekomimi.nekogram",
+	"org.telegram.mdgramyou",
+	"ua.itaysonlab.messenger"
+};
+
+int WHITELIST_OF_STRING = sizeof(whitelist_apps) / sizeof(whitelist_apps[0]);
+
+static bool lowmem_whitelist(char *name)
+{
+	bool ret = false;
+	int i;
+
+	if (name == NULL)
+		return ret;
+
+	for (i = 0; i < WHITELIST_OF_STRING; i++) {
+		if (!strcmp(name, whitelist_apps[i])) {
+			ret = true;
+		}
+	}
+
+	return ret;
+}
+
 static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 {
 	struct task_struct *tsk;
@@ -634,7 +662,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 		}
 		tasksize = get_mm_rss(p->mm);
 		task_unlock(p);
-		if (tasksize <= 0)
+		if ((tasksize <= 0) || (lowmem_whitelist(p->comm) == true))
 			continue;
 		if (selected) {
 			if (oom_score_adj < selected_oom_score_adj)

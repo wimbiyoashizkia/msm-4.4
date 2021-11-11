@@ -99,7 +99,10 @@
 
 #define MAX_APP_STRINGSIZE 50
 char list_apps[][MAX_APP_STRINGSIZE] = {
-	"id.GoogleCamera"
+	"id.GoogleCamera",
+	"ndroid.settings",
+	"org.lineage.snap",
+	"android.gallery"
 };
 
 int LIST_APP_OF_STRINGS = sizeof(list_apps) / sizeof(list_apps[0]);

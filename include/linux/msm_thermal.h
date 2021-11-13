@@ -257,6 +257,7 @@ extern void devmgr_unregister_mitigation_client(
 					struct device *dev,
 					struct device_clnt_data *clnt);
 extern int msm_lmh_dcvsh_sw_notify(int cpu);
+
 #else
 static inline int msm_thermal_init(struct msm_thermal_data *pdata)
 {

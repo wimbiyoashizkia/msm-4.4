@@ -3,7 +3,7 @@ name: Build Kernel Test
 on:
   push:
     branches:
-      - sdm660-eas-test
+      - sdm660-eas-release
 jobs:
   build-test:
     runs-on: ubuntu-latest

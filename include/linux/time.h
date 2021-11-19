@@ -8,6 +8,8 @@
 
 extern struct timezone sys_tz;
 
+#define TIMER_LOCK_TIGHT_LOOP_DELAY_NS 350
+
 #define TIME_T_MAX	(time_t)((1UL << ((sizeof(time_t) << 3) - 1)) - 1)
 
 static inline int timespec_equal(const struct timespec *a,

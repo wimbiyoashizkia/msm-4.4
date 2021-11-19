@@ -91,13 +91,13 @@ clone() {
 		PATH=$TC_DIR/bin/:$PATH
 	elif [[ $COMPILER == "gcc" ]]; then
 		# Clone GCC ARM64 and ARM32
-		git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b ndk-r19 gcc64
-		git clone --depth=1 https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b ndk-r19 gcc32
+		git clone --depth=1 https://github.com/fiqri19102002/aarch64-gcc -b elf-gcc-10-tarballs gcc64
+		git clone --depth=1 https://github.com/fiqri19102002/arm-gcc -b elf-gcc-10-tarballs gcc32
 		# Set environment for GCC ARM64 and ARM32
 		GCC64_DIR=$KERNEL_DIR/gcc64
 		GCC32_DIR=$KERNEL_DIR/gcc32
 		# Get path and compiler string
-		KBUILD_COMPILER_STRING="GCC version 4.9.x 20150123 (prerelease)"
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
 		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
@@ -154,8 +154,8 @@ build_kernel() {
 				CROSS_COMPILE=aarch64-linux-gnu- \
 				CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 	elif [[ $COMPILER == "gcc" ]]; then
-		export CROSS_COMPILE_ARM32=$GCC32_DIR/bin/arm-linux-androideabi-
-		make -j"$PROCS" O=out CROSS_COMPILE=aarch64-linux-android-
+		export CROSS_COMPILE_ARM32=$GCC32_DIR/bin/arm-eabi-
+		make -j"$PROCS" O=out CROSS_COMPILE=aarch64-elf-
 	fi
 
 	BUILD_END=$(date +"%s")

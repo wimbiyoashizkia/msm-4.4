@@ -85,7 +85,8 @@ char whitelist_apps[][MAX_WHITELISTAPPS] = {
 	"com.discord",
 	"tw.nekomimi.nekogram",
 	"org.telegram.mdgramyou",
-	"ua.itaysonlab.messenger"
+	"ua.itaysonlab.messenger",
+	"com.franco.kernel"
 };
 
 int WHITELIST_OF_STRING = sizeof(whitelist_apps) / sizeof(whitelist_apps[0]);

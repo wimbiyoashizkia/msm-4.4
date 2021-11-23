@@ -5,6 +5,7 @@
 
 #define pr_fmt(fmt) "cpu_input_boost: " fmt
 
+#include <linux/cpuset.h>
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
 #include <linux/fb.h>
@@ -126,6 +127,8 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
 
+	do_perf_cpuset();
+
 	do {
 		curr_expires = atomic_long_read(&b->max_boost_expires);
 		new_expires = jiffies + boost_jiffies;
@@ -167,6 +170,7 @@ static void max_unboost_worker(struct work_struct *work)
 
 	clear_bit(MAX_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
+	do_lp_cpuset();
 
 	sysctl_sched_energy_aware = 1;
 }
@@ -297,6 +301,7 @@ free_handle:
 
 static void cpu_input_boost_input_disconnect(struct input_handle *handle)
 {
+	do_lp_cpuset();
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);

@@ -14,6 +14,8 @@
 #include <linux/moduleparam.h>
 #include <linux/sched/sysctl.h>
 
+unsigned long last_input_time;
+
 static unsigned int input_boost_freq_lp __read_mostly =
 	CONFIG_INPUT_BOOST_FREQ_LP;
 static unsigned int input_boost_freq_hp __read_mostly =

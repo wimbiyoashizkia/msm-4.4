@@ -64,6 +64,7 @@
 #include <linux/file.h>
 #include <net/sock.h>
 #include <linux/binfmts.h>
+#include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/display_state.h>
 
@@ -2983,6 +2984,7 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 	if (!ret && is_display_on() && 
         !threadgroup && !strcmp(of->kn->parent->name, "top-app") &&
         task_is_zygote(tsk->parent)) {
+        cpu_input_boost_kick_max(500);
         devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 500);
     }
 

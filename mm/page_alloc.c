@@ -62,6 +62,7 @@
 #include <linux/sched/rt.h>
 #include <linux/page_owner.h>
 #include <linux/kthread.h>
+#include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/display_state.h>
 
@@ -3279,6 +3280,7 @@ retry:
 
 	/* Boost when memory is low so allocation latency doesn't get too bad */
 	if (is_display_on()) {
+		cpu_input_boost_kick_max(100);
 		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 	}
 

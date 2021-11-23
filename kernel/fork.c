@@ -79,6 +79,7 @@
 #include <linux/sysctl.h>
 #include <linux/kcov.h>
 #include <linux/cpufreq.h>
+#include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/display_state.h>
 
@@ -1791,6 +1792,7 @@ long _do_fork(unsigned long clone_flags,
 	/* Boost CPU to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current) && is_display_on() && 
 		time_before(jiffies, last_input_time + msecs_to_jiffies(500))) {
+		cpu_input_boost_kick_max(50);
 		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 50);
 	}
 

@@ -2365,7 +2365,7 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, 
 /*
  * Perf critical flags
  */
-#define PF_LITTLE_CRITICAL  0x00000001
+#define PF_LOW_CRITICAL  0x00000001
 #define PF_PERF_CRITICAL    0x00000002
 
 /*

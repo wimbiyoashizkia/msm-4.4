@@ -1112,7 +1112,7 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
 	if ((p->pf_flags & PF_PERF_CRITICAL) && new_mask != cpu_perf_mask)
 		return -EINVAL;
 
-	if ((p->pf_flags & PF_LITTLE_CRITICAL) && new_mask != cpu_lp_mask)
+	if ((p->pf_flags & PF_LOW_CRITICAL) && new_mask != cpu_lp_mask)
 		return -EINVAL;
 	rq = task_rq_lock(p, &flags);
 

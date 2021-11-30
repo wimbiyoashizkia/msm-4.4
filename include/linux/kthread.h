@@ -47,13 +47,27 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
 	struct task_struct *__k						   \
 		= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
 	if (!IS_ERR(__k)) {						   \
-		BUILD_BUG_ON(perfmask != cpu_lp_mask &&			   \
-			     perfmask != cpu_perf_mask);		   \
-		if (perfmask == cpu_perf_mask)					\
-			__k->pf_flags |= PF_PERF_CRITICAL;		   \
-		else							   \
-			__k->pf_flags |= PF_LOW_CRITICAL;		   \
+		__k->pf_flags |= PF_PERF_CRITICAL;		   \
+		BUILD_BUG_ON(perfmask != cpu_perf_mask);		   \
 		kthread_bind_mask(__k, perfmask);			   \
+		wake_up_process(__k);					   \
+	}								   \
+	__k;								   \
+})
+
+/**
+ * kthread_run_low_critical - create and wake a performance-critical thread.
+ *
+ * Same as kthread_create().
+ */
+#define kthread_run_low_critical(lowmask, threadfn, data, namefmt, ...)  \
+({									   \
+	struct task_struct *__k						   \
+		= kthread_create(threadfn, data, namefmt, ## __VA_ARGS__); \
+	if (!IS_ERR(__k)) {						   \
+		__k->pf_flags |= PF_LOW_CRITICAL;		   \
+		BUILD_BUG_ON(lowmask != cpu_lp_mask);		   \
+		kthread_bind_mask(__k, lowmask);			   \
 		wake_up_process(__k);					   \
 	}								   \
 	__k;								   \

@@ -2363,10 +2363,10 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, 
 #define PF_SUSPEND_TASK 0x80000000      /* this thread called freeze_processes and should not be frozen */
 
 /*
- * Perf critical flags
+ * Critical flags
  */
-#define PF_LOW_CRITICAL  0x00000001
-#define PF_PERF_CRITICAL    0x00000002
+#define PF_LOW_CRITICAL  0x02000000
+#define PF_PERF_CRITICAL    0x01000000
 
 /*
  * Only the _current_ task can read/write to tsk->flags, but other

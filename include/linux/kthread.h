@@ -52,7 +52,7 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
 		if (perfmask == cpu_perf_mask)					\
 			__k->pf_flags |= PF_PERF_CRITICAL;		   \
 		else							   \
-			__k->pf_flags |= PF_LITTLE_CRITICAL;		   \
+			__k->pf_flags |= PF_LOW_CRITICAL;		   \
 		kthread_bind_mask(__k, perfmask);			   \
 		wake_up_process(__k);					   \
 	}								   \

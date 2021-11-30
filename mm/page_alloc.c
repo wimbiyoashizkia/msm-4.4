@@ -3129,6 +3129,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	enum migrate_mode migration_mode = MIGRATE_ASYNC;
 	bool deferred_compaction = false;
 	int contended_compaction = COMPACT_CONTENDED_NONE;
+	bool display_on = is_display_on();
 
 	/*
 	 * In the slowpath, we sanity check order to avoid ever trying to
@@ -3279,7 +3280,7 @@ retry:
 		goto noretry;
 
 	/* Boost when memory is low so allocation latency doesn't get too bad */
-	if (is_display_on()) {
+	if (!display_on) {
 		cpu_input_boost_kick_max(100);
 		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 	}

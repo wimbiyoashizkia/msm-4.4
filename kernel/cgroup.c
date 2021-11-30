@@ -2938,6 +2938,7 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 	struct cgroup *cgrp;
 	pid_t pid;
 	int ssid, ret;
+    bool display_on = is_display_on();
 
 	if (kstrtoint(strstrip(buf), 0, &pid) || pid < 0)
 		return -EINVAL;
@@ -2980,7 +2981,7 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 		ret = cgroup_attach_task(cgrp, tsk, threadgroup);
 
 	/* This covers boosting for app launches and app transitions */
-	if (!ret && is_display_on() && !threadgroup &&
+	if (!ret && !display_on && !threadgroup &&
 	    !strcmp(of->kn->parent->name, "top-app") &&
 	    task_is_zygote(tsk->parent)) {
 		cpu_input_boost_kick_max(500);

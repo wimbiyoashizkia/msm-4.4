@@ -128,6 +128,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 						global_page_state(NR_SHMEM) -
 						global_page_state(NR_UNEVICTABLE) -
 						total_swapcache_pages();
+	bool display_on = is_display_on();
 
 	if (lowmem_adj_size < array_size)
 		array_size = lowmem_adj_size;
@@ -153,7 +154,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 
 	selected_oom_score_adj = min_score_adj;
 
-	if (!is_display_on()) {
+	if (!display_on) {
 		cpu_input_boost_kick_max(100);
 		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 	}

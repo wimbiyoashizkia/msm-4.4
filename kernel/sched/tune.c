@@ -803,6 +803,10 @@ sched_boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
 	    s64 sched_boost)
 {
 	struct schedtune *st = css_st(css);
+
+	if (task_is_booster(current))
+		return 0;
+	
 	st->sched_boost = sched_boost;
 
 	return 0;

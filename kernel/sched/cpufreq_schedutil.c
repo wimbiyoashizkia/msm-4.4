@@ -12,6 +12,7 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/cpufreq.h>
+#include <linux/display_state.h>
 #include <linux/fb.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
@@ -219,6 +220,7 @@ static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
  * @sg_policy: schedutil policy object to compute the new frequency for.
  * @util: Current CPU utilization.
  * @max: CPU capacity.
+ * @display_on: Uses display_on() API to get a boolean result.
  *
  * If the utilization is frequency-invariant, choose the new frequency to be
  * proportional to it, that is
@@ -242,6 +244,10 @@ static unsigned int get_next_freq(struct sugov_policy *sg_policy,
 	struct cpufreq_policy *policy = sg_policy->policy;
 	unsigned int freq = arch_scale_freq_invariant() ?
 				policy->cpuinfo.max_freq : policy->cur;
+	bool display_on = is_display_on();
+
+	if(!display_on && policy->cpu > 1)
+		freq = freq >> 2;
 
 	freq = (freq + (freq >> 2)) * util / max;
 	do_freq_limit(sg_policy, &freq);

@@ -16,3 +16,8 @@ zstd_compress-y += entropy_common.o fse_decompress.o zstd_common.o
 ifneq ($(CONFIG_ZSTD_COMPRESS)$(CONFIG_ZSTD_DECOMPRESS),yy)
 	zstd_decompress-y += entropy_common.o fse_decompress.o zstd_common.o
 endif
+
+# Squeeze a little bit more juice
+ccflags-y := -O3
+ccflags-y += $(call cc-option, -g0)
+ccflags-y += $(call cc-option, -Os)

@@ -31,10 +31,10 @@ unsigned long boosted_cpu_util(int cpu);
 #define DEFAULT_DOWN_TOLERANCE_LP (20 * NSEC_PER_MSEC)
 #define DEFAULT_DOWN_TOLERANCE_PERF (20 * NSEC_PER_MSEC)
 
-static unsigned int default_efficient_freq_lp[] = {1536000, 1747200};
+static unsigned int default_efficient_freq_lp[] = {1747200};
 static u64 default_up_delay_lp[] = {100 * NSEC_PER_MSEC};
 
-static unsigned int default_efficient_freq_perf[] = {1747200, 2208000};
+static unsigned int default_efficient_freq_perf[] = {2208000};
 static u64 default_up_delay_perf[] = {100 * NSEC_PER_MSEC};
 
 struct sugov_tunables {

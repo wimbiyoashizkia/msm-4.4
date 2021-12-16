@@ -43,7 +43,7 @@ extern bool dsb_boosting;
 
 /*
  * Targeted preemption latency for CPU-bound tasks:
- * (default: 1ms * (1 + ilog(ncpus)), units: nanoseconds)
+ * (default: 10 ms * (1 + ilog(ncpus)), units: nanoseconds)
  *
  * NOTE: this latency value is not the same as the concept of
  * 'timeslice length' - timeslices in CFS are of variable length
@@ -53,8 +53,8 @@ extern bool dsb_boosting;
  * (to see the precise effective timeslice length of your workload,
  *  run vmstat and monitor the context-switches (cs) field)
  */
-unsigned int sysctl_sched_latency = 1000000ULL;
-unsigned int normalized_sysctl_sched_latency = 1000000ULL;
+unsigned int sysctl_sched_latency = 10000000ULL;
+unsigned int normalized_sysctl_sched_latency = 10000000ULL;
 
 unsigned int sysctl_sched_sync_hint_enable = 1;
 unsigned int sysctl_sched_cstate_aware = 1;
@@ -76,14 +76,14 @@ __read_mostly unsigned int sysctl_sched_walt_cpu_high_irqload =
  * SCHED_TUNABLESCALING_LINEAR - scaled linear, *ncpus
  */
 enum sched_tunable_scaling sysctl_sched_tunable_scaling
-	= SCHED_TUNABLESCALING_LOG;
+	= SCHED_TUNABLESCALING_NONE;
 
 /*
  * Minimal preemption granularity for CPU-bound tasks:
- * (default: 1 msec * (1 + ilog(ncpus)), units: nanoseconds)
+ * (default: 1.6 msec * (1 + ilog(ncpus)), units: nanoseconds)
  */
-unsigned int sysctl_sched_min_granularity = 100000ULL;
-unsigned int normalized_sysctl_sched_min_granularity = 100000ULL;
+unsigned int sysctl_sched_min_granularity = 1666666ULL;
+unsigned int normalized_sysctl_sched_min_granularity = 1666666ULL;
 
 /*
  * is kept at sysctl_sched_latency / sysctl_sched_min_granularity
@@ -94,7 +94,7 @@ static unsigned int sched_nr_latency = 8;
  * After fork, child runs first. If set to 0 (default) then
  * parent will (try to) run first.
  */
-unsigned int sysctl_sched_child_runs_first __read_mostly = 1;
+unsigned int sysctl_sched_child_runs_first __read_mostly = 0;
 
 /*
  * To enable/disable energy aware feature.
@@ -103,14 +103,14 @@ unsigned int __read_mostly sysctl_sched_energy_aware = 1;
 
 /*
  * SCHED_OTHER wake-up granularity.
- * (default: 0.5 msec * (1 + ilog(ncpus)), units: nanoseconds)
+ * (default: 5 msec * (1 + ilog(ncpus)), units: nanoseconds)
  *
  * This option delays the preemption effects of decoupled workloads
  * and reduces their over-scheduling. Synchronous workloads will still
  * have immediate wakeup/sleep latencies.
  */
-unsigned int sysctl_sched_wakeup_granularity = 500000UL;
-unsigned int normalized_sysctl_sched_wakeup_granularity = 500000UL;
+unsigned int sysctl_sched_wakeup_granularity = 5000000UL;
+unsigned int normalized_sysctl_sched_wakeup_granularity = 5000000UL;
 
 const_debug unsigned int sysctl_sched_migration_cost = 5000000UL;
 

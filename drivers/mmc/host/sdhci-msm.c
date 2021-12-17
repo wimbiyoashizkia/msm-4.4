@@ -3960,7 +3960,7 @@ static ssize_t sdhci_msm_pm_qos_group_show(struct device *dev,
 	for (i = 0; i < nr_groups; i++) {
 		group = &msm_host->pm_qos[i];
 		offset += snprintf(&buf[offset], PAGE_SIZE,
-			"Group #%d (mask=0x%d) PM QoS: enabled=%d, counter=%d, latency=%d\n",
+			"Group #%d (mask=0x%ld) PM QoS: enabled=%d, counter=%d, latency=%d\n",
 			i, group->req.cpus_affine,
 			msm_host->pm_qos_group_enable,
 			atomic_read(&group->counter),

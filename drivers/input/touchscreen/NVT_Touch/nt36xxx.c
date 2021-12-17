@@ -517,6 +517,7 @@ int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address, uint8_t *buf, 
 	msgs[1].buf   = &buf[1];
 
 	ret = i2c_transfer(client->adapter, msgs, 2);
+	return ret;
 }
 
 /*******************************************************
@@ -556,6 +557,7 @@ int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address, uint8_t *buf,
 	msg.buf   = buf;
 
 	ret = i2c_transfer(client->adapter, &msg, 1);
+	return ret;
 }
 
 

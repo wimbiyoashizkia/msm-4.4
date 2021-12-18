@@ -4125,7 +4125,7 @@ void sdhci_msm_pm_qos_cpu_init(struct sdhci_host *host,
 		group->latency = PM_QOS_DEFAULT_VALUE;
 		pm_qos_add_request(&group->req, PM_QOS_CPU_DMA_LATENCY,
 			group->latency);
-		pr_info("%s (): voted for group #%d (mask=0x%d) latency=%d\n",
+		pr_info("%s (): voted for group #%ld (mask=0x%d) latency=%d\n",
 			__func__, i,
 			group->req.cpus_affine,
 			group->latency);

@@ -11,7 +11,6 @@
 #include <linux/bug.h>
 #include <linux/kernel.h>
 #include <linux/rculist.h>
-#include <linux/bug.h>
 
 /*
  * Insert a new entry between two known consecutive entries.

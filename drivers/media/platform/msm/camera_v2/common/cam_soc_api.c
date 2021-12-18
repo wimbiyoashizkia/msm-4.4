@@ -713,10 +713,11 @@ int msm_camera_regulator_set_mode(struct msm_cam_regulator *vdd_info,
 			} else {
 				rc = regulator_set_mode(tmp->vdd,
 					REGULATOR_MODE_NORMAL);
-				if (rc < 0)
+				if (rc < 0) {
 					pr_err("regulator disable failed %d\n",
 						i);
 					goto error;
+				}
 			}
 		}
 		tmp++;

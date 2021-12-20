@@ -23,9 +23,9 @@ KERNEL_DIR=$PWD
 # Set enviroment for naming kernel
 MODEL="Asus Zenfone Max Pro M1"
 DEVICE="X00T"
-KERNEL="NEON"
+KERNEL="MeowGamingBeast"
 KERNELTYPE="EAS"
-TYPE="Private"
+TYPE="4.4"
 
 # Get defconfig file
 DEFCONFIG=X00T_defconfig
@@ -46,7 +46,7 @@ export KBUILD_BUILD_USER="wimbiyoas"
 COMPILER=gcc
 
 # Set environment for telegram
-export CHATID="-1001347363864"
+export CHATID="-1001520174422"
 export token="1686322470:AAGXAiglWR8ktsqyjwPx4AXr66LZjWoQt80"
 export BOT_MSG_URL="https://api.telegram.org/bot$token/sendMessage"
 export BOT_BUILD_URL="https://api.telegram.org/bot$token/sendDocument"

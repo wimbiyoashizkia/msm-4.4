@@ -1225,9 +1225,7 @@ long msm_copy_camera_private_ioctl_args(unsigned long arg,
 	if (WARN_ON(!arg || !k_ioctl || !tmp_compat_ioctl_ptr))
 		return -EIO;
 
-	if (copy_from_user(&up_ioctl,
-		(struct msm_camera_private_ioctl_arg *)arg,
-		sizeof(struct msm_camera_private_ioctl_arg)))
+	if (copy_from_user(&up_ioctl, (void __user *)arg, sizeof(up_ioctl)))
 		return -EFAULT;
 
 	k_ioctl->id = up_ioctl.id;

@@ -96,19 +96,18 @@ int WHITELIST_OF_STRING = sizeof(whitelist_apps) / sizeof(whitelist_apps[0]);
 
 static bool lowmem_whitelist(char *name)
 {
-	bool ret = false;
 	int i;
 
 	if (name == NULL)
-		return ret;
+		return 0;
 
 	for (i = 0; i < WHITELIST_OF_STRING; i++) {
-		if (!strcmp(name, whitelist_apps[i])) {
-			ret = true;
+		if (!strcmp(name, whitelist_apps[i]) == 0) {
+			return 1;
 		}
 	}
 
-	return ret;
+	return 0;
 }
 
 static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
@@ -184,7 +183,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 		}
 		tasksize = get_mm_rss(p->mm);
 		task_unlock(p);
-		if ((tasksize <= 0) || (lowmem_whitelist(p->comm) == true))
+		if (tasksize <= 0)
 			continue;
 		if (selected) {
 			if (oom_score_adj < selected_oom_score_adj)
@@ -193,11 +192,24 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 			    tasksize <= selected_tasksize)
 				continue;
 		}
-		selected = p;
-		selected_tasksize = tasksize;
-		selected_oom_score_adj = oom_score_adj;
-		lowmem_print(2, "select '%s' (%d), adj %hd, size %d, to kill\n",
-			     p->comm, p->pid, oom_score_adj, tasksize);
+		if (lowmem_whitelist(p->comm)) {
+			if (tasksize * (long)(PAGE_SIZE / 1024) >= 100000) {
+				selected = p;
+				selected_tasksize = tasksize;
+				selected_oom_score_adj = oom_score_adj;
+				lowmem_print(2, "select protected '%s' (%d), adj %hd, size %d, to kill\n",
+						p->comm, p->pid, oom_score_adj, tasksize);
+			} else {
+				lowmem_print(2, "skip protected '%s' (%d), adj %hd, size %d, to kill\n",
+						p->comm, p->pid, oom_score_adj, tasksize);
+			}
+		} else {
+			selected = p;
+			selected_tasksize = tasksize;
+			selected_oom_score_adj = oom_score_adj;
+			lowmem_print(2, "select '%s' (%d), adj %hd, size %d, to kill\n",
+					p->comm, p->pid, oom_score_adj, tasksize);
+		}
 	}
 	if (selected) {
 		long cache_size = other_file * (long)(PAGE_SIZE / 1024);

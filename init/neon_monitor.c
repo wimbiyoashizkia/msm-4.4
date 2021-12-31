@@ -6,6 +6,8 @@
 #include <asm/page.h>
 #include <linux/neon_monitor.h>
 
+int neon_swappiness = 60;
+
 long total_memory;
 void device_totalram(void)
 {

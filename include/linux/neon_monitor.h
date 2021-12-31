@@ -12,6 +12,8 @@ extern void memory_alloc_monitor(void);
 extern void device_totalram(void);
 extern unsigned long totalram_pages;
 extern unsigned long zram_ram_usage;
+extern unsigned long adreno_load;
+extern int neon_swappiness;
 extern int device_ram;
 extern bool trigger_swap;
 

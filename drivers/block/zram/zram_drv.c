@@ -32,6 +32,7 @@
 #include <linux/idr.h>
 #include <linux/sysfs.h>
 #include <linux/debugfs.h>
+#include <linux/neon_monitor.h>
 
 #include "zram_drv.h"
 
@@ -1520,6 +1521,12 @@ static ssize_t disksize_store(struct device *dev,
 		err = -EBUSY;
 		goto out_unlock;
 	}
+
+	device_totalram();
+	if (device_ram <= 3)
+		disksize = (u64)SZ_1G; /* 3GB RAM Devices */
+	else
+		disksize = (u64)SZ_2G; /* 4GB RAM Devices */
 
 	disksize = PAGE_ALIGN(disksize);
 	if (!zram_meta_alloc(zram, disksize)) {

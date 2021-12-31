@@ -545,6 +545,9 @@ void tune_lmk_param(int *other_free, int *other_file, struct shrink_control *sc)
 
 #define MAX_WHITELISTAPPS 50
 char whitelist_apps[][MAX_WHITELISTAPPS] = {
+	"d.process.acore",
+	"ndroid.systemui",
+	"system:ui",
 	"com.whatsapp",
 	"com.discord",
 	"tw.nekomimi.nekogram",

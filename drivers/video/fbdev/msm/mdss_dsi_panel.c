@@ -22,6 +22,7 @@
 #include <linux/qpnp/pwm.h>
 #include <linux/err.h>
 #include <linux/string.h>
+#include <linux/neon_monitor.h>
 
 #include "mdss_dsi.h"
 #include "mdss_dba_utils.h"
@@ -1052,6 +1053,8 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		mdss_dba_utils_video_off(pinfo->dba_data);
 		mdss_dba_utils_hdcp_enable(pinfo->dba_data, false);
 	}
+
+	memory_alloc_monitor();
 
 end:
 	pr_debug("%s:-\n", __func__);

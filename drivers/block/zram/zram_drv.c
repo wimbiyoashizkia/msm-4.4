@@ -180,6 +180,7 @@ static inline void update_used_max(struct zram *zram,
 					const unsigned long pages)
 {
 	unsigned long old_max, cur_max;
+	unsigned long zram_ram_usage = 0;
 
 	old_max = atomic_long_read(&zram->stats.max_used_pages);
 
@@ -189,6 +190,8 @@ static inline void update_used_max(struct zram *zram,
 			old_max = atomic_long_cmpxchg(
 				&zram->stats.max_used_pages, cur_max, pages);
 	} while (old_max != cur_max);
+
+	zram_ram_usage = old_max;
 }
 
 static inline void zram_fill_page(char *ptr, unsigned long len,

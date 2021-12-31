@@ -2353,3 +2353,13 @@ config ASN1
 	  functions to call on what tags.
 
 source "kernel/Kconfig.locks"
+
+config NEON_MONITOR
+	bool "NEON memory monitor"
+	depends on SWAP
+	default n
+	help
+	  Memory monitor helps in monitoring memory when
+	  the device needs more free memory.
+
+	  If in doubt, say N.

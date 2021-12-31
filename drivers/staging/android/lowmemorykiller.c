@@ -84,6 +84,9 @@ static unsigned long lowmem_count(struct shrinker *s,
 
 #define MAX_WHITELISTAPPS 50
 char whitelist_apps[][MAX_WHITELISTAPPS] = {
+	"d.process.acore",
+	"ndroid.systemui",
+	"system:ui",
 	"com.whatsapp",
 	"com.discord",
 	"tw.nekomimi.nekogram",

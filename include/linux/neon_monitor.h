@@ -16,5 +16,7 @@ extern unsigned long adreno_load;
 extern int neon_swappiness;
 extern int device_ram;
 extern bool trigger_swap;
+extern bool battery_low_cap;
+extern bool battery_high_cap;
 
 #endif /* _NEON_MONITOR_H */

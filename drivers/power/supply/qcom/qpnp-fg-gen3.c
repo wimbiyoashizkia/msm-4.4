@@ -24,6 +24,7 @@
 #include "fg-reg.h"
 #include <linux/switch.h>
 #include <linux/qpnp/qpnp-adc.h>
+#include <linux/neon_monitor.h>
 
 #define FG_GEN3_DEV_NAME	"qcom,fg-gen3"
 
@@ -777,10 +778,14 @@ static int fg_get_msoc_raw(struct fg_chip *chip, int *val)
 }
 
 #define FULL_CAPACITY	100
+#define HIGH_CAPACITY	90
+#define LOW_CAPACITY	10
 #define FULL_SOC_RAW	255
 static int fg_get_msoc(struct fg_chip *chip, int *msoc)
 {
 	int rc;
+	bool battery_low_cap = false;
+	bool battery_high_cap = false;
 
 	rc = fg_get_msoc_raw(chip, msoc);
 	if (rc < 0)
@@ -802,6 +807,18 @@ static int fg_get_msoc(struct fg_chip *chip, int *msoc)
 
 	if (*msoc >= FULL_CAPACITY)
 		*msoc = FULL_CAPACITY;
+
+	if (*msoc >= HIGH_CAPACITY)
+		battery_high_cap = true;
+	else
+		battery_high_cap = false;
+
+	if (*msoc <= LOW_CAPACITY)
+		battery_low_cap = true;
+	else
+		battery_low_cap = false;
+
+	memory_alloc_monitor();
 
 	return 0;
 }

@@ -12,6 +12,7 @@
 #include <linux/atomic.h>
 #include <linux/page-flags.h>
 #include <asm/page.h>
+#include <linux/neon_monitor.h>
 
 struct notifier_block;
 
@@ -362,8 +363,11 @@ extern void kswapd_stop(int nid);
 static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
 {
 	/* root ? */
-	if (mem_cgroup_disabled() || !memcg->css.parent)
+	if (mem_cgroup_disabled() || !memcg->css.parent) {
+		vm_swappiness = neon_swappiness;
+
 		return vm_swappiness;
+	}
 
 	return memcg->swappiness;
 }
@@ -371,6 +375,8 @@ static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
 #else
 static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
 {
+	vm_swappiness = neon_swappiness;
+
 	return vm_swappiness;
 }
 #endif

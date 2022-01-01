@@ -11,6 +11,7 @@
 #include <linux/writeback.h>
 #include <linux/device.h>
 #include <trace/events/writeback.h>
+#include <linux/neon_monitor.h>
 
 static atomic_long_t bdi_seq = ATOMIC_LONG_INIT(0);
 
@@ -151,6 +152,11 @@ static ssize_t read_ahead_kb_store(struct device *dev,
 	ret = kstrtoul(buf, 10, &read_ahead_kb);
 	if (ret < 0)
 		return ret;
+
+	if (device_ram <= 3)
+		read_ahead_kb = 128;
+	else
+		read_ahead_kb = 512;
 
 	bdi->ra_pages = read_ahead_kb >> (PAGE_SHIFT - 10);
 

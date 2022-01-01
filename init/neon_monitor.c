@@ -7,12 +7,13 @@
 #include <linux/neon_monitor.h>
 
 int neon_swappiness = 60;
+int device_ram;
 
 long total_memory;
 void device_totalram(void)
 {
 	bool check_ram = false;
-	int device_ram, threshold;
+	int threshold;
 
 	if (!check_ram) {
 		total_memory = totalram_pages << (PAGE_SHIFT - 10);

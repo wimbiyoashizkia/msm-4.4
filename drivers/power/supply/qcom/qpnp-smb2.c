@@ -14,6 +14,7 @@
 #include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/module.h>
+#include <linux/moduleparam.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/power_supply.h>
@@ -2290,8 +2291,10 @@ static void smb2_create_debugfs(struct smb2 *chip)
 
 #ifdef CONFIG_MACH_ASUS_X00T
 #define ATD_CHG_LIMIT_SOC	70
-int charger_limit_enable_flag;
-int charger_limit_value;
+int charger_limit_enable_flag = 0;
+module_param(charger_limit_enable_flag, int, 0644);
+int charger_limit_value = 100;
+module_param(charger_limit_value, int, 0644);
 static char charger_limit[8] = "0";
 static struct proc_dir_entry *limit_enable_entry;
 static struct proc_dir_entry *limit_entry;

@@ -379,7 +379,7 @@ int pm_qos_update_target(struct pm_qos_constraints *c,
 	}
 	spin_unlock(&pm_qos_lock);
 
-//	trace_pm_qos_update_target(action, prev_value, curr_value);
+	trace_pm_qos_update_target(action, prev_value, curr_value);
 
 	return ret;
 }

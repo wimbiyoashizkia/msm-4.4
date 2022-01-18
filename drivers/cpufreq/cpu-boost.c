@@ -9,6 +9,7 @@
 #include <linux/init.h>
 #include <linux/cpufreq.h>
 #include <linux/cpu.h>
+#include <linux/cpuset.h>
 #include <linux/slab.h>
 #include <linux/input.h>
 #include <linux/time.h>
@@ -265,6 +266,8 @@ static void do_input_boost(struct kthread_work *work)
 
 	queue_delayed_work(system_power_efficient_wq, 
 		&input_boost_rem, msecs_to_jiffies(input_boost_ms));
+
+	do_perf_cpuset();
 }
 
 static void cpuboost_input_event(struct input_handle *handle,
@@ -318,6 +321,7 @@ err2:
 
 static void cpuboost_input_disconnect(struct input_handle *handle)
 {
+	do_lp_cpuset();
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Reset dynamic stune boost value to the default value */
 	reset_stune_boost(boost_slot);

@@ -30,7 +30,7 @@ int __read_mostly sysctl_hung_task_check_count = PID_MAX_LIMIT;
  * is disabled during the critical section. It also controls the size of
  * the RCU grace period. So it needs to be upper-bound.
  */
-#define HUNG_TASK_LOCK_BREAK (HZ / 10)
+#define HUNG_TASK_LOCK_BREAK 100
 
 /*
  * Zero means infinite timeout - no checking done:
@@ -172,7 +172,7 @@ static void check_hung_uninterruptible_tasks(unsigned long timeout)
 	for_each_process_thread(g, t) {
 		if (!max_count--)
 			goto unlock;
-		if (time_after(jiffies, last_break + HUNG_TASK_LOCK_BREAK)) {
+		if (time_after(jiffies, last_break + msecs_to_jiffies(HUNG_TASK_LOCK_BREAK))) {
 			if (!rcu_lock_break(g, t))
 				goto unlock;
 			last_break = jiffies;
@@ -188,7 +188,7 @@ static void check_hung_uninterruptible_tasks(unsigned long timeout)
 static unsigned long timeout_jiffies(unsigned long timeout)
 {
 	/* timeout of 0 will disable the watchdog */
-	return timeout ? timeout * HZ : MAX_SCHEDULE_TIMEOUT;
+	return timeout ? timeout * msecs_to_jiffies(1000) : MAX_SCHEDULE_TIMEOUT;
 }
 
 /*

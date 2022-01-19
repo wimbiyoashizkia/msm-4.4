@@ -1763,7 +1763,7 @@ static int task_numa_migrate(struct task_struct *p)
 /* Attempt to migrate a task to a CPU on the preferred node. */
 static void numa_migrate_preferred(struct task_struct *p)
 {
-	unsigned long interval = HZ;
+	unsigned long interval = msecs_to_jiffies(1000);
 
 	/* This task has no NUMA fault statistics yet */
 	if (unlikely(p->numa_preferred_nid == -1 || !p->numa_faults))
@@ -5434,7 +5434,7 @@ static void record_wakee(struct task_struct *p)
 	 * about the boundary, really active task won't care
 	 * about the loss.
 	 */
-	if (time_after(jiffies, current->wakee_flip_decay_ts + HZ)) {
+	if (time_after(jiffies, current->wakee_flip_decay_ts + msecs_to_jiffies(1000))) {
 		current->wakee_flips >>= 1;
 		current->wakee_flip_decay_ts = jiffies;
 	}
@@ -7842,7 +7842,7 @@ static bool yield_to_task_fair(struct rq *rq, struct task_struct *p, bool preemp
  *      rewrite all of this once again.]
  */ 
 
-static unsigned long __read_mostly max_load_balance_interval = HZ/10;
+static unsigned long __read_mostly max_load_balance_interval = 100;
 
 enum fbq_type { regular, remote, all };
 
@@ -8526,7 +8526,7 @@ void update_group_capacity(struct sched_domain *sd, int cpu)
 	unsigned long interval;
 
 	interval = msecs_to_jiffies(sd->balance_interval);
-	interval = clamp(interval, 1UL, max_load_balance_interval);
+	interval = clamp(interval, 1UL, msecs_to_jiffies(max_load_balance_interval));
 	sdg->sgc->next_update = jiffies + interval;
 
 	if (!child) {
@@ -9863,7 +9863,7 @@ get_sd_balance_interval(struct sched_domain *sd, int cpu_busy)
 
 	/* scale ms to jiffies */
 	interval = msecs_to_jiffies(interval);
-	interval = clamp(interval, 1UL, max_load_balance_interval);
+	interval = clamp(interval, 1UL, msecs_to_jiffies(max_load_balance_interval));
 
 	return interval;
 }
@@ -9886,7 +9886,7 @@ update_next_balance(struct sched_domain *sd, int cpu_busy, unsigned long *next_b
  */
 static int idle_balance(struct rq *this_rq)
 {
-	unsigned long next_balance = jiffies + HZ;
+	unsigned long next_balance = jiffies + msecs_to_jiffies(1000);
 	int this_cpu = this_rq->cpu;
 	struct sched_domain *sd;
 	int pulled_task = 0;
@@ -10241,7 +10241,7 @@ static DEFINE_SPINLOCK(balancing);
  */
 void update_max_interval(void)
 {
-	max_load_balance_interval = HZ*num_online_cpus()/10;
+	max_load_balance_interval = msecs_to_jiffies(1000)*num_online_cpus()/10;
 }
 
 /*
@@ -10257,7 +10257,7 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
 	unsigned long interval;
 	struct sched_domain *sd;
 	/* Earliest time when we have to do rebalance again */
-	unsigned long next_balance = jiffies + 60*HZ;
+	unsigned long next_balance = jiffies + msecs_to_jiffies(60000);
 	int update_next_balance = 0;
 	int need_serialize, need_decay = 0;
 	u64 max_cost = 0;
@@ -10271,7 +10271,7 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
 		if (time_after(jiffies, sd->next_decay_max_lb_cost)) {
 			sd->max_newidle_lb_cost =
 				(sd->max_newidle_lb_cost * 253) / 256;
-			sd->next_decay_max_lb_cost = jiffies + HZ;
+			sd->next_decay_max_lb_cost = jiffies + msecs_to_jiffies(1000);
 			need_decay = 1;
 		}
 		max_cost += sd->max_newidle_lb_cost;
@@ -10367,7 +10367,7 @@ static void nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
 	struct sched_domain *sd;
 	int balance_cpu;
 	/* Earliest time when we have to do rebalance again */
-	unsigned long next_balance = jiffies + 60*HZ;
+	unsigned long next_balance = jiffies + msecs_to_jiffies(60000);
 	int update_next_balance = 0;
 
 	if (idle != CPU_IDLE ||

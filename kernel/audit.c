@@ -106,7 +106,7 @@ static u32	audit_rate_limit;
 /* Number of outstanding audit_buffers allowed.
  * When set to zero, this means unlimited. */
 static u32	audit_backlog_limit = 64;
-#define AUDIT_BACKLOG_WAIT_TIME (60 * HZ)
+#define AUDIT_BACKLOG_WAIT_TIME 60000
 static u32	audit_backlog_wait_time_master = AUDIT_BACKLOG_WAIT_TIME;
 static u32	audit_backlog_wait_time = AUDIT_BACKLOG_WAIT_TIME;
 static u32	audit_backlog_wait_overflow = 0;
@@ -900,7 +900,7 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 		if (s.mask & AUDIT_STATUS_BACKLOG_WAIT_TIME) {
 			if (sizeof(s) > (size_t)nlh->nlmsg_len)
 				return -EINVAL;
-			if (s.backlog_wait_time > 10*AUDIT_BACKLOG_WAIT_TIME)
+			if (s.backlog_wait_time > 10*msecs_to_jiffies(AUDIT_BACKLOG_WAIT_TIME))
 				return -EINVAL;
 			err = audit_set_backlog_wait_time(s.backlog_wait_time);
 			if (err < 0)

@@ -495,7 +495,7 @@ static enum hrtimer_restart posix_timer_fn(struct hrtimer *timer)
 			 */
 #ifdef CONFIG_HIGH_RES_TIMERS
 			{
-				ktime_t kj = ktime_set(0, NSEC_PER_SEC / HZ);
+				ktime_t kj = ktime_set(0, NSEC_PER_SEC / msecs_to_jiffies(1000));
 
 				if (timr->it.real.interval < kj)
 					now = ktime_add(now, kj);

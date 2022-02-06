@@ -53,6 +53,9 @@ static unsigned int aggr_top_load;
 static unsigned int top_load[CLUSTER_MAX];
 static unsigned int curr_cap[CLUSTER_MAX];
 
+static cpumask_var_t limit_mask_min;
+static cpumask_var_t limit_mask_max;
+
 /*******************************sysfs start************************************/
 static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 {
@@ -61,7 +64,6 @@ static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 	const char *cp = buf;
 	struct cpu_status *i_cpu_stats;
 	struct cpufreq_policy policy;
-	cpumask_var_t limit_mask;
 
 	while ((cp = strpbrk(cp + 1, " :")))
 		ntokens++;
@@ -71,7 +73,7 @@ static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 		return -EINVAL;
 
 	cp = buf;
-	cpumask_clear(limit_mask);
+	cpumask_clear(limit_mask_min);
 	for (i = 0; i < ntokens; i += 2) {
 		if (sscanf(cp, "%u:%u", &cpu, &val) != 2)
 			return -EINVAL;
@@ -81,7 +83,7 @@ static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 		i_cpu_stats = &per_cpu(msm_perf_cpu_stats, cpu);
 
 		i_cpu_stats->min = val;
-		cpumask_set_cpu(cpu, limit_mask);
+		cpumask_set_cpu(cpu, limit_mask_min);
 
 		cp = strnchr(cp, strlen(cp), ' ');
 		cp++;
@@ -95,7 +97,7 @@ static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 	 * in the cluster
 	 */
 	get_online_cpus();
-	for_each_cpu(i, limit_mask) {
+	for_each_cpu(i, limit_mask_min) {
 		i_cpu_stats = &per_cpu(msm_perf_cpu_stats, i);
 
 		if (cpufreq_get_policy(&policy, i))
@@ -105,7 +107,7 @@ static int set_cpu_min_freq(const char *buf, const struct kernel_param *kp)
 			cpufreq_update_policy(i);
 
 		for_each_cpu(j, policy.related_cpus)
-			cpumask_clear_cpu(j, limit_mask);
+			cpumask_clear_cpu(j, limit_mask_min);
 	}
 	put_online_cpus();
 
@@ -138,7 +140,6 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 	const char *cp = buf;
 	struct cpu_status *i_cpu_stats;
 	struct cpufreq_policy policy;
-	cpumask_var_t limit_mask;
 
 	while ((cp = strpbrk(cp + 1, " :")))
 		ntokens++;
@@ -148,7 +149,7 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 		return -EINVAL;
 
 	cp = buf;
-	cpumask_clear(limit_mask);
+	cpumask_clear(limit_mask_max);
 	for (i = 0; i < ntokens; i += 2) {
 		if (sscanf(cp, "%u:%u", &cpu, &val) != 2)
 			return -EINVAL;
@@ -158,14 +159,14 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 		i_cpu_stats = &per_cpu(msm_perf_cpu_stats, cpu);
 
 		i_cpu_stats->max = val;
-		cpumask_set_cpu(cpu, limit_mask);
+		cpumask_set_cpu(cpu, limit_mask_max);
 
 		cp = strnchr(cp, strlen(cp), ' ');
 		cp++;
 	}
 
 	get_online_cpus();
-	for_each_cpu(i, limit_mask) {
+	for_each_cpu(i, limit_mask_max) {
 		i_cpu_stats = &per_cpu(msm_perf_cpu_stats, i);
 		if (cpufreq_get_policy(&policy, i))
 			continue;
@@ -174,7 +175,7 @@ static int set_cpu_max_freq(const char *buf, const struct kernel_param *kp)
 			cpufreq_update_policy(i);
 
 		for_each_cpu(j, policy.related_cpus)
-			cpumask_clear_cpu(j, limit_mask);
+			cpumask_clear_cpu(j, limit_mask_max);
 	}
 	put_online_cpus();
 
@@ -482,6 +483,14 @@ static int __init msm_performance_init(void)
 
 	for_each_present_cpu(cpu)
 		per_cpu(msm_perf_cpu_stats, cpu).max = UINT_MAX;
+
+	if (!alloc_cpumask_var(&limit_mask_min, GFP_KERNEL))
+		return -ENOMEM;
+
+	if (!alloc_cpumask_var(&limit_mask_max, GFP_KERNEL)) {
+		free_cpumask_var(limit_mask_min);
+		return -ENOMEM;
+	}
 
 	init_events_group();
 	init_notify_group();

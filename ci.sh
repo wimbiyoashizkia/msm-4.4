@@ -24,7 +24,7 @@ KERNEL_DIR=$PWD
 MODEL="Asus Zenfone Max Pro M1"
 DEVICE="X00T"
 KERNEL="NEON"
-KERNELTYPE="EAS"
+KERNELTYPE="HMP"
 TYPE="nightly"
 
 # Get defconfig file
@@ -64,7 +64,7 @@ if [[ -n "$CI" ]]; then
 		export KBUILD_BUILD_HOST="CircleCI"
 		export CI_BRANCH=$CIRCLE_BRANCH
 	else
-		echo "Not presetting Build Version"
+		echo "Windows"
 	fi
 fi
 

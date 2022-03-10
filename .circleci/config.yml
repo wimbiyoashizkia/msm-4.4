@@ -1,0 +1,19 @@
+
+version: 2.1
+jobs:
+  compile:
+   docker:
+      - image: ubuntu:latest
+   steps:
+      - run:
+          no_output_timeout: 50m
+          command: |
+           apt-get update && apt-get install -y bison build-essential bc bison curl libssl-dev git zip python python3 flex cpio libncurses5-dev wget
+           git clone https://$GH_TOKEN@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas-test --depth=1 msm-4.4
+           cd msm-4.4
+           bash ci.sh
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - compile 

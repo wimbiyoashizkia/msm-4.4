@@ -40,9 +40,9 @@ export SUBARCH=arm64
 export KBUILD_BUILD_USER="wimbiyoas"
 
 #
-# Default is clang compiler
+# Default is gcc compiler
 #
-COMPILER=clang
+COMPILER=gcc
 
 # Set environment for telegram
 export CHATID="-1001520174422"
@@ -80,14 +80,16 @@ DATE=$(TZ=Asia/Jakarta date +"%Y%m%d-%T")
 # Set function for cloning repository
 clone() {
 	echo " "
-	if [[ $COMPILER == "clang" ]]; then
-		# Clone Clang
-		git clone --depth=1 https://github.com/kdrag0n/proton-clang -b master clang
-		# Set environment for clang
-		TC_DIR=$KERNEL_DIR/clang
+	if [[ $COMPILER == "gcc" ]]; then
+		# Clone GCC ARM64 and ARM32
+		git clone --depth=1 https://github.com/fiqri19102002/aarch64-gcc -b elf-gcc-10-tarballs gcc64
+		git clone --depth=1 https://github.com/fiqri19102002/arm-gcc -b elf-gcc-10-tarballs gcc32
+		# Set environment for GCC ARM64 and ARM32
+		GCC64_DIR=$KERNEL_DIR/gcc64
+		GCC32_DIR=$KERNEL_DIR/gcc32
 		# Get path and compiler string
-		KBUILD_COMPILER_STRING=$("$TC_DIR"/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-		export PATH=$TC_DIR/bin:$PATH
+		KBUILD_COMPILER_STRING=$("$GCC64_DIR"/bin/aarch64-elf-gcc --version | head -n 1)
+		PATH=$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH
 	fi
 
 	export PATH KBUILD_COMPILER_STRING
@@ -130,18 +132,9 @@ build_kernel() {
 
 	BUILD_START=$(date +"%s")
 
-	if [[ $COMPILER == "clang" ]]; then
-		make -j"$PROCS" O=out \
-				CC=clang \
-				ARCH=arm64 \
-				AR=llvm-ar \
-				NM=llvm-nm \
-				OBJCOPY=llvm-objcopy \
-				OBJDUMP=llvm-objdump \
-				STRIP=llvm-strip \
-				CLANG_TRIPLE=aarch64-linux-gnu- \
-				CROSS_COMPILE=aarch64-linux-gnu- \
-				CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+	if [[ $COMPILER == "gcc" ]]; then
+		export CROSS_COMPILE_ARM32=$GCC32_DIR/bin/arm-eabi-
+		make -j"$PROCS" O=out CROSS_COMPILE=aarch64-elf-
 	fi
 
 	BUILD_END=$(date +"%s")

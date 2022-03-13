@@ -58,6 +58,20 @@ int cpufreq_frequency_table_cpuinfo(struct cpufreq_policy *policy,
 	policy->min = policy->cpuinfo.min_freq = min_freq;
 	policy->max = policy->cpuinfo.max_freq = max_freq;
 
+	/*
+	 * Prevent overclocking or underclocking cpufreq
+	 * during boot.
+	 */
+	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+		policy->min = CONFIG_CPU_FREQ_DEFAULT_MIN_LP_CLUSTER;
+		policy->max = CONFIG_CPU_FREQ_DEFAULT_MAX_LP_CLUSTER;
+	}
+
+	if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+		policy->min = CONFIG_CPU_FREQ_DEFAULT_MIN_PERF_CLUSTER;
+		policy->max = CONFIG_CPU_FREQ_DEFAULT_MAX_PERF_CLUSTER;
+	}
+
 	if (policy->min == ~0)
 		return -EINVAL;
 	else

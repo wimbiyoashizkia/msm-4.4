@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 and
- * only version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * Copyright (c) 2013-2015,2017,2019, The Linux Foundation. All rights reserved.
  */
 
 #define pr_fmt(fmt) "cpu-boost: " fmt
@@ -17,12 +9,33 @@
 #include <linux/init.h>
 #include <linux/cpufreq.h>
 #include <linux/cpu.h>
-#include <linux/moduleparam.h>
 #include <linux/slab.h>
 #include <linux/input.h>
 #include <linux/time.h>
+#include <linux/sysfs.h>
 #include <linux/kthread.h>
 #include <linux/sched/rt.h>
+
+#define cpu_boost_attr_rw(_name)		\
+static struct kobj_attribute _name##_attr =	\
+__ATTR(_name, 0644, show_##_name, store_##_name)
+
+#define show_one(file_name)			\
+static ssize_t show_##file_name			\
+(struct kobject *kobj, struct kobj_attribute *attr, char *buf)	\
+{								\
+	return scnprintf(buf, PAGE_SIZE, "%u\n", file_name);	\
+}
+
+#define store_one(file_name)					\
+static ssize_t store_##file_name				\
+(struct kobject *kobj, struct kobj_attribute *attr,		\
+const char *buf, size_t count)					\
+{								\
+								\
+	sscanf(buf, "%u", &file_name);				\
+	return count;						\
+}
 
 struct cpu_sync {
 	int cpu;
@@ -34,10 +47,14 @@ static DEFINE_PER_CPU(struct cpu_sync, sync_info);
 static struct kthread_work input_boost_work;
 
 static unsigned int input_boost_enabled = 1;
-module_param(input_boost_enabled, uint, 0644);
+show_one(input_boost_enabled);
+store_one(input_boost_enabled);
+cpu_boost_attr_rw(input_boost_enabled);
 
 static unsigned int input_boost_ms = 40;
-module_param(input_boost_ms, uint, 0644);
+show_one(input_boost_ms);
+store_one(input_boost_ms);
+cpu_boost_attr_rw(input_boost_ms);
 
 static struct delayed_work input_boost_rem;
 static u64 last_input_time;
@@ -45,7 +62,9 @@ static u64 last_input_time;
 static struct kthread_worker cpu_boost_worker;
 static struct task_struct *cpu_boost_worker_thread;
 
-static int set_input_boost_freq(const char *buf, const struct kernel_param *kp)
+static ssize_t store_input_boost_freq(struct kobject *kobj,
+				      struct kobj_attribute *attr,
+				      const char *buf, size_t count)
 {
 	int i, ntokens = 0;
 	unsigned int val, cpu;
@@ -71,19 +90,21 @@ static int set_input_boost_freq(const char *buf, const struct kernel_param *kp)
 	for (i = 0; i < ntokens; i += 2) {
 		if (sscanf(cp, "%u:%u", &cpu, &val) != 2)
 			return -EINVAL;
-		if (cpu > num_possible_cpus())
+		if (cpu >= num_possible_cpus())
 			return -EINVAL;
 
 		per_cpu(sync_info, cpu).input_boost_freq = val;
-		cp = strchr(cp, ' ');
+		cp = strnchr(cp, PAGE_SIZE - (cp - buf), ' ');
 		cp++;
 	}
 
 out:
-	return 0;
+
+	return count;
 }
 
-static int get_input_boost_freq(char *buf, const struct kernel_param *kp)
+static ssize_t show_input_boost_freq(struct kobject *kobj,
+				     struct kobj_attribute *attr, char *buf)
 {
 	int cnt = 0, cpu;
 	struct cpu_sync *s;
@@ -97,22 +118,12 @@ static int get_input_boost_freq(char *buf, const struct kernel_param *kp)
 	return cnt;
 }
 
-static const struct kernel_param_ops param_ops_input_boost_freq = {
-	.set = set_input_boost_freq,
-	.get = get_input_boost_freq,
-};
-module_param_cb(input_boost_freq, &param_ops_input_boost_freq, NULL, 0644);
+cpu_boost_attr_rw(input_boost_freq);
 
 /*
  * The CPUFREQ_ADJUST notifier is used to override the current policy min to
  * make sure policy min >= boost_min. The cpufreq framework then does the job
  * of enforcing the new policy.
- *
- * The sync kthread needs to run on the CPU in question to avoid deadlocks in
- * the wake up code. Achieve this by binding the thread to the respective
- * CPU. But a CPU going offline unbinds threads from that CPU. So, set it up
- * again each time the CPU comes back up. We can use CPUFREQ_START to figure
- * out a CPU is coming online instead of registering for hotplug notifiers.
  */
 static int boost_adjust_notify(struct notifier_block *nb, unsigned long val,
 				void *data)
@@ -144,7 +155,7 @@ static int boost_adjust_notify(struct notifier_block *nb, unsigned long val,
 
 static struct notifier_block boost_adjust_nb = {
 	.notifier_call = boost_adjust_notify,
-	.priority = INT_MAX - 2,
+	.priority = INT_MAX-2,
 };
 
 static void update_policy_online(void)
@@ -170,7 +181,7 @@ static void update_policy_online(void)
 
 static void do_input_boost_rem(struct work_struct *work)
 {
-	unsigned int i, ret;
+	unsigned int i;
 	struct cpu_sync *i_sync_info;
 
 	/* Reset the input_boost_min for all CPUs in the system */
@@ -190,7 +201,7 @@ static void do_input_boost(struct kthread_work *work)
 	struct cpu_sync *i_sync_info;
 
 	if (!input_boost_ms)
-			return;
+		return;
 
 	cancel_delayed_work_sync(&input_boost_rem);
 
@@ -204,7 +215,8 @@ static void do_input_boost(struct kthread_work *work)
 	/* Update policies for all online CPUs */
 	update_policy_online();
 
-	schedule_delayed_work(&input_boost_rem, msecs_to_jiffies(input_boost_ms));
+	queue_delayed_work(system_power_efficient_wq, 
+		&input_boost_rem, msecs_to_jiffies(input_boost_ms));
 }
 
 static void cpuboost_input_event(struct input_handle *handle,
@@ -297,6 +309,7 @@ static struct input_handler cpuboost_input_handler = {
 	.id_table       = cpuboost_ids,
 };
 
+struct kobject *cpu_boost_kobj;
 static int cpu_boost_init(void)
 {
 	int cpu, ret;
@@ -306,10 +319,15 @@ static int cpu_boost_init(void)
 	init_kthread_worker(&cpu_boost_worker);
 	cpu_boost_worker_thread = kthread_run(kthread_worker_fn,
 		&cpu_boost_worker, "cpu_boost_worker_thread");
-	if (IS_ERR(cpu_boost_worker_thread))
+	if (IS_ERR(cpu_boost_worker_thread)) {
+		pr_err("cpu-boost: Failed to init kworker!\n");
 		return -EFAULT;
+	}
 
-	sched_setscheduler(cpu_boost_worker_thread, SCHED_FIFO, &param);
+	ret = sched_setscheduler(cpu_boost_worker_thread, SCHED_FIFO, &param);
+	if (ret)
+		pr_err("cpu-boost: Failed to set SCHED_FIFO!\n");
+
 	init_kthread_work(&input_boost_work, do_input_boost);
 	INIT_DELAYED_WORK(&input_boost_rem, do_input_boost_rem);
 
@@ -318,8 +336,25 @@ static int cpu_boost_init(void)
 		s->cpu = cpu;
 	}
 	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
-	ret = input_register_handler(&cpuboost_input_handler);
 
-	return ret;
+	cpu_boost_kobj = kobject_create_and_add("cpu_boost",
+						&cpu_subsys.dev_root->kobj);
+	if (!cpu_boost_kobj)
+		pr_err("Failed to initialize sysfs node for cpu_boost.\n");
+
+	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_enabled_attr.attr);
+	if (ret)
+		pr_err("Failed to create input_boost_enabled node: %d\n", ret);
+
+	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_ms_attr.attr);
+	if (ret)
+		pr_err("Failed to create input_boost_ms node: %d\n", ret);
+
+	ret = sysfs_create_file(cpu_boost_kobj, &input_boost_freq_attr.attr);
+	if (ret)
+		pr_err("Failed to create input_boost_freq node: %d\n", ret);
+
+	ret = input_register_handler(&cpuboost_input_handler);
+	return 0;
 }
 late_initcall(cpu_boost_init);

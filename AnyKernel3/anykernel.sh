@@ -40,6 +40,11 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel install
 dump_boot;
 
+# Detecting EAS ROM
+ui_print " " "Installing EAS PowerHAL..."
+rm -rf /data/adb/modules/neon;
+cp -rf $home/patch/powerhal /data/adb/modules/neon;
+
 # Set Android version for kernel
 ver="$(file_getprop /system/build.prop ro.build.version.release)"
 if [ ! -z "$ver" ]; then

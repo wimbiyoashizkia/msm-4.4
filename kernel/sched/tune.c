@@ -809,9 +809,7 @@ static int boost_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	boost_write(css, NULL, boost);
-
-	return 0;
+	return boost_write(css, cft, boost);
 }
 
 static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
@@ -820,9 +818,7 @@ static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	prefer_idle_write(css, NULL, prefer_idle);
-
-	return 0;
+	return prefer_idle_write(css, cft, prefer_idle);
 }
 
 #ifdef CONFIG_SCHED_HMP
@@ -832,9 +828,7 @@ static int sched_boost_override_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	sched_boost_override_write(css, NULL, override);
-
-	return 0;
+	return sched_boost_override_write(css, cft, override);
 }
 
 static int sched_boost_enabled_write_wrapper(struct cgroup_subsys_state *css,
@@ -843,9 +837,7 @@ static int sched_boost_enabled_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	sched_boost_enabled_write(css, NULL, enable);
-
-	return 0;
+	return sched_boost_enabled_write(css, cft, enable);
 }
 
 static int sched_colocate_write_wrapper(struct cgroup_subsys_state *css,
@@ -854,9 +846,7 @@ static int sched_colocate_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	sched_colocate_write(css, NULL, colocate);
-
-	return 0;
+	return sched_colocate_write(css, cft, colocate);
 }
 #endif /* SCHED_HMP */
 #endif
@@ -912,18 +902,18 @@ schedtune_boostgroup_init(struct schedtune *st)
 }
 
 #ifdef CONFIG_STUNE_ASSIST
+struct st_data {
+	char *name;
+	int boost;
+	bool prefer_idle;
+	bool override;
+	bool enable;
+	bool colocate;
+};
+
 static void write_default_values(struct cgroup_subsys_state *css)
 {
-	u8 i;
-	struct groups_data {
-		char *name;
-		int boost;
-		bool prefer_idle;
-		bool override;
-		bool enable;
-		bool colocate;
-	};
-	struct groups_data groups[2] = {
+	static struct st_data st_targets[] = {
 		{ "audio-app",	0, 0, 0, 1, 0 },
 		{ "background",	0, 0, 0, 1, 0 },
 		{ "foreground",	0, 1, 0, 1, 1 },
@@ -931,18 +921,22 @@ static void write_default_values(struct cgroup_subsys_state *css)
 		{ "top-app",	1, 0, 1, 1, 1 },
 	};
 
-	for (i = 0; i < ARRAY_SIZE(groups); i++) {
-		if (!strcmp(css->cgroup->kn->name, groups[i].name)) {
-			pr_info("%s: %i - %i\n", groups[i].name,
-					groups[i].boost, groups[i].prefer_idle, 
-					groups[i].override, 
-					groups[i].enable, groups[i].colocate);
-			boost_write(css, NULL, groups[i].boost);
-			prefer_idle_write(css, NULL, groups[i].prefer_idle);
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(st_targets); i++) {
+		struct st_data tgt = st_targets[i];
+
+		if (!strcmp(css->cgroup->kn->name, tgt.name)) {
+			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d sched_boost_override=%d sched_boost_enabled=%d colocate=%d\n",
+				tgt.name, tgt.boost, tgt.prefer_idle, tgt.override,
+				tgt.enable, tgt.colocate);
+
+			boost_write(css, NULL, tgt.boost);
+			prefer_idle_write(css, NULL, tgt.prefer_idle);
 #ifdef CONFIG_SCHED_HMP
-			sched_boost_override_write(css, NULL, groups[i].override);
-			sched_boost_enabled_write(css, NULL, groups[i].enable);
-			sched_colocate_write(css, NULL, groups[i].colocate);
+			sched_boost_override_write(css, NULL, tgt.override);
+			sched_boost_enabled_write(css, NULL, tgt.enable);
+			sched_colocate_write(css, NULL, tgt.colocate);
 #endif /* SCHED_HMP */
 		}
 	}

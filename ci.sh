@@ -23,7 +23,7 @@ KERNEL_DIR=$PWD
 # Set enviroment for naming kernel
 MODEL="Asus Zenfone Max Pro M1"
 DEVICE="X00T"
-KERNEL="NEON"
+KERNEL="Radiance"
 KERNELTYPE="HMP"
 TYPE="nightly"
 

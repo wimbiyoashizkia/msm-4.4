@@ -40,7 +40,7 @@ static void patch_flag(char *cmd, const char *flag, const char *val)
 	memcpy(start + flag_len, val, val_len);
 }
 
-static void patch_safetynet_flags(char *cmd)
+static void patch_cmdline_flags(char *cmd)
 {
 	patch_flag(cmd, "androidboot.flash.locked=", "1");
 	patch_flag(cmd, "androidboot.verifiedbootstate=", "green");
@@ -53,9 +53,9 @@ static int __init proc_cmdline_init(void)
 
 	/*
 	 * Patch various flags from command line seen by userspace in order to
-	 * pass SafetyNet checks.
+	 * custom cmdline.
 	 */
-	patch_safetynet_flags(new_command_line);
+	patch_cmdline_flags(new_command_line);
 
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
 	return 0;

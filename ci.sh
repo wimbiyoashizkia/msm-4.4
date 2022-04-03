@@ -24,7 +24,7 @@ KERNEL_DIR=$PWD
 MODEL="Asus Zenfone Max Pro M1"
 DEVICE="X00T"
 KERNEL="Radiance"
-KERNELTYPE="HMP"
+KERNELTYPE="EAS"
 TYPE="nightly"
 
 # Get defconfig file

@@ -62,6 +62,7 @@ static void replace_cmdline_flags(char *cmd)
 			  "androidboot.verifiedbootstate=green");
 	replace_flag(cmd, "androidboot.veritymode=permissive",
 			  "androidboot.veritymode=enforcing");
+	replace_flag(cmd, "sched_enable_hmp=1","");
 }
 
 static int __init proc_cmdline_init(void)

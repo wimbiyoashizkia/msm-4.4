@@ -764,6 +764,15 @@ static ssize_t store_##file_name					\
 	new_policy.min = policy->user_policy.min;			\
 	new_policy.max = policy->user_policy.max;			\
 									\
+	/*								\
+	 When the minimum frequency written by booster is greater	\
+	 than the maximum frequency, set the minimum frequency to the	\
+	 maximum frequency.						\
+	 */								\
+	if (task_is_booster(current))					\
+		if (new_policy.min > new_policy.max)			\
+			new_policy.min = new_policy.max;		\
+									\
 	ret = sscanf(buf, "%u", &new_policy.object);			\
 	if (ret != 1)							\
 		return -EINVAL;						\

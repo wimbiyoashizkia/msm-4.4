@@ -695,8 +695,8 @@ endif
 
 ifeq ($(cc-name),gcc)
 KBUILD_CFLAGS	+= -Wno-psabi
-KBUILD_CFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
-KBUILD_AFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
+KBUILD_CFLAGS += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
+KBUILD_AFLAGS += -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53 -march=armv8-a
 endif
 
 KBUILD_CFLAGS += $(call cc-ifversion, -gt, 0900, \

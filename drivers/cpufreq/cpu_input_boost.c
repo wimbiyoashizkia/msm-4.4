@@ -286,13 +286,16 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 		return NOTIFY_OK;
 
 	/* Boost when the screen turns on and unboost when it turns off */
-	if (*blank == FB_BLANK_UNBLANK) {
+	switch (*blank) {
+	case FB_BLANK_UNBLANK:
 		resume_cpufreq_underclock();
 		clear_bit(SCREEN_OFF, &b->state);
 		__cpu_input_boost_kick_max(b, wake_boost_duration);
-	} else {
+		break;
+	case FB_BLANK_POWERDOWN:
 		set_bit(SCREEN_OFF, &b->state);
 		wake_up(&b->boost_waitq);
+		break;
 	}
 
 	return NOTIFY_OK;

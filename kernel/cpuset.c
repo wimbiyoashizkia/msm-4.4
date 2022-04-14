@@ -2878,9 +2878,9 @@ static void dynamic_cpuset_worker(struct work_struct *work)
 		goto out_unlock;
 
 	if (need_perf)
-		update_cpumask(cs, trialcs, "4-6");
+		update_cpumask(cs, trialcs, "4-7");
 	else
-		update_cpumask(cs, trialcs, "0-6");
+		update_cpumask(cs, trialcs, "0-3");
 
 	free_trial_cpuset(trialcs);
 out_unlock:

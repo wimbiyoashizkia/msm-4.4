@@ -6406,7 +6406,7 @@ static int __init binder_init(void)
 				    &binder_transaction_log_fops);
 	}
 
-	if (!enable_binder_fs &&
+	if (!IS_ENABLED(CONFIG_ANDROID_BINDERFS) &&
 	    strcmp(binder_devices_param, "") != 0) {
 		/*
 		* Copy the module_parameter string, because we don't want to

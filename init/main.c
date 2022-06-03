@@ -143,26 +143,6 @@ unsigned int get_android_version(void)
 	return android_version;
 }
 
-bool enable_binder_fs = false;
-
-static int __init set_binder_fs(char *val)
-{
-	get_option(&val, &enable_binder_fs);
-
-	if (android_version > 10)
-		enable_binder_fs = true;
-	else
-		enable_binder_fs = false;
-
-	return 0;
-}
-__setup("binder.fs=", set_binder_fs);
-
-unsigned int get_binder_fs(void)
-{
-	return enable_binder_fs;
-}
-
 /*
  * Used to generate warnings if static_key manipulation functions are used
  * before jump_label_init is called.

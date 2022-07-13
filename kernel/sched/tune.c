@@ -733,9 +733,7 @@ static int boost_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	boost_write(css, NULL, boost);
-
-	return 0;
+	return boost_write(css, cft, boost);
 }
 
 static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
@@ -744,9 +742,7 @@ static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 	if (!strcmp(current->comm, "init"))
 		return 0;
 
-	prefer_idle_write(css, NULL, prefer_idle);
-
-	return 0;
+	return prefer_idle_write(css, cft, prefer_idle);
 }
 #endif
 
@@ -784,25 +780,35 @@ schedtune_boostgroup_init(struct schedtune *st)
 	return 0;
 }
 
+
 #ifdef CONFIG_STUNE_ASSIST
+struct st_data {
+	char *name;
+	int boost;
+	bool prefer_idle;
+};
+
 static void write_default_values(struct cgroup_subsys_state *css)
 {
-	u8 i;
-	struct groups_data {
-		char *name;
-		int boost;
-		bool prefer_idle;
+	static struct st_data st_targets[] = {
+		{ "background",	0, 0 },
+		{ "camera-daemon",	0, 0 },
+		{ "foreground",	0, 0 },
+		{ "nnapi-hal",	1, 1 },
+		{ "rt",		0, 0 },
+		{ "top-app",	0, 0 },
 	};
-	struct groups_data groups[2] = {
-		{ "top-app",	1, 1 },
-		{ "foreground", 0, 1 }};
+	int i;
 
-	for (i = 0; i < ARRAY_SIZE(groups); i++) {
-		if (!strcmp(css->cgroup->kn->name, groups[i].name)) {
-			pr_info("%s: %i - %i\n", groups[i].name,
-					groups[i].boost, groups[i].prefer_idle);
-			boost_write(css, NULL, groups[i].boost);
-			prefer_idle_write(css, NULL, groups[i].prefer_idle);
+	for (i = 0; i < ARRAY_SIZE(st_targets); i++) {
+		struct st_data tgt = st_targets[i];
+
+		if (!strcmp(css->cgroup->kn->name, tgt.name)) {
+			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d\n",
+				tgt.name, tgt.boost, tgt.prefer_idle);
+
+			boost_write(css, NULL, tgt.boost);
+			prefer_idle_write(css, NULL, tgt.prefer_idle);
 		}
 	}
 }

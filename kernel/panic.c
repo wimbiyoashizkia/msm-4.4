@@ -24,6 +24,7 @@
 #include <linux/init.h>
 #include <linux/nmi.h>
 #include <linux/console.h>
+#include <linux/syscalls.h>
 #include <soc/qcom/minidump.h>
 
 #define CREATE_TRACE_POINTS
@@ -65,6 +66,25 @@ void __weak panic_smp_self_stop(void)
 		cpu_relax();
 }
 
+#define FS_SYNC_TIMEOUT_MS 2000
+static struct work_struct fs_sync_work;
+static DECLARE_COMPLETION(sync_compl);
+static void fs_sync_work_func(struct work_struct *work)
+{
+	pr_emerg("sys_sync:syncing fs\n");
+	sys_sync();
+	complete(&sync_compl);
+}
+
+void exec_fs_sync_work(void)
+{
+	INIT_WORK(&fs_sync_work, fs_sync_work_func);
+	reinit_completion(&sync_compl);
+	schedule_work(&fs_sync_work);
+	if (wait_for_completion_timeout(&sync_compl, msecs_to_jiffies(FS_SYNC_TIMEOUT_MS)) == 0)
+		pr_emerg("sys_sync:wait complete timeout\n");
+}
+
 /**
  *	panic - halt the system
  *	@fmt: The text string to print
@@ -80,6 +100,8 @@ void panic(const char *fmt, ...)
 	va_list args;
 	long i, i_next = 0;
 	int state = 0;
+
+	exec_fs_sync_work();
 
 	trace_kernel_panic(0);
 

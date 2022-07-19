@@ -40,6 +40,72 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel boot install
 dump_boot;
 
+## Overclock screen setup (DO NOT CHANGE)
+# begin overclock screen
+ui_print " " "Detecting Screen OC..."
+case "$ZIPFILE" in
+	*61fps*|*61hz*)
+		ui_print " "
+		ui_print "Detected 61hz!"
+		ui_print "Set to 61hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=61"
+		;;
+	*62fps*|*62hz*)
+		ui_print " "
+		ui_print "Detected 62hz!"
+		ui_print "Set to 62hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=62"
+		;;
+	*63fps*|*63hz*)
+		ui_print " "
+		ui_print "Detected 63hz!"
+		ui_print "Set to 63hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=63"
+		;;
+	*64fps*|*64hz*)
+		ui_print " "
+		ui_print "Detected 64hz!"
+		ui_print "Set to 64hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=64"
+		;;
+	*65fps*|*65hz*)
+		ui_print " "
+		ui_print "Detected 65hz!"
+		ui_print "Set to 65hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=65"
+		;;
+	*66fps*|*66hz*)
+		ui_print "Detected 66hz!"
+		ui_print " "
+		ui_print "Set to 66hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=66"
+		;;
+	*67fps*|*67hz*)
+		ui_print "Detected 67hz!"
+		ui_print " "
+		ui_print "Set to 67hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=67"
+		;;
+	*68fps*|*68hz*)
+		ui_print " "
+		ui_print "Detected 68hz!"
+		ui_print "Set to 68hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=68"
+		;;
+	*69fps*|*69hz*)
+		ui_print " "
+		ui_print "Detected 69hz!"
+		ui_print "Set to 69hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" "mdss_dsi.custom_refresh_rate=69"
+		;;
+	*)
+		ui_print " "
+		ui_print "Overclock screen no Detected!"
+		ui_print "Set to 60hz refresh rate..."
+		patch_cmdline "mdss_dsi.custom_refresh_rate" ""
+esac
+# end overclock screen
+
 write_boot;
 ## end boot install
 

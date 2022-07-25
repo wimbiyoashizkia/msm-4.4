@@ -16,6 +16,7 @@
 #include <linux/sched.h>
 #include <linux/jiffies.h>
 #include <linux/err.h>
+#include <soc/qcom/msm_performance.h>
 
 #include "kgsl.h"
 #include "kgsl_cffdump.h"
@@ -307,6 +308,10 @@ static void _retire_timestamp(struct kgsl_drawobj *drawobj)
 	/* Retire pending GPU events for the object */
 	kgsl_process_event_group(device, &context->events);
 
+	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_RETIRED,
+				context->proc_priv->pid,
+				context->id, drawobj->timestamp);
+
 	/*
 	 * For A3xx we still get the rptr from the CP_RB_RPTR instead of
 	 * rptr scratch out address. At this point GPU clocks turned off.
@@ -548,6 +553,7 @@ static int sendcmd(struct adreno_device *adreno_dev,
 	struct adreno_gpudev *gpudev = ADRENO_GPU_DEVICE(adreno_dev);
 	struct adreno_dispatcher *dispatcher = &adreno_dev->dispatcher;
 	struct adreno_context *drawctxt = ADRENO_CONTEXT(drawobj->context);
+	struct kgsl_context *context = drawobj->context;
 	struct adreno_dispatcher_drawqueue *dispatch_q =
 				ADRENO_DRAWOBJ_DISPATCH_DRAWQUEUE(drawobj);
 	struct adreno_submit_time time;
@@ -671,6 +677,10 @@ static int sendcmd(struct adreno_device *adreno_dev,
 	if (dispatch_q->inflight == 1)
 		dispatch_q->expires = jiffies +
 			msecs_to_jiffies(adreno_drawobj_timeout);
+
+	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_SUBMIT,
+				context->proc_priv->pid,
+				context->id, drawobj->timestamp);
 
 	/*
 	 * If we believe ourselves to be current and preemption isn't a thing,
@@ -1241,11 +1251,16 @@ static unsigned int _check_context_state_to_queue_cmds(
 static void _queue_drawobj(struct adreno_context *drawctxt,
 	struct kgsl_drawobj *drawobj)
 {
+	struct kgsl_context *context = drawobj->context;
+
 	/* Put the command into the queue */
 	drawctxt->drawqueue[drawctxt->drawqueue_tail] = drawobj;
 	drawctxt->drawqueue_tail = (drawctxt->drawqueue_tail + 1) %
 			ADRENO_CONTEXT_DRAWQUEUE_SIZE;
 	drawctxt->queued++;
+	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_QUEUE,
+				context->proc_priv->pid,
+				context->id, drawobj->timestamp);
 	trace_adreno_cmdbatch_queued(drawobj, drawctxt->queued);
 }
 

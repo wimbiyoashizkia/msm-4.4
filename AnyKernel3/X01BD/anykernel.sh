@@ -15,7 +15,7 @@ device.name2=X01BD
 device.name3=ASUS_X01B
 device.name4=ASUS_X01BD
 device.name5=ASUS_X01BDA
-supported.versions=
+supported.versions=12
 supported.patchlevels=
 '; } # end properties
 

@@ -10,6 +10,7 @@
 #include "sdm660-camera-overlay.dtsi"
 #include "msm-audio-overlay.dtsi"
 #include "sdm660-audio-overlay.dtsi"
+#include "sdm660-thermal-overlay.dtsi"
 #include "sdm660-lpi-overlay.dtsi"
 #include "dsi-panel-nt36672ah-1080p-video-kd.dtsi"
 #include "dsi-panel-hx83112a-1080p-video-tm.dtsi"

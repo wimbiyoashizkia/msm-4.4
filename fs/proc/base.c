@@ -97,6 +97,13 @@
 
 #include "../../lib/kstrtox.h"
 
+#define MAX_APP_STRINGSIZE 50
+char list_apps[][MAX_APP_STRINGSIZE] = {
+	"id.GoogleCamera"
+};
+
+int LIST_APP_OF_STRINGS = sizeof(list_apps) / sizeof(list_apps[0]);
+
 struct task_kill_info {
 	struct task_struct *task;
 	struct work_struct work;
@@ -1205,6 +1212,7 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 	unsigned long flags;
 	int oom_score_adj;
 	int err;
+	int i;
 
 	memset(buffer, 0, sizeof(buffer));
 	if (count > sizeof(buffer) - 1)
@@ -1260,16 +1268,18 @@ err_task_lock:
 	put_task_struct(task);
 out:
 	/* These apps burn through CPU in the background. Don't let them. */
-	if (!err && oom_score_adj >= 700) {
-		if (!strcmp(task_comm, "id.GoogleCamera")) {
-			struct task_kill_info *kinfo;
+	for (i = 0; i < LIST_APP_OF_STRINGS; i++) {
+		if (!err && oom_score_adj >= 700) {
+			if (!strcmp(task_comm, list_apps[i])) {
+				struct task_kill_info *kinfo;
 
-			kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
-			if (kinfo) {
-				get_task_struct(task);
-				kinfo->task = task;
-				INIT_WORK(&kinfo->work, proc_kill_task);
-				schedule_work(&kinfo->work);
+				kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
+				if (kinfo) {
+					get_task_struct(task);
+					kinfo->task = task;
+					INIT_WORK(&kinfo->work, proc_kill_task);
+					schedule_work(&kinfo->work);
+				}
 			}
 		}
 	}

@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: sudo apt-get -y install bc build-essential bison flex zip gcc clang libc6 curl libstdc++6 git wget libssl-dev zstd openjdk-11-jdk openjdk-11-jre python
+      run: sudo apt-get -y install bison build-essential bc bison curl libssl-dev git zip python python3 flex cpio libncurses5-dev wget
     - name: Build Asus Zenfone Max Pro M1
       run: ./X00TD.sh
     - name: Build Asus Zenfone Max Pro M2

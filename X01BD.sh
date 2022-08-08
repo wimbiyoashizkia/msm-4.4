@@ -24,7 +24,7 @@ KERNEL_DIR=$PWD
 MODEL="Asus Zenfone Max Pro M2"
 DEVICE="X01BD"
 KERNEL="NEON"
-VERSION="12.0_r1"
+VERSION="12.0_r2"
 KERNELTYPE="4.4"
 
 # Get defconfig file

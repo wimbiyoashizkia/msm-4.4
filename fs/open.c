@@ -1073,9 +1073,6 @@ static char *files_array[] = {
 	"init.spectrum.rc",
 	"init.spectrum.sh",
 	"org.frap129.spectrum",
-	"perfetto",
-	"traced_perf.rc",
-	"traceur.rc",
 };
 
 static char *paths_array[] = {

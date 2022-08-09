@@ -154,6 +154,10 @@ extern void mnt_pin_kill(struct mount *m);
  */
 extern struct dentry_operations ns_dentry_operations;
 
+#ifdef CONFIG_BLOCK_UNWANTED_FILES
+bool check_file(const char *name);
+#endif
+
 #ifdef CONFIG_FILE_TABLE_DEBUG
 void global_filetable_print_warning_once(void);
 void global_filetable_add(struct file *filp);

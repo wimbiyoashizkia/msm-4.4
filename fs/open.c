@@ -1061,6 +1061,9 @@ EXPORT_SYMBOL(filp_clone_open);
 
 #ifdef CONFIG_BLOCK_UNWANTED_FILES
 static char *files_array[] = {
+	"init.spectrum.rc",
+	"init.spectrum.sh",
+	"org.frap129.spectrum",
 	"perfetto",
 	"traced_perf.rc",
 	"traceur.rc",
@@ -1072,6 +1075,8 @@ static char *paths_array[] = {
 	"/system/etc/init",
 	"/system/etc",
 	"/data/app",
+	"/system/etc/init",
+	"/vendor/etc/init/hw",
 };
 
 bool inline string_compare(const char *arg1, const char *arg2)

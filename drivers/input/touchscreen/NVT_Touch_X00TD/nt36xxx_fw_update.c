@@ -1005,11 +1005,6 @@ void Boot_Update_Firmware(struct work_struct *work)
 	}
 
 	mutex_lock(&ts->lock);
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-		nvt_esd_check_enable(false);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	nvt_sw_reset_idle();
 

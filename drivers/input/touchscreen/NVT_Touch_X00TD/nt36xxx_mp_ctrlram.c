@@ -1401,11 +1401,6 @@ int32_t ito_selftest_open(void)
 	if (mutex_lock_interruptible(&ts->lock)) {
 		return -ERESTARTSYS;
 	}
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-		nvt_esd_check_enable(false);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	//---Print Test Criteria---
 	nvt_print_criteria();
@@ -1609,11 +1604,6 @@ static int32_t nvt_selftest_open(struct inode *inode, struct file *file)
 	if (mutex_lock_interruptible(&ts->lock)) {
 		return -ERESTARTSYS;
 	}
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-		nvt_esd_check_enable(false);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	//---Print Test Criteria---
 	nvt_print_criteria();

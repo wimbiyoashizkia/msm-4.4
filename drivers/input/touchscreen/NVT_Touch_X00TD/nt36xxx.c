@@ -54,21 +54,6 @@
 /* Huaqin add by yuexinghan for ITO test start */
 //#include "../../../video/msm/mdss/mdss_dsi.h"
 /* Huaqin add by yuexinghan for ITO test end */
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-
-#if NVT_TOUCH_ESD_PROTECT
-#include <linux/jiffies.h>
-#endif
-
-#if NVT_TOUCH_ESD_PROTECT
-static struct delayed_work nvt_esd_check_work;
-static struct workqueue_struct *nvt_esd_check_wq;
-static unsigned long irq_timer = 0;
-uint8_t esd_check = false;
-uint8_t esd_retry = 0;
-uint8_t esd_retry_max = 5;
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 // Huaqin add for vsp/vsn. by zhengwu.lu. at 2018/03/07  start
 #if NVT_POWER_SOURCE_CUST_EN
@@ -834,12 +819,6 @@ static ssize_t nvt_flash_read(struct file *file, char __user *buff, size_t count
 		NVT_ERR("copy from user error\n");
 		return -EFAULT;
 	}
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-	cancel_delayed_work_sync(&nvt_esd_check_work);
-	nvt_esd_check_enable(false);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	i2c_wr = str[0] >> 7;
 
@@ -1187,18 +1166,6 @@ err_request_irq_gpio:
 	return ret;
 }
 
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-void nvt_esd_check_enable(uint8_t enable)
-{
-	/* enable/disable esd check flag */
-	esd_check = enable;
-	/* update interrupt timer */
-	irq_timer = jiffies;
-	/* clear esd_retry counter, if protect function is enabled */
-	esd_retry = enable ? 0 : esd_retry;
-}
-
 static uint8_t nvt_fw_recovery(uint8_t *point_data)
 {
     uint8_t i = 0;
@@ -1214,32 +1181,6 @@ static uint8_t nvt_fw_recovery(uint8_t *point_data)
 
     return detected;
 }
-
-static void nvt_esd_check_func(struct work_struct *work)
-{
-	unsigned int timer = jiffies_to_msecs(jiffies - irq_timer);
-// Huaqin add for close esd check function log. by zhengwu.lu. at 2017/10/02 For Platform start
-	//NVT_ERR("esd_check = %d (retry %d/%d)\n", esd_check, esd_retry, esd_retry_max);	//DEBUG
-
-	if (esd_retry >= esd_retry_max)
-		nvt_esd_check_enable(false);
-
-	if ((timer > NVT_TOUCH_ESD_CHECK_PERIOD) && esd_check) {
-		//NVT_ERR("do ESD recovery, timer = %d, retry = %d\n", timer, esd_retry);
-// Huaqin add for close esd check function log. by zhengwu.lu. at 2017/10/02 For Platform end
-		/* do esd recovery, bootloader reset */
-		nvt_bootloader_reset();
-		/* update interrupt timer */
-		irq_timer = jiffies;
-		/* update esd_retry counter */
-		esd_retry++;
-	}
-
-	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-			msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-}
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 #define POINT_DATA_LEN 65
 /*******************************************************
@@ -1277,15 +1218,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 	}
 	printk("\n");
 */
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-	//NVT_ERR("%02X %02X %02X\n", point_data[1], point_data[2], point_data[3]);	//DEBUG
-	if (nvt_fw_recovery(point_data)) {
-		nvt_esd_check_enable(true);
-		goto XFER_ERROR;
-		}
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 // Huaqin add for ZQL1650-1072. by zhengwu.lu. at 2018/04/23  start
 	ret = tp_status_fun();
 	if (ret) {
@@ -1310,12 +1242,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 			continue;
 
 		if (((point_data[position] & 0x07) == 0x01) || ((point_data[position] & 0x07) == 0x02)) {	//finger down (enter & moving)
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-		/* update interrupt timer */
-		irq_timer = jiffies;
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 			input_x = (uint32_t)(point_data[position + 1] << 4) + (uint32_t) (point_data[position + 3] >> 4);
 			input_y = (uint32_t)(point_data[position + 2] << 4) + (uint32_t) (point_data[position + 3] & 0x0F);
 			if ((input_x < 0) || (input_y < 0))
@@ -1697,15 +1623,6 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	platform_device_register(&hwinfo_device);
 	nvt_test_node_init(&hwinfo_device);
 	/* Huaqin add by yuexinghan for ITO test end */
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-/********************add protect , 20170908***********************/
-#if NVT_TOUCH_ESD_PROTECT
-	INIT_DELAYED_WORK(&nvt_esd_check_work, nvt_esd_check_func);
-	nvt_esd_check_wq = create_workqueue("nvt_esd_check_wq");
-	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-	msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	//---set device node---
 #if NVT_TOUCH_PROC
@@ -1873,12 +1790,6 @@ static int32_t nvt_ts_suspend(struct device *dev)
 	NVT_LOG("start\n");
 
 	bTouchIsAwake = 0;
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-	cancel_delayed_work_sync(&nvt_esd_check_work);
-	nvt_esd_check_enable(false);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 #if WAKEUP_GESTURE
 	/* Huaqin add by yuexinghan for gesture mode 20171030 start */
@@ -1981,13 +1892,6 @@ static int32_t nvt_ts_resume(struct device *dev)
 // Huaqin add for ctp lose efficacy by zhengwu.lu. at 2018/04/18 For Platform start
 	nvt_irq_enable();
 // Huaqin add for ctp lose efficacy by zhengwu.lu. at 2018/04/18 For Platform end
-
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-		queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-		msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 
 	bTouchIsAwake = 1;
 
@@ -2144,12 +2048,6 @@ static void __exit nvt_driver_exit(void)
 	if (nvt_fwu_wq)
 		destroy_workqueue(nvt_fwu_wq);
 #endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
-#if NVT_TOUCH_ESD_PROTECT
-	if (nvt_esd_check_wq)
-		destroy_workqueue(nvt_esd_check_wq);
-#endif
-// Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  end
 }
 
 //late_initcall(nvt_driver_init);

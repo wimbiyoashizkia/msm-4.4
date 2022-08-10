@@ -53,18 +53,6 @@
 #include <linux/device.h>
 /* Huaqin add by zhangxiude for ITO test end */
 #endif
-#if NVT_TOUCH_ESD_PROTECT
-#include <linux/jiffies.h>
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
-
-#if NVT_TOUCH_ESD_PROTECT
-static struct delayed_work nvt_esd_check_work;
-static struct workqueue_struct *nvt_esd_check_wq;
-static unsigned long irq_timer = 0;
-uint8_t esd_check = false;
-uint8_t esd_retry = 0;
-uint8_t esd_retry_max = 5;
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 //Huaqin add for VSN/VSP by xudongfang at 2018/9/5 start
 #if NVT_POWER_SOURCE_CUST_EN
@@ -656,15 +644,6 @@ static ssize_t nvt_flash_read(struct file *file, char __user *buff, size_t count
 		return -EFAULT;
 	}
 
-#if NVT_TOUCH_ESD_PROTECT
-	/*
-	 * stop esd check work to avoid case that 0x77 report righ after here to enable esd check again
-	 * finally lead to trigger esd recovery bootloader reset
-	 */
-	cancel_delayed_work_sync(&nvt_esd_check_work);
-	nvt_esd_check_enable(false);
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
-
 	i2c_wr = str[0] >> 7;
 
 	if (i2c_wr == 0) {	//I2C write
@@ -834,10 +813,6 @@ static int32_t nvt_info_open(struct inode *inode, struct file *file)
 	}
 
 	NVT_LOG("++\n");
-
-#if NVT_TOUCH_ESD_PROTECT
-	nvt_esd_check_enable(false);
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 	if (nvt_get_fw_info()) {
 		mutex_unlock(&ts->lock);
@@ -1117,17 +1092,6 @@ err_request_reset_gpio:
 	return ret;
 }
 
-#if NVT_TOUCH_ESD_PROTECT
-void nvt_esd_check_enable(uint8_t enable)
-{
-	/* update interrupt timer */
-	irq_timer = jiffies;
-	/* clear esd_retry counter, if protect function is enabled */
-	esd_retry = enable ? 0 : esd_retry;
-	/* enable/disable esd check flag */
-	esd_check = enable;
-}
-
 static uint8_t nvt_fw_recovery(uint8_t *point_data)
 {
 	uint8_t i = 0;
@@ -1143,30 +1107,6 @@ static uint8_t nvt_fw_recovery(uint8_t *point_data)
 
 	return detected;
 }
-
-static void nvt_esd_check_func(struct work_struct *work)
-{
-	unsigned int timer = jiffies_to_msecs(jiffies - irq_timer);
-
-	//NVT_ERR("esd_check = %d (retry %d/%d)\n", esd_check, esd_retry, esd_retry_max);	//DEBUG
-
-	if (esd_retry >= esd_retry_max)
-		nvt_esd_check_enable(false);
-
-	if ((timer > NVT_TOUCH_ESD_CHECK_PERIOD) && esd_check) {
-		NVT_ERR("do ESD recovery, timer = %d, retry = %d\n", timer, esd_retry);
-		/* do esd recovery, bootloader reset */
-		nvt_bootloader_reset();
-		/* update interrupt timer */
-		irq_timer = jiffies;
-		/* update esd_retry counter */
-		esd_retry++;
-	}
-
-	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-			msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-}
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 #define POINT_DATA_LEN 65
 /*******************************************************
@@ -1207,12 +1147,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 	printk("\n");
 */
 
-#if NVT_TOUCH_ESD_PROTECT
-	if (nvt_fw_recovery(point_data)) {
-		nvt_esd_check_enable(true);
-		goto XFER_ERROR;
-	}
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 // Huaqin add for ZQL1820-517. by zhangxiude. at 2018/09/12  start
 	ret = tp_status_fun();
 	if (ret) {
@@ -1237,10 +1171,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 			continue;
 
 		if (((point_data[position] & 0x07) == 0x01) || ((point_data[position] & 0x07) == 0x02)) {	//finger down (enter & moving)
-#if NVT_TOUCH_ESD_PROTECT
-			/* update interrupt timer */
-			irq_timer = jiffies;
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 			input_x = (uint32_t)(point_data[position + 1] << 4) + (uint32_t) (point_data[position + 3] >> 4);
 			input_y = (uint32_t)(point_data[position + 2] << 4) + (uint32_t) (point_data[position + 3] & 0x0F);
 			if ((input_x < 0) || (input_y < 0))
@@ -1303,10 +1233,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 
 #if TOUCH_KEY_NUM > 0
 	if (point_data[61] == 0xF8) {
-#if NVT_TOUCH_ESD_PROTECT
-		/* update interrupt timer */
-		irq_timer = jiffies;
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 		for (i = 0; i < ts->max_button_num; i++) {
 			input_report_key(ts->input_dev, touch_key_array[i], ((point_data[62] >> i) & 0x01));
 		}
@@ -1703,13 +1629,6 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	firmware_id=ts->fw_ver;
 	nvt_tp_info_proc_init();
 
-#if NVT_TOUCH_ESD_PROTECT
-	INIT_DELAYED_WORK(&nvt_esd_check_work, nvt_esd_check_func);
-	nvt_esd_check_wq = create_workqueue("nvt_esd_check_wq");
-	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-			msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
-
 	//---set device node---
 #if NVT_TOUCH_PROC
 	ret = nvt_flash_proc_init();
@@ -1867,11 +1786,6 @@ struct nvt_ts_data *data = dev_get_drvdata(dev);
 
 	bTouchIsAwake = 0;
 
-#if NVT_TOUCH_ESD_PROTECT
-	cancel_delayed_work_sync(&nvt_esd_check_work);
-	nvt_esd_check_enable(false);
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
-
 #if WAKEUP_GESTURE
 //Huaqin add for gesture by xudongfang at 20180913 start
 if (((gesture_mode & 0x100) == 0) || ((gesture_mode & 0x0FF) == 0)) {
@@ -1977,11 +1891,6 @@ if (((gesture_mode & 0x100) == 0) || ((gesture_mode & 0x0FF) == 0)) {
 	enable_irq(ts->client->irq);
 	}
 //Huaqin add for gesture by xudongfang at 20180913 end
-
-#if NVT_TOUCH_ESD_PROTECT
-	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
-			msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 	bTouchIsAwake = 1;
 
@@ -2141,11 +2050,6 @@ static void __exit nvt_driver_exit(void)
 	if (nvt_fwu_wq)
 		destroy_workqueue(nvt_fwu_wq);
 #endif
-
-#if NVT_TOUCH_ESD_PROTECT
-	if (nvt_esd_check_wq)
-		destroy_workqueue(nvt_esd_check_wq);
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 }
 
 //late_initcall(nvt_driver_init);

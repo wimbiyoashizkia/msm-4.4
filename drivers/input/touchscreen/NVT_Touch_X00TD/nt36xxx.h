@@ -29,6 +29,9 @@
 #include <linux/regulator/consumer.h>
 #include <linux/debugfs.h>
 /* Huaqin add by yuexinghan for ITO test end */
+#include <linux/kthread.h>
+#include <linux/sched/rt.h>
+
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
@@ -127,10 +130,12 @@ struct nvt_ts_mem_map {
 	uint32_t RW_FLASH_DATA_ADDR;
 };
 
+static struct sched_param param = { .sched_priority = MAX_RT_PRIO / 2 };
+
 struct nvt_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;
-	struct work_struct nvt_work;
+	struct kthread_work nvt_work;
 	struct delayed_work nvt_fwu_work;
 	uint16_t addr;
 	int8_t phys[32];

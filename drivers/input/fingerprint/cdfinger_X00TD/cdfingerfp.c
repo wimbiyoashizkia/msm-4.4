@@ -549,6 +549,16 @@ static struct miscdevice st_cdfinger_dev = {
 	.fops = &cdfinger_fops,
 };
 
+struct task_struct *get_fp_daemon_task(void);
+
+static void set_fp_daemon_nice(int nice)
+{
+	struct task_struct *p = get_fp_daemon_task();
+
+	if (p != NULL)
+		set_user_nice(p, nice);
+}
+
 static int cdfinger_fb_notifier_callback(struct notifier_block* self,
                                         unsigned long event, void* data)
 {
@@ -562,6 +572,7 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
     blank = *(int*)evdata->data;
     switch (blank) {
         case FB_BLANK_UNBLANK:
+		set_fp_daemon_nice(0);
 		mutex_lock(&g_cdfingerfp_data->buf_lock);
 		screen_status = 1;
 		if (isInKeyMode == 0)
@@ -570,6 +581,7 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		printk("sunlin==FB_BLANK_UNBLANK==\n");
             break;
         case FB_BLANK_POWERDOWN:
+		set_fp_daemon_nice(MIN_NICE);
 		mutex_lock(&g_cdfingerfp_data->buf_lock);
 		screen_status = 0;
 		if (isInKeyMode == 0)

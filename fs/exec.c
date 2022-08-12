@@ -85,6 +85,14 @@ bool task_is_zygote(struct task_struct *p)
 	return p->signal == zygote32_sig || p->signal == zygote64_sig;
 }
 
+static struct task_struct *fp_daemon;
+
+struct task_struct *get_fp_daemon_task(void)
+{
+	return fp_daemon;
+}
+EXPORT_SYMBOL(get_fp_daemon_task);
+
 void __register_binfmt(struct linux_binfmt * fmt, int insert)
 {
 	BUG_ON(!fmt);
@@ -1709,6 +1717,7 @@ static int do_execveat_common(int fd, struct filename *filename,
 					   strlen(FINGERPRINT_BIN)))) {
 			current->flags |= PF_PERF_CRITICAL;
 			set_cpus_allowed_ptr(current, cpu_perf_mask);
+			fp_daemon = current;
 		}
 	}
 

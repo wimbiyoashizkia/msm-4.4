@@ -605,6 +605,16 @@ static const struct file_operations gf_fops = {
 #endif
 };
 
+struct task_struct *get_fp_daemon_task(void);
+
+static void set_fp_daemon_nice(int nice)
+{
+	struct task_struct *p = get_fp_daemon_task();
+
+	if (p != NULL)
+		set_user_nice(p, nice);
+}
+
 static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 		unsigned long val, void *data)
 {
@@ -622,6 +632,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 		blank = *(int *)(evdata->data);
 		switch (blank) {
 		case FB_BLANK_POWERDOWN:
+			set_fp_daemon_nice(MIN_NICE);
 			if (gf_dev->device_available == 1) {
 				gf_dev->fb_black = 1;
 #if defined(GF_NETLINK_ENABLE)
@@ -635,6 +646,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 			}
 			break;
 		case FB_BLANK_UNBLANK:
+			set_fp_daemon_nice(0);
 			if (gf_dev->device_available == 1) {
 				gf_dev->fb_black = 0;
 #if defined(GF_NETLINK_ENABLE)

@@ -276,6 +276,16 @@ static const char *ff_ctl_get_version(void)
     return (const char *)version;
 }
 
+struct task_struct *get_fp_daemon_task(void);
+
+static void set_fp_daemon_nice(int nice)
+{
+    struct task_struct *p = get_fp_daemon_task();
+
+    if (p != NULL)
+        set_user_nice(p, nice);
+}
+
 static int ff_ctl_fb_notifier_callback(struct notifier_block *nb, unsigned long action, void *data)
 {
     struct fb_event *event;
@@ -294,9 +304,11 @@ static int ff_ctl_fb_notifier_callback(struct notifier_block *nb, unsigned long 
 
 	switch (blank) {
 	case FB_BLANK_UNBLANK:
+        set_fp_daemon_nice(0);
 		uevent_env[0] = "FF_SCREEN_ON";
 		break;
 	case FB_BLANK_POWERDOWN:
+        set_fp_daemon_nice(MIN_NICE);
         uevent_env[0] = "FF_SCREEN_OFF";
 		break;
 	default:

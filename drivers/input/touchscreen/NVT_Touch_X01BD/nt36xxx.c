@@ -191,6 +191,7 @@ extern int32_t nvt_mp_proc_init(void);
 #endif
 
 struct nvt_ts_data *ts;
+static struct kmem_cache *kmem_ts_data_pool;
 
 static struct kthread_worker nvt_worker;
 static struct task_struct *nvt_worker_thread;
@@ -728,7 +729,7 @@ static int32_t nvt_flash_close(struct inode *inode, struct file *file)
 	struct nvt_flash_data *dev = file->private_data;
 
 	if (dev)
-		kfree(dev);
+		kmem_cache_free(kmem_ts_data_pool, dev);
 
 	return 0;
 }
@@ -1452,7 +1453,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 
 	NVT_LOG("start\n");
 
-	ts = kmalloc(sizeof(struct nvt_ts_data), GFP_KERNEL);
+	ts = kmem_cache_zalloc(kmem_ts_data_pool, GFP_KERNEL);
 	if (ts == NULL) {
 		NVT_ERR("failed to allocated memory for nvt ts data\n");
 		return -ENOMEM;
@@ -1724,7 +1725,7 @@ err_gpio_config_failed:
 err_power_resource_init_fail:
 //Huaqin add for VSN/VSP by xudongfang at 2018/9/5 end
 	i2c_set_clientdata(client, NULL);
-	kfree(ts);
+	kmem_cache_free(kmem_ts_data_pool, ts);
 	return ret;
 }
 
@@ -1756,7 +1757,7 @@ static int32_t nvt_ts_remove(struct i2c_client *client)
 //Huaqin add for VSN/VSP by xudongfang at 2018/9/5 end
 	input_unregister_device(ts->input_dev);
 	i2c_set_clientdata(client, NULL);
-	kfree(ts);
+	kmem_cache_free(kmem_ts_data_pool, ts);
 
 	return 0;
 }
@@ -2022,6 +2023,8 @@ static int32_t __init nvt_driver_init(void)
 {
 	int32_t ret = 0;
 
+	kmem_ts_data_pool = KMEM_CACHE(nvt_ts_data, SLAB_HWCACHE_ALIGN | SLAB_PANIC);
+
 	NVT_LOG("start\n");
 	//---add i2c driver---
 	ret = i2c_add_driver(&nvt_i2c_driver);
@@ -2046,6 +2049,8 @@ return:
 static void __exit nvt_driver_exit(void)
 {
 	i2c_del_driver(&nvt_i2c_driver);
+
+	kmem_cache_destroy(kmem_ts_data_pool);
 
 	kthread_flush_worker(&nvt_worker);
 

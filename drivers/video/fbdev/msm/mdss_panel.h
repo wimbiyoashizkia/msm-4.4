@@ -515,6 +515,7 @@ struct mipi_panel_info {
 	char traffic_mode;
 	char frame_rate;
 	/* command mode */
+	char frame_rate_idle;
 	char interleave_max;
 	char insert_dcs_cmd;
 	char wr_mem_continue;
@@ -997,6 +998,7 @@ struct mdss_panel_data {
 	int (*event_handler) (struct mdss_panel_data *pdata, int e, void *arg);
 	enum mdss_mdp_csc_type (*get_csc_type)(struct mdss_panel_data *pdata);
 	struct device_node *(*get_fb_node)(struct platform_device *pdev);
+	bool (*get_idle)(struct mdss_panel_data *pdata);
 
 	struct list_head timings_list;
 	struct mdss_panel_timing *current_timing;
@@ -1054,6 +1056,10 @@ static inline u32 mdss_panel_get_framerate(struct mdss_panel_info *panel_info)
 {
 	u32 frame_rate, pixel_total;
 	u64 rate;
+	struct mdss_panel_data *panel_data =
+			container_of(panel_info, typeof(*panel_data),
+					panel_info);
+	bool idle = false;
 
 	if (panel_info == NULL)
 		return DEFAULT_FRAME_RATE;
@@ -1062,6 +1068,12 @@ static inline u32 mdss_panel_get_framerate(struct mdss_panel_info *panel_info)
 	case MIPI_VIDEO_PANEL:
 	case MIPI_CMD_PANEL:
 		frame_rate = panel_info->mipi.frame_rate;
+		if (panel_data->get_idle)
+			idle = panel_data->get_idle(panel_data);
+		if (idle)
+			frame_rate = panel_info->mipi.frame_rate_idle;
+		else
+			frame_rate = panel_info->mipi.frame_rate;
 		break;
 	case WRITEBACK_PANEL:
 		frame_rate = DEFAULT_FRAME_RATE;

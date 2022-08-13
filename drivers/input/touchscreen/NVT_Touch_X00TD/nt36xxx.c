@@ -1534,9 +1534,9 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 		goto err_create_nvt_wq_failed;
 	}
 	
-	ret = sched_setscheduler(nvt_worker_thread, SCHED_FIFO, &param);
+	ret = sched_setscheduler(nvt_worker_thread, SCHED_RR, &param);
 	if (ret)
-		pr_err("nvt: Failed to set SCHED_FIFO!\n");
+		pr_err("nvt: Failed to set SCHED_RR!\n");
 
 	/* Bind workers to cpumasks */
 	kthread_bind_mask(nvt_worker_thread, &nvt_sys_mask);

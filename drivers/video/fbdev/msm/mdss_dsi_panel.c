@@ -2284,15 +2284,11 @@ static int mdss_dsi_parse_panel_features(struct device_node *np,
 	pinfo->dcs_cmd_by_left = of_property_read_bool(np,
 		"qcom,dcs-cmd-by-left");
 
-	pinfo->ulps_feature_enabled = of_property_read_bool(np,
-		"qcom,ulps-enabled");
-	pr_info("%s: ulps feature %s\n", __func__,
-		(pinfo->ulps_feature_enabled ? "enabled" : "disabled"));
+	/* Force enabled feature ULPS */
+	pinfo->ulps_feature_enabled = true;
 
-	pinfo->ulps_suspend_enabled = of_property_read_bool(np,
-		"qcom,suspend-ulps-enabled");
-	pr_info("%s: ulps during suspend feature %s", __func__,
-		(pinfo->ulps_suspend_enabled ? "enabled" : "disabled"));
+	/* Force enabled suspend ULPS */
+	pinfo->ulps_suspend_enabled = true;
 
 	mdss_dsi_parse_dms_config(np, ctrl);
 

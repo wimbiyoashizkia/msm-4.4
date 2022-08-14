@@ -1,3 +1,6 @@
+subdir-ccflags-y := \
+    -fdata-sections -ffunction-sections -finline-functions -ftree-vectorize -funroll-loops
+
 obj-$(CONFIG_CDFINGER_FP)	+= cdfinger_X01BD/
 obj-$(CONFIG_FOCALTECH_FP)	+= focaltech_X01BD/
 obj-$(CONFIG_COMMON_FP_X00TD)   += common_X00TD/

@@ -3,22 +3,22 @@
 	qcom,msm-thermal-simple {
 		zone@0 {
 			reg = <0>;
-			qcom,silver-khz = <1612800>;
-			qcom,gold-khz = <1804800>;
+			qcom,silver-khz = <1747200>;
+			qcom,gold-khz = <2208000>;
 			qcom,trip-deg = <51>;
 		};
 
 		zone@1 {
 			reg = <1>;
-			qcom,silver-khz = <1612800>;
-			qcom,gold-khz = <1401600>;
+			qcom,silver-khz = <1747200>;
+			qcom,gold-khz = <1747200>;
 			qcom,trip-deg = <57>;
 		};
 
 		zone@2 {
 			reg = <2>;
 			qcom,silver-khz = <1536000>;
-			qcom,gold-khz = <1401600>;
+			qcom,gold-khz = <1747200>;
 			qcom,trip-deg = <62>;
 		};
 

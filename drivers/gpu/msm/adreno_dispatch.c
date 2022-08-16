@@ -309,7 +309,7 @@ static void _retire_timestamp(struct kgsl_drawobj *drawobj)
 	kgsl_process_event_group(device, &context->events);
 
 	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_RETIRED,
-				context->proc_priv->pid,
+				pid_nr(context->proc_priv->pid),
 				context->id, drawobj->timestamp,
 				!!(drawobj->flags & KGSL_DRAWOBJ_END_OF_FRAME));
 
@@ -680,7 +680,7 @@ static int sendcmd(struct adreno_device *adreno_dev,
 			msecs_to_jiffies(adreno_drawobj_timeout);
 
 	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_SUBMIT,
-				context->proc_priv->pid,
+				pid_nr(context->proc_priv->pid),
 				context->id, drawobj->timestamp,
 				!!(drawobj->flags & KGSL_DRAWOBJ_END_OF_FRAME));
 
@@ -1261,7 +1261,7 @@ static void _queue_drawobj(struct adreno_context *drawctxt,
 			ADRENO_CONTEXT_DRAWQUEUE_SIZE;
 	drawctxt->queued++;
 	msm_perf_events_update(MSM_PERF_GFX, MSM_PERF_QUEUE,
-				context->proc_priv->pid,
+				pid_nr(context->proc_priv->pid),
 				context->id, drawobj->timestamp,
 				!!(drawobj->flags & KGSL_DRAWOBJ_END_OF_FRAME));
 	trace_adreno_cmdbatch_queued(drawobj, drawctxt->queued);

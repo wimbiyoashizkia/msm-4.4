@@ -130,8 +130,6 @@ struct nvt_ts_mem_map {
 	uint32_t RW_FLASH_DATA_ADDR;
 };
 
-static struct sched_param param = { .sched_priority = MAX_RT_PRIO - 2 };
-
 struct nvt_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;

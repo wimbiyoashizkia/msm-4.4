@@ -1096,22 +1096,6 @@ err_request_reset_gpio:
 	return ret;
 }
 
-static uint8_t nvt_fw_recovery(uint8_t *point_data)
-{
-	uint8_t i = 0;
-	uint8_t detected = true;
-
-	/* check pattern */
-	for (i=1 ; i<7 ; i++) {
-		if (point_data[i] != 0x77) {
-			detected = false;
-			break;
-		}
-	}
-
-	return detected;
-}
-
 #define POINT_DATA_LEN 65
 /*******************************************************
 Description:

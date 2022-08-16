@@ -109,8 +109,6 @@ extern const uint16_t gesture_key_array[];
 #define BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_v8D.bin"
 //huaqin modify for update firmware by limengxia at 20190213 end
 
-static struct sched_param param = { .sched_priority = MAX_RT_PRIO - 2 };
-
 struct nvt_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;

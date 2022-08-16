@@ -1437,6 +1437,9 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	int32_t retry = 0;
 #endif
 	int i;
+	static struct sched_param param = {
+		.sched_priority = MAX_RT_PRIO - 2
+	};
 	cpumask_t nvt_sys_mask;
 
 	NVT_LOG("start\n");

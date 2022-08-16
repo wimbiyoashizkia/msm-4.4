@@ -761,10 +761,11 @@ static int clk_unvote_vdd_level(struct clk_vdd_class *vdd_class, int level)
 
 	mutex_lock(&vdd_class->lock);
 
-	if (WARN(!vdd_class->level_votes[level],
-				"Reference counts are incorrect for %s level %d\n",
-				vdd_class->class_name, level))
+	if (!vdd_class->level_votes[level]) {
+		pr_info("Reference counts are incorrect for %s level %d\n",
+				vdd_class->class_name, level);
 		goto out;
+	}
 
 	vdd_class->level_votes[level]--;
 
@@ -860,10 +861,10 @@ static void clk_core_unprepare(struct clk_core *core)
 	if (!core)
 		return;
 
-	if (WARN_ON(core->prepare_count == 0))
+	if (core->prepare_count == 0)
 		return;
 
-	if (WARN_ON(core->prepare_count == 1 && core->flags & CLK_IS_CRITICAL))
+	if (core->prepare_count == 1 && core->flags & CLK_IS_CRITICAL)
 		return;
 
 	if (--core->prepare_count > 0)
@@ -1031,7 +1032,7 @@ static int clk_core_enable(struct clk_core *core)
 	if (!core)
 		return 0;
 
-	if (WARN_ON(core->prepare_count == 0))
+	if (core->prepare_count == 0)
 		return -ESHUTDOWN;
 
 	if (core->enable_count == 0) {

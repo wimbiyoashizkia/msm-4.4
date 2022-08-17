@@ -1,0 +1,20 @@
+version: 2.1
+jobs:
+  compile:
+    docker:
+      - image: fadlyas/kernel_dockerfile:latest
+    steps:
+      - run:
+          no_output_timeout: 60m
+          command: |
+            git clone https://$GH_TOKEN@github.com/wimbiyoashizkia/msm-4.4.git -b sdm660-eas-test --depth=1 msm-4.4
+            cd msm-4.4
+            bash X00TD.sh
+            bash X01BD.sh
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - compile

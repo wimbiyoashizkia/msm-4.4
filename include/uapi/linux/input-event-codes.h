@@ -663,7 +663,7 @@
 #define BTN_TRIGGER_HAPPY39		0x2e6
 #define BTN_TRIGGER_HAPPY40		0x2e7
 
-#ifdef CONFIG_MACH_ASUS_SDM660
+#ifdef CONFIG_MACH_ASUS_X01BD
 #define KEY_TP_GESTURE_C		748
 #define KEY_TP_GESTURE_E		749
 #define KEY_TP_GESTURE_M		750
@@ -681,6 +681,16 @@
 #ifdef CONFIG_MACH_ASUS_X00TD
 #define KEY_SARSENSOR_NEAR		0x2ea
 #define KEY_SARSENSOR_FAR		0x2eb
+
+#ifdef CONFIG_MACH_ASUS_X00TD
+#define KEY_TP_GESTURE_W        253
+#define KEY_TP_GESTURE_E        250
+#define KEY_TP_GESTURE_S        251
+#define KEY_TP_GESTURE_Z        254
+#define KEY_TP_GESTURE_C        249
+#define KEY_TP_GESTURE_V        252
+#define KEY_TP_GESTURE_SWIPE_UP     255
+#endif
 #endif
 
 /* We avoid low common keys in module aliases so they don't get huge. */

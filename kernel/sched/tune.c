@@ -1,3 +1,4 @@
+#include <linux/binfmts.h>
 #include <linux/cgroup.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -780,7 +781,7 @@ boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
 static int boost_write_wrapper(struct cgroup_subsys_state *css,
 			struct cftype *cft, s64 boost)
 {
-	if (!strcmp(current->comm, "init"))
+	if (task_is_booster(current))
 		return 0;
 
 	return boost_write(css, cft, boost);
@@ -789,7 +790,7 @@ static int boost_write_wrapper(struct cgroup_subsys_state *css,
 static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 			struct cftype *cft, u64 prefer_idle)
 {
-	if (!strcmp(current->comm, "init"))
+	if (task_is_booster(current))
 		return 0;
 
 	return prefer_idle_write(css, cft, prefer_idle);

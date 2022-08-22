@@ -22,6 +22,7 @@
  * - completely modularize elevator setup and teardown
  *
  */
+#include <linux/binfmts.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
 #include <linux/blkdev.h>
@@ -82,6 +83,10 @@ EXPORT_SYMBOL(elv_bio_merge_ok);
 static struct elevator_type *elevator_find(const char *name)
 {
 	struct elevator_type *e;
+
+	/* Forbid init from changing I/O scheduler by default */
+	if (task_is_booster(current))
+		return NULL;
 
 	list_for_each_entry(e, &elv_list, list) {
 		if (!strcmp(e->elevator_name, name))

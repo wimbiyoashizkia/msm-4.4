@@ -63,6 +63,8 @@
 #include <linux/nsproxy.h>
 #include <linux/file.h>
 #include <net/sock.h>
+#include <linux/binfmts.h>
+#include <linux/devfreq_boost.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/cgroup.h>
@@ -2973,6 +2975,13 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 	ret = cgroup_procs_write_permission(tsk, cgrp, of);
 	if (!ret)
 		ret = cgroup_attach_task(cgrp, tsk, threadgroup);
+
+        /* This covers boosting for app launches and app transitions */
+        if (!ret && !threadgroup && 
+            !strcmp(of->kn->parent->name, "top-app") &&
+            task_is_zygote(tsk->parent)) {
+            devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 500);
+        }
 
 	put_task_struct(tsk);
 	goto out_unlock_threadgroup;

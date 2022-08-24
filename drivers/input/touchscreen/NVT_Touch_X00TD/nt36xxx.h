@@ -22,6 +22,8 @@
 #include <linux/platform_device.h>
 #include <linux/device.h>
 /* Huaqin add by yuexinghan for ITO test end */
+#include <linux/kthread.h>
+#include <linux/sched/rt.h>
 
 #include <linux/i2c.h>
 #include <linux/input.h>
@@ -136,7 +138,7 @@ struct nvt_ts_mem_map {
 struct nvt_ts_data {
 	struct i2c_client *client;
 	struct input_dev *input_dev;
-	struct work_struct nvt_work;
+	struct kthread_work nvt_work;
 	struct delayed_work nvt_fwu_work;
 	uint16_t addr;
 	int8_t phys[32];

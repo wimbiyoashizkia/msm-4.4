@@ -63,6 +63,8 @@
 #include <linux/sched/rt.h>
 #include <linux/page_owner.h>
 #include <linux/kthread.h>
+#include <linux/cpu_input_boost.h>
+#include <linux/devfreq_boost.h>
 
 #include <asm/sections.h>
 #include <asm/tlbflush.h>
@@ -3290,6 +3292,10 @@ retry:
 	 */
 	if (!is_thp_gfp_mask(gfp_mask) || (current->flags & PF_KTHREAD))
 		migration_mode = MIGRATE_SYNC_LIGHT;
+
+	/* Boost when memory is low so allocation latency doesn't get too bad */
+	cpu_input_boost_kick_max(250);
+	devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 250);
 
 	/* Try direct reclaim and then allocating */
 	if (!used_vmpressure)

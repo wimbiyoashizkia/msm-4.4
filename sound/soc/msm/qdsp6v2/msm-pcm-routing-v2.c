@@ -83,7 +83,7 @@ static int msm_route_ext_ec_ref;
 static bool is_custom_stereo_on;
 static bool is_ds2_on;
 static bool swap_ch;
-static int msm_native_mode = 1;
+static int msm_native_mode = 3;
 
 #define WEIGHT_0_DB 0x4000
 /* all the FEs which can support channel mixer */
@@ -3531,7 +3531,6 @@ static int msm_native_mode_put(struct snd_kcontrol *kcontrol,
 	 * 2 << 11: use channel native mode
 	 * 3 << 11: use bit width and channel native mode
 	*/
-	adm_set_native_mode(msm_native_mode);
 	return 0;
 }
 

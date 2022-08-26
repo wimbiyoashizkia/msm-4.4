@@ -902,17 +902,18 @@ struct st_data {
 	char *name;
 	int boost;
 	bool prefer_idle;
+	int sched_boost;
 };
 
 static void write_default_values(struct cgroup_subsys_state *css)
 {
 	static struct st_data st_targets[] = {
-		{ "background",	0, 0 },
-		{ "camera-daemon",	0, 0 },
-		{ "foreground",	0, 1 },
-		{ "nnapi-hal",	1, 1 },
-		{ "rt",		0, 0 },
-		{ "top-app",	0, 1 },
+		{ "background",	0, 0, 0 },
+		{ "camera-daemon",	0, 0, 0 },
+		{ "foreground",	0, 1, 0 },
+		{ "nnapi-hal",	1, 1, 0 },
+		{ "rt",		0, 0, 0 },
+		{ "top-app",	0, 1, 0 },
 	};
 	int i;
 
@@ -920,11 +921,14 @@ static void write_default_values(struct cgroup_subsys_state *css)
 		struct st_data tgt = st_targets[i];
 
 		if (!strcmp(css->cgroup->kn->name, tgt.name)) {
-			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d\n",
-				tgt.name, tgt.boost, tgt.prefer_idle);
+			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d\n sched_boost=%d\n",
+				tgt.name, tgt.boost, tgt.prefer_idle, tgt.sched_boost);
 
 			boost_write(css, NULL, tgt.boost);
 			prefer_idle_write(css, NULL, tgt.prefer_idle);
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+			sched_boost_write(css, NULL, tgt.sched_boost);
+#endif
 		}
 	}
 }

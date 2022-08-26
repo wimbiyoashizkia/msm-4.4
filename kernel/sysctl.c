@@ -367,15 +367,6 @@ static struct ctl_table kern_table[] = {
 	},
 #ifdef CONFIG_SCHED_WALT
 	{
-		.procname	= "sched_boost",
-		.data		= &sysctl_sched_boost,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_boost_handler,
-		.extra1         = &neg_three,
-		.extra2		= &three,
-	},
-	{
 		.procname	= "sched_use_walt_cpu_util",
 		.data		= &sysctl_sched_use_walt_cpu_util,
 		.maxlen		= sizeof(unsigned int),
@@ -403,7 +394,18 @@ static struct ctl_table kern_table[] = {
 		.mode		= 0644,
 		.proc_handler	= proc_dointvec,
 	},
-#else
+#endif
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+	{
+		.procname	= "sched_boost",
+		.data		= &sysctl_sched_boost,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= sched_boost_handler,
+		.extra1         = &neg_three,
+		.extra2		= &three,
+	},
+#else /* CONFIG_DYNAMIC_STUNE_BOOST */
 	{
 		.procname	= "sched_boost",
 		.data		= &dummy_sysctl_sched_boost,
@@ -413,7 +415,7 @@ static struct ctl_table kern_table[] = {
 		.extra1		= &neg_three,
 		.extra2		= &three,
 	},
-#endif
+#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 	{
 		.procname	= "sched_cstate_aware",
 		.data		= &sysctl_sched_cstate_aware,

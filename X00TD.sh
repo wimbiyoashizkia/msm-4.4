@@ -23,7 +23,7 @@ KERNEL_DIR=$PWD
 # Set enviroment for naming kernel
 MODEL="Asus Zenfone Max Pro M1"
 DEVICE="X00TD"
-KERNEL="Radiance"
+KERNEL="NEON"
 KERNELTYPE="4.4"
 
 # Get defconfig file

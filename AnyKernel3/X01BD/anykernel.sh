@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=Radiance Kernel by wimbiyoashizkia @ github
+kernel.string=NEON Kernel by wimbiyoashizkia @ github
 do.devicecheck=1
 do.modules=1
 do.systemless=1

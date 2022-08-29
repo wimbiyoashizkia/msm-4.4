@@ -38,6 +38,14 @@ config WAKELOCK
 
 	  Say Y if you are running an android userspace.
 
+
+config POWERSUSPEND
+	bool "Powersuspend"
+	default n
+	---help---
+	  Call early suspend handlers when the user requested sleep state
+	  changes.
+
 config HIBERNATE_CALLBACKS
 	bool
 

@@ -392,9 +392,13 @@ static void deassert_ps_hold(void)
 	__raw_writel(0, msm_ps_hold);
 }
 
+extern void exec_fs_sync_work(void);
+
 static void do_msm_restart(enum reboot_mode reboot_mode, const char *cmd)
 {
 	pr_notice("Going down for restart now\n");
+
+	exec_fs_sync_work();
 
 	msm_restart_prepare(cmd);
 
@@ -418,6 +422,8 @@ static void do_msm_restart(enum reboot_mode reboot_mode, const char *cmd)
 static void do_msm_poweroff(void)
 {
 	pr_notice("Powering off the SoC\n");
+
+	exec_fs_sync_work();
 
 	set_dload_mode(0);
 	scm_disable_sdi();

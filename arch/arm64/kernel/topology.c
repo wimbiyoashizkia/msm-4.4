@@ -22,6 +22,7 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 #include <linux/sched_energy.h>
+#include <linux/sched/sysctl.h>
 
 #include <asm/cputype.h>
 #include <asm/topology.h>
@@ -449,7 +450,10 @@ static void update_cpu_capacity(unsigned int cpu)
 		capacity = cpu_core_energy(cpu)->cap_states[max_cap_idx].cap;
 	}
 
-	set_capacity_scale(cpu, capacity);
+	if (is_sched_lib_based_app(current->pid))
+		return set_capacity_scale(cpu, capacity);
+	else
+		set_capacity_scale(cpu, capacity);
 
 	pr_info("CPU%d: update cpu_capacity %lu\n",
 		cpu, arch_scale_cpu_capacity(NULL, cpu));

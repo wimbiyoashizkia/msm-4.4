@@ -1605,8 +1605,7 @@ thermal_cooling_device_cur_state_store(struct device *dev,
 				       const char *buf, size_t count)
 {
 	struct thermal_cooling_device *cdev = to_cooling_device(dev);
-	unsigned long state;
-	int result;
+	long state;
 
 	if (!sscanf(buf, "%ld\n", &state))
 		return -EINVAL;
@@ -1614,9 +1613,10 @@ thermal_cooling_device_cur_state_store(struct device *dev,
 	if ((long)state < 0)
 		return -EINVAL;
 
-	result = cdev->ops->set_cur_state(cdev, state);
-	if (result)
-		return result;
+	cdev->sysfs_cur_state_req = state;
+
+	cdev->updated = false;
+	thermal_cdev_update(cdev);
 	return count;
 }
 
@@ -1940,6 +1940,7 @@ __thermal_cooling_device_register(struct device_node *np,
 	cdev->device.class = &thermal_class;
 	cdev->device.groups = cooling_device_attr_groups;
 	cdev->devdata = devdata;
+	cdev->sysfs_cur_state_req = 0;
 	dev_set_name(&cdev->device, "cooling_device%d", cdev->id);
 	result = device_register(&cdev->device);
 	if (result) {
@@ -2073,7 +2074,7 @@ EXPORT_SYMBOL_GPL(thermal_cooling_device_unregister);
 void thermal_cdev_update(struct thermal_cooling_device *cdev)
 {
 	struct thermal_instance *instance;
-	unsigned long target = 0;
+	unsigned long current_target = 0;
 
 	/* cooling device is updated*/
 	if (cdev->updated)
@@ -2086,14 +2087,14 @@ void thermal_cdev_update(struct thermal_cooling_device *cdev)
 				instance->tz->id, instance->target);
 		if (instance->target == THERMAL_NO_TARGET)
 			continue;
-		if (instance->target > target)
-			target = instance->target;
+		if (instance->target > current_target)
+			current_target = instance->target;
 	}
 	mutex_unlock(&cdev->lock);
-	cdev->ops->set_cur_state(cdev, target);
+	cdev->ops->set_cur_state(cdev, current_target);
 	cdev->updated = true;
-	trace_cdev_update(cdev, target);
-	dev_dbg(&cdev->device, "set to state %lu\n", target);
+	trace_cdev_update(cdev, current_target);
+	dev_dbg(&cdev->device, "set to state %lu\n", current_target);
 }
 EXPORT_SYMBOL(thermal_cdev_update);
 

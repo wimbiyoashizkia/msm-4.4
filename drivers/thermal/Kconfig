@@ -42,6 +42,17 @@ config THERMAL_OF
 	  Say 'Y' here if you need to build thermal infrastructure
 	  based on device tree.
 
+config REGULATOR_COOLING_DEVICE
+	bool "Regulator voltage floor cooling device"
+	depends on REGULATOR && THERMAL_OF
+	help
+	  This implements a mitigation device to place a minimum voltage floor
+	  on a particular regulator. This mitigation device will be used by low
+	  temperature reliability rules to mitigate a regulator at nominal
+	  voltage.
+
+	  If you want this support, you should say Y here.
+
 config THERMAL_WRITABLE_TRIPS
 	bool "Enable writable trip points"
 	help

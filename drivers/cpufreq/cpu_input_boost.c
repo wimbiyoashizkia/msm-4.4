@@ -16,6 +16,9 @@
 /* Base minimum of frequency */
 #define BASE_FREQ_LP 633600
 #define BASE_FREQ_PERF 1113600
+/* Idle minimum of frequency */
+#define FREQ_IDLE_LP 633600
+#define FREQ_IDLE_PERF 1113600
 
 static unsigned int input_boost_freq_lp __read_mostly =
 	CONFIG_INPUT_BOOST_FREQ_LP;
@@ -98,6 +101,18 @@ static unsigned int get_min_freq(struct cpufreq_policy *policy)
 		freq = BASE_FREQ_LP;
 	else
 		freq = BASE_FREQ_PERF;
+
+	return max(freq, policy->cpuinfo.min_freq);
+}
+
+static unsigned int get_idle_freq(struct cpufreq_policy *policy)
+{
+	unsigned int freq;
+
+	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask))
+		freq = FREQ_IDLE_LP;
+	else
+		freq = FREQ_IDLE_PERF;
 
 	return max(freq, policy->cpuinfo.min_freq);
 }
@@ -226,7 +241,7 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	/* Unboost when the screen is off */
 	if (test_bit(SCREEN_OFF, &b->state)) {
-		policy->min = get_min_freq(policy);
+		policy->min = get_idle_freq(policy);
 		return NOTIFY_OK;
 	}
 

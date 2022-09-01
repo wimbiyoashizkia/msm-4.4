@@ -1599,6 +1599,25 @@ thermal_cooling_device_max_state_show(struct device *dev,
 }
 
 static ssize_t
+thermal_cooling_device_min_state_show(struct device *dev,
+				      struct device_attribute *attr, char *buf)
+{
+	struct thermal_cooling_device *cdev = to_cooling_device(dev);
+	unsigned long state;
+	int ret;
+
+	if (cdev->ops->get_min_state)
+		ret = cdev->ops->get_min_state(cdev, &state);
+	else
+		ret = -EPERM;
+
+	if (ret)
+		return ret;
+
+	return snprintf(buf, PAGE_SIZE, "%lu\n", state);
+}
+
+static ssize_t
 thermal_cooling_device_cur_state_show(struct device *dev,
 				      struct device_attribute *attr, char *buf)
 {
@@ -1633,6 +1652,30 @@ thermal_cooling_device_cur_state_store(struct device *dev,
 	return count;
 }
 
+static ssize_t
+thermal_cooling_device_min_state_store(struct device *dev,
+				       struct device_attribute *attr,
+				       const char *buf, size_t count)
+{
+	struct thermal_cooling_device *cdev = to_cooling_device(dev);
+	long state;
+	int ret = 0;
+
+	ret = sscanf(buf, "%ld\n", &state);
+	if (ret <= 0)
+		return (ret < 0) ? ret : -EINVAL;
+
+	if ((long)state < 0)
+		return -EINVAL;
+
+	cdev->sysfs_min_state_req = state;
+
+	cdev->updated = false;
+	thermal_cdev_update(cdev);
+
+	return count;
+}
+
 static struct device_attribute dev_attr_cdev_type =
 __ATTR(type, 0444, thermal_cooling_device_type_show, NULL);
 static DEVICE_ATTR(max_state, 0444,
@@ -1640,6 +1683,9 @@ static DEVICE_ATTR(max_state, 0444,
 static DEVICE_ATTR(cur_state, 0644,
 		   thermal_cooling_device_cur_state_show,
 		   thermal_cooling_device_cur_state_store);
+static DEVICE_ATTR(min_state, 0644,
+		   thermal_cooling_device_min_state_show,
+		   thermal_cooling_device_min_state_store);
 
 static ssize_t
 thermal_cooling_device_trip_point_show(struct device *dev,
@@ -1660,6 +1706,7 @@ static struct attribute *cooling_device_attrs[] = {
 	&dev_attr_cdev_type.attr,
 	&dev_attr_max_state.attr,
 	&dev_attr_cur_state.attr,
+	&dev_attr_min_state.attr,
 	NULL,
 };
 
@@ -1954,6 +2001,7 @@ __thermal_cooling_device_register(struct device_node *np,
 	cdev->device.groups = cooling_device_attr_groups;
 	cdev->devdata = devdata;
 	cdev->sysfs_cur_state_req = 0;
+	cdev->sysfs_min_state_req = ULONG_MAX;
 	dev_set_name(&cdev->device, "cooling_device%d", cdev->id);
 	result = device_register(&cdev->device);
 	if (result) {
@@ -2087,7 +2135,7 @@ EXPORT_SYMBOL_GPL(thermal_cooling_device_unregister);
 void thermal_cdev_update(struct thermal_cooling_device *cdev)
 {
 	struct thermal_instance *instance;
-	unsigned long current_target = 0;
+	unsigned long current_target = 0, min_target = ULONG_MAX;
 
 	/* cooling device is updated*/
 	if (cdev->updated)
@@ -2095,19 +2143,28 @@ void thermal_cdev_update(struct thermal_cooling_device *cdev)
 
 	mutex_lock(&cdev->lock);
 	/* Make sure cdev enters the deepest cooling state */
+	min_target = cdev->sysfs_min_state_req;
 	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
 		dev_dbg(&cdev->device, "zone%d->target=%lu\n",
 				instance->tz->id, instance->target);
 		if (instance->target == THERMAL_NO_TARGET)
 			continue;
-		if (instance->target > current_target)
-			current_target = instance->target;
+		if (instance->tz->governor->min_state_throttle) {
+			if (instance->target < min_target)
+				min_target = instance->target;
+		} else {
+			if (instance->target > current_target)
+				current_target = instance->target;
+		}
 	}
 	mutex_unlock(&cdev->lock);
 	cdev->ops->set_cur_state(cdev, current_target);
+	if (cdev->ops->set_min_state)
+		cdev->ops->set_min_state(cdev, min_target);
 	cdev->updated = true;
 	trace_cdev_update(cdev, current_target);
-	dev_dbg(&cdev->device, "set to state %lu\n", current_target);
+	dev_dbg(&cdev->device, "set to state %lu min state %lu\n",
+				current_target, min_target);
 }
 EXPORT_SYMBOL(thermal_cdev_update);
 

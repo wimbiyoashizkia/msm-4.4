@@ -24,6 +24,7 @@ KERNEL_DIR=$PWD
 MODEL="Asus Zenfone Max Pro M2"
 DEVICE="X01BD"
 KERNEL="NEON"
+VERSION="12.0"
 KERNELTYPE="4.4"
 
 # Get defconfig file
@@ -116,7 +117,7 @@ tg_post_build() {
 
 # Set function for naming zip file
 setversioning() {
-    KERNELNAME="$KERNEL-$DEVICE-$KERNELTYPE-$DATE"
+    KERNELNAME="$KERNEL-$DEVICE-$VERSION-$KERNELTYPE-$DATE"
     export KERNELTYPE KERNELNAME
     export ZIPNAME="$KERNELNAME.zip"
 }

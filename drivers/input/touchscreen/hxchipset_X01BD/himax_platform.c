@@ -800,6 +800,7 @@ static struct i2c_driver himax_common_driver = {
 #ifdef CONFIG_PM
 		.pm				= &himax_common_pm_ops,
 #endif
+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 	},
 };
 

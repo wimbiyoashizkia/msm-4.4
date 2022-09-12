@@ -1,0 +1,17 @@
+
+name: Build Kernel
+on:
+  push:
+    branches:
+      - sdm660-eas-test
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get -y install bison build-essential bc bison curl libssl-dev git zip python python3 flex cpio libncurses5-dev wget
+    - name: Build Asus Zenfone Max Pro M1
+      run: ./X00TD.sh
+    - name: Build Asus Zenfone Max Pro M2
+      run: ./X01BD.sh

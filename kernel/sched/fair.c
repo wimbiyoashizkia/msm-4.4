@@ -2691,7 +2691,7 @@ static const u32 runnable_avg_yN_sum[] = {
 int pelt_load_avg_period = PELT16_LOAD_AVG_PERIOD;
 int pelt_load_avg_max = PELT16_LOAD_AVG_MAX;
 int pelt_load_avg_max_n = PELT16_LOAD_AVG_MAX_N;
-u32 *pelt_runnable_avg_yN_inv = pelt16_runnable_avg_yN_inv;
+const u32 *pelt_runnable_avg_yN_inv = pelt16_runnable_avg_yN_inv;
 
 int get_pelt_halflife(void)
 {

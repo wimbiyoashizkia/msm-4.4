@@ -40,6 +40,38 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel boot install
 dump_boot;
 
+## PELT scheduler (DO NOT CHANGE)
+# begin selection of PELT
+ui_print " " "Detecting set up PELT..."
+case "$ZIPFILE" in
+	*8ms*)
+		ui_print " "
+		ui_print "Detected PELT 8ms"
+		ui_print "Set to PELT 8ms..."
+		patch_cmdline "pelt" "pelt=8"
+		;;
+	*16ms*)
+		ui_print " "
+		ui_print "Detected PELT 16ms"
+		ui_print "Set to PELT 16ms..."
+		patch_cmdline "pelt" "pelt=16"
+		;;
+	*32ms*)
+		ui_print " "
+		ui_print "Detected PELT 32ms"
+		ui_print "Set to PELT 32ms..."
+		patch_cmdline "pelt" "pelt=32"
+		;;
+	*)
+		ui_print " "
+		ui_print "Set up PELT has no Detected!"
+		ui_print "Set to 32ms as default..."
+		patch_cmdline "pelt" ""
+esac
+# end selection of PELT
+
+ui_print " "
+
 ## Overclock screen setup (DO NOT CHANGE)
 # begin overclock screen
 ui_print " " "Detecting Screen OC..."

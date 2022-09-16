@@ -2679,7 +2679,7 @@ EXPORT_SYMBOL(sched_set_wake_up_idle);
 
 int pelt_load_avg_period = PELT16_LOAD_AVG_PERIOD;
 int pelt_load_avg_max = PELT16_LOAD_AVG_MAX;
-u32 *pelt_runnable_avg_yN_inv = pelt16_runnable_avg_yN_inv;
+const u32 *pelt_runnable_avg_yN_inv = pelt16_runnable_avg_yN_inv;
 
 int get_pelt_halflife(void)
 {

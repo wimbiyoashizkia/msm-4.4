@@ -29,6 +29,10 @@
 #include <linux/of.h>
 #include <trace/events/power.h>
 
+/* Configuration stock boot CPUs frequency */
+#define CPU_FREQ_MIN_LITTLE	633600
+#define CPU_FREQ_MIN_BIG	1113600
+
 static DEFINE_MUTEX(l2bw_lock);
 
 static struct clk *cpu_clk[NR_CPUS];
@@ -145,8 +149,27 @@ static int msm_cpufreq_init(struct cpufreq_policy *policy)
 
 	ret = cpufreq_table_validate_and_show(policy, table);
 	if (ret) {
+		if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+			policy->cpuinfo.min_freq = CPU_FREQ_MIN_LITTLE;
+		}
+
+		if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+			policy->cpuinfo.min_freq = CPU_FREQ_MIN_BIG;
+		}
 		pr_err("cpufreq: failed to get policy min/max\n");
 		return ret;
+	}
+
+	/* 
+	 * Set default minimum frequencies to prevent
+	 * overclocking or underclocking during start
+	 */
+	if (cpumask_test_cpu(policy->cpu, cpu_lp_mask)) {
+		policy->min = CPU_FREQ_MIN_LITTLE;
+	}
+
+	if (cpumask_test_cpu(policy->cpu, cpu_perf_mask)) {
+		policy->min = CPU_FREQ_MIN_BIG;
 	}
 
 	cur_freq = clk_get_rate(cpu_clk[policy->cpu])/1000;

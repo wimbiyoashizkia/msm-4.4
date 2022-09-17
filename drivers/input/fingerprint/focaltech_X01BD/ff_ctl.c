@@ -69,15 +69,6 @@ typedef struct {
 } ff_ctl_context_t;
 static ff_ctl_context_t *g_context = NULL;
 
-#define FP_BOOST_MS   500
-#define FP_BOOST_INTERVAL   (500*USEC_PER_MSEC)
-
-static struct workqueue_struct *fp_boost_wq_ff;
-
-static struct work_struct fp_boost_work;
-static struct delayed_work fp_boost_rem;
-static bool fp_boost_active=false;
-
 
 /*
  * Driver configuration.
@@ -137,52 +128,6 @@ int ff_log_printf(ff_log_level_t level, const char *tag, const char *fmt, ...)
         break;
     }
     return n;
-}
-
-static void do_fp_boost_rem(struct work_struct *work)
-{
-	unsigned int ret;
-
-	/* Update policies for all online CPUs */
-	if(fp_boost_active) {
-		ret = sched_set_boost(0);
-		if (ret)
-			pr_err("cpu-boost: HMP boost disable failed\n");
-		fp_boost_active = false;
-	}
-}
-
-static void do_fp_boost(struct work_struct *work)
-{
-	unsigned int ret;
-
-	cancel_delayed_work_sync(&fp_boost_rem);
-	if(fp_boost_active==false) {
-		ret = sched_set_boost(1);
-		if (ret)
-			pr_err("cpu-boost: HMP boost enable failed\n");
-		else
-			fp_boost_active=true;
-	}
-	queue_delayed_work(fp_boost_wq_ff, &fp_boost_rem,
-					msecs_to_jiffies(FP_BOOST_MS));
-}
-
-
-static void fp_cpuboost(void)
-{
-	u64 now;
-	static u64 last_time=0;
-
-	now = ktime_to_us(ktime_get());
-	if (now - last_time <FP_BOOST_INTERVAL)
-		return;
-
-	if (work_pending(&fp_boost_work))
-		return;
-
-	queue_work(fp_boost_wq_ff, &fp_boost_work);
-	last_time = ktime_to_us(ktime_get());
 }
 
 const char *ff_err_strerror(int err)
@@ -275,7 +220,6 @@ static void ff_ctl_device_event(struct work_struct *ws)
 static irqreturn_t ff_ctl_device_irq(int irq, void *dev_id)
 {
     ff_ctl_context_t *ctx = (ff_ctl_context_t *)dev_id;
-    fp_cpuboost();
     disable_irq_nosync(irq);
     if (likely(irq == ctx->irq_num)) {
         if (g_config && g_config->enable_fasync && g_context->async_queue) {
@@ -330,32 +274,32 @@ static int ff_ctl_fb_notifier_callback(struct notifier_block *nb, unsigned long 
     int blank;
     char *uevent_env[2];
 
-	/* If we aren't interested in this event, skip it immediately ... */
-	if (action != FB_EVENT_BLANK /* FB_EARLY_EVENT_BLANK */) {
-		return NOTIFY_DONE;
-	}
+    /* If we aren't interested in this event, skip it immediately ... */
+    if (action != FB_EVENT_BLANK /* FB_EARLY_EVENT_BLANK */) {
+        return NOTIFY_DONE;
+    }
 
-	FF_LOGV("'%s' enter.", __func__);
+    FF_LOGV("'%s' enter.", __func__);
 
-	event = (struct fb_event *)data;
-	blank = *(int *)event->data;
+    event = (struct fb_event *)data;
+    blank = *(int *)event->data;
 
-	switch (blank) {
-	case FB_BLANK_UNBLANK:
-		uevent_env[0] = "FF_SCREEN_ON";
-		break;
-	case FB_BLANK_POWERDOWN:
+    switch (blank) {
+    case FB_BLANK_UNBLANK:
+        uevent_env[0] = "FF_SCREEN_ON";
+        break;
+    case FB_BLANK_POWERDOWN:
         uevent_env[0] = "FF_SCREEN_OFF";
-		break;
-	default:
-	    uevent_env[0] = "FF_SCREEN_??";
-		break;
-	}
-	uevent_env[1] = NULL;
-	kobject_uevent_env(&g_context->miscdev.this_device->kobj, KOBJ_CHANGE, uevent_env);
+        break;
+    default:
+        uevent_env[0] = "FF_SCREEN_??";
+        break;
+    }
+    uevent_env[1] = NULL;
+    kobject_uevent_env(&g_context->miscdev.this_device->kobj, KOBJ_CHANGE, uevent_env);
 
-	FF_LOGV("'%s' leave.", __func__);
-	return NOTIFY_OK;
+    FF_LOGV("'%s' leave.", __func__);
+    return NOTIFY_OK;
 }
 
 /* Huaqin modify for ZQL1820 by puqirui at 2018/10/30 start*/
@@ -493,7 +437,7 @@ static int ff_ctl_init_driver(void)
                 break;
             }
 #endif
-	   		init_flag = 0;
+            init_flag = 0;
         }
     } while (0);
 
@@ -716,14 +660,6 @@ static int __init ff_ctl_driver_init(void)
         return err;
     }
 
-	fp_boost_wq_ff = alloc_workqueue("fp_cpuboost_wq_ff", WQ_HIGHPRI, 0);
-	if (!fp_boost_wq_ff)
-		return -EFAULT;
-	INIT_WORK(&fp_boost_work, do_fp_boost);
-	INIT_DELAYED_WORK(&fp_boost_rem, do_fp_boost_rem);
-    /* Init the interrupt workqueue. */
-    INIT_WORK(&ff_ctl_context.work_queue, ff_ctl_device_event);
-
     /* Init the wake lock. */
     wake_lock_init(&ff_ctl_context.wake_lock, WAKE_LOCK_SUSPEND, "ff_wake_lock");
 
@@ -731,7 +667,7 @@ static int __init ff_ctl_driver_init(void)
     g_context = &ff_ctl_context;
     init_flag = 1;
     /* Initialize the chip. */
-#ifdef CHIP_TYPE_FT9304	 
+#ifdef CHIP_TYPE_FT9304  
     if (ff_ctl_init_driver() == 0 && ff_chip_init() != 0) {
         err = ff_ctl_free_driver();
         g_context->b_driver_inited = false;

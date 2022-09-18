@@ -11,6 +11,17 @@
 			};
 		};
 	};
+
+	qcom,pm660@1 {
+		qcom,haptics@c000 {
+			qcom,actuator-type = <1>;
+			qcom,vmax-mv = <2800>;
+		};
+
+		qcom,haptic@c000 {
+			qcom,actuator-type = "erm";
+		};
+	};
 };
 
 &pm660_gpios {
@@ -106,6 +117,3 @@
 	qcom,fg-rsense-sel=<1>;
 };
 
-&pm660_haptics {
-	qcom,actuator-type = "erm";
-};

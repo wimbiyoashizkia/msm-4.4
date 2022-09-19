@@ -40,6 +40,19 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel boot install
 dump_boot;
 
+## Get Android version (DO NOT CHANGE)
+# begin checker android version
+ver="$(file_getprop /system/build.prop ro.build.version.release)"
+if [ ! -z "$ver" ]; then
+	ui_print " "
+	ui_print "Checking Android version..."
+	ui_print "Android version $ver" " "
+	patch_cmdline "androidboot.version" "androidboot.version=$ver"
+else
+	patch_cmdline "androidboot.version" ""
+fi
+#end checker android version
+
 write_boot;
 ## end boot install
 

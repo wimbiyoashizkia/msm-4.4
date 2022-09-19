@@ -28,6 +28,7 @@
 #include <linux/err.h>
 #include <linux/delay.h>
 #include <linux/log2.h>
+#include <linux/vibration.h>
 #include <linux/qpnp-misc.h>
 #include <linux/qpnp/qpnp-haptic.h>
 #include <linux/qpnp/qpnp-revid.h>
@@ -3180,7 +3181,10 @@ static struct platform_driver qpnp_haptic_driver = {
 
 static int __init qpnp_haptic_init(void)
 {
-	return platform_driver_register(&qpnp_haptic_driver);
+	if (get_vibration() < 1)
+		return platform_driver_register(&qpnp_haptic_driver);
+	else
+		return 0;
 }
 module_init(qpnp_haptic_init);
 

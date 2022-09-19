@@ -27,6 +27,7 @@
 #include <linux/regmap.h>
 #include <linux/regulator/consumer.h>
 #include <linux/slab.h>
+#include <linux/vibration.h>
 #include <linux/qpnp-misc.h>
 #include <linux/qpnp/qpnp-revid.h>
 
@@ -2545,7 +2546,21 @@ static struct platform_driver qpnp_haptics_driver = {
 	.remove		= qpnp_haptics_remove,
 	.shutdown	= qpnp_haptics_shutdown,
 };
-module_platform_driver(qpnp_haptics_driver);
+
+static int __init qpnp_haptics_init(void)
+{
+	if (get_vibration() > 0)
+		return platform_driver_register(&qpnp_haptics_driver);
+	else
+		return 0;
+}
+module_init(qpnp_haptics_init);
+
+static void __exit qpnp_haptics_exit(void)
+{
+	return platform_driver_unregister(&qpnp_haptics_driver);
+}
+module_exit(qpnp_haptics_exit);
 
 MODULE_DESCRIPTION("QPNP haptics driver");
 MODULE_LICENSE("GPL v2");

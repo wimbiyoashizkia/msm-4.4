@@ -77,6 +77,36 @@ case "$ZIPFILE" in
 esac
 # begin selection of LV/NLV
 
+## PELT (DO NOT CHANGE)
+# begin selection of PELT
+ui_print " " "Detecting set up PELT..."
+case "$ZIPFILE" in
+	*8ms*)
+		ui_print " "
+		ui_print "Detected PELT 8ms"
+		ui_print "Set to PELT 8ms..." " "
+		patch_cmdline "pelt" "pelt=8"
+		;;
+	*16ms*)
+		ui_print " "
+		ui_print "Detected PELT 16ms"
+		ui_print "Set to PELT 16ms..." " "
+		patch_cmdline "pelt" "pelt=16"
+		;;
+	*32ms*)
+		ui_print " "
+		ui_print "Detected PELT 32ms"
+		ui_print "Set to PELT 32ms..." " "
+		patch_cmdline "pelt" "pelt=32"
+		;;
+	*)
+		ui_print " "
+		ui_print "Set up PELT has no Detected!"
+		ui_print "Set to 32ms as default..." " "
+		patch_cmdline "pelt" ""
+esac
+# end selection of PELT
+
 write_boot;
 ## end boot install
 

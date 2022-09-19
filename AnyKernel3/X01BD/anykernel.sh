@@ -53,6 +53,30 @@ else
 fi
 #end checker android version
 
+## LV/NLV (DO NOT CHANGE)
+# begin selection of LV/NLV
+ui_print " " "Detect supported vibration..."
+case "$ZIPFILE" in
+	*NLV*|*nlv*)
+		ui_print " "
+		ui_print "Detected No Leds Vibration"
+		ui_print "Set to No Leds Vibration support..." " "
+		patch_cmdline "vibration" "vibration=0"
+		;;
+	*LV*|*lv*)
+		ui_print " "
+		ui_print "Detected Leds Vibration"
+		ui_print "Set to Leds Vibration support..." " "
+		patch_cmdline "vibration" "vibration=1"
+		;;
+	*)
+		ui_print " "
+		ui_print "File naming LV/NLV has no Detected!"
+		ui_print "Set to LV as default..." " "
+		patch_cmdline "vibration" ""
+esac
+# begin selection of LV/NLV
+
 write_boot;
 ## end boot install
 

@@ -83,6 +83,11 @@ static struct elevator_type *elevator_find(const char *name)
 {
 	struct elevator_type *e;
 
+	/* Forbid init from changing I/O scheduler by default */
+	if (!strncmp(current->comm, "init", sizeof("init")) ||
+		!strncmp(current->comm, "init.qcom.post_", sizeof("init.qcom.post_")))
+		return NULL;
+
 	list_for_each_entry(e, &elv_list, list) {
 		if (!strcmp(e->elevator_name, name))
 			return e;

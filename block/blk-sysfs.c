@@ -87,6 +87,10 @@ queue_ra_store(struct request_queue *q, const char *page, size_t count)
 	unsigned long ra_kb;
 	ssize_t ret = queue_var_store(&ra_kb, page, count);
 
+	if (!strncmp(current->comm, "init", sizeof("init")) ||
+		!strncmp(current->comm, "init.qcom.post_", sizeof("init.qcom.post_")))
+		ra_kb = VM_MAX_READAHEAD;
+
 	if (ret < 0)
 		return ret;
 

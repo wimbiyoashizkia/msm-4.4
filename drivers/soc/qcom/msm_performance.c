@@ -579,7 +579,8 @@ static int set_game_start_pid(const char *buf, const struct kernel_param *kp)
 	long usr_val = 0;
 	int ret = strlen(buf);
 
-	kstrtol(buf, 0, &usr_val);
+	if ((kstrtol(buf, 0, &usr_val)) < 0)
+		printk(KERN_WARNING "game_start: error kstrtol\n");
 	atomic_set(&game_status_pid, usr_val);
 	return ret;
 }

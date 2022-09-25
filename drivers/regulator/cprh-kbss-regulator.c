@@ -990,6 +990,8 @@ static int cprh_kbss_parse_corner_data(struct cpr3_regulator *vreg)
 	return rc;
 }
 
+static unsigned int custom_cpu_undervolt = 0;
+
 /**
  * cprh_kbss_calculate_open_loop_voltages() - calculate the open-loop
  *		voltage for each corner of a CPR3 regulator
@@ -1065,10 +1067,23 @@ static int cprh_kbss_calculate_open_loop_voltages(struct cpr3_regulator *vreg)
 		goto done;
 	}
 
+	if (custom_cpu_undervolt < 0)
+		custom_cpu_undervolt = 0;
+	else if (custom_cpu_undervolt > CUSTOM_UNDERVOLT_LIMIT)
+		custom_cpu_undervolt = CUSTOM_UNDERVOLT_LIMIT;
+
+	cpr3_info(vreg, "custom cpu undervolt: %d uV\n", custom_cpu_undervolt);
+
 	for (i = 0; i < vreg->fuse_corner_count; i++) {
-		fuse_volt[i] = cpr3_convert_open_loop_voltage_fuse(ref_volt[i],
-			CPRH_KBSS_FUSE_STEP_VOLT, fuse->init_voltage[i],
-			CPRH_KBSS_VOLTAGE_FUSE_SIZE);
+		fuse_volt[i] = cpr3_convert_open_loop_voltage_fuse(
+			ref_volt[i] - custom_cpu_undervolt,
+			CPRH_KBSS_FUSE_STEP_VOLT,
+			fuse->init_voltage[i],
+			CPRH_KBSS_VOLTAGE_FUSE_SIZE
+		);
+		/* Also reduce both floor and ceiling voltages */
+		vreg->corner[i].floor_volt -= custom_cpu_undervolt;
+		vreg->corner[i].ceiling_volt -= custom_cpu_undervolt;
 
 		/* SDM660 speed bin #3 does not support TURBO_L1/L2 */
 		if (soc_revision == SDM660_SOC_ID && vreg->speed_bin_fuse == 3
@@ -1159,6 +1174,13 @@ done:
 	kfree(fmax_corner);
 	return rc;
 }
+
+static int __init set_cpu_uv(char *val)
+{
+	get_option(&val, &custom_cpu_undervolt);
+	return 0;
+}
+__setup("uv_cpu=", set_cpu_uv);
 
 /**
  * cprh_msm8998_partial_binning_override() - override the voltage and quotient

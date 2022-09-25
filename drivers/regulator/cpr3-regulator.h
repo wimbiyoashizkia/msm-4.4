@@ -50,6 +50,13 @@ struct cpr3_fuse_param {
 /* This constant is used when allocating array printing buffers. */
 #define MAX_CHARS_PER_INT	10
 
+/*
+ * Undervolt configuration.
+ * Define maximum limit undervolt CPU or GPU
+ * for safety the "custom undervolt" must <= 120mV
+ */
+#define CUSTOM_UNDERVOLT_LIMIT 120000
+
 /**
  * struct cpr4_sdelta - CPR4 controller specific data structure for the sdelta
  *			adjustment table which is used to adjust the VDD supply

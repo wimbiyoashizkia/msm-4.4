@@ -226,6 +226,8 @@ static int cpr4_sdm660_mmss_read_fuse_data(struct cpr3_regulator *vreg)
 	return 0;
 }
 
+static unsigned int custom_gpu_undervolt = 0;
+
 /**
  * cpr3_sdm660_mmss_calculate_open_loop_voltages() - calculate the open-loop
  *		voltage for each corner of a CPR3 regulator
@@ -247,10 +249,25 @@ static int cpr4_sdm660_mmss_calculate_open_loop_voltages(
 		return -ENOMEM;
 
 	ref_volt = sdm660_mmss_fuse_ref_volt;
+
+	if (custom_gpu_undervolt < 0)
+		custom_gpu_undervolt = 0;
+	else if (custom_gpu_undervolt > CUSTOM_UNDERVOLT_LIMIT)
+		custom_gpu_undervolt = CUSTOM_UNDERVOLT_LIMIT;
+
+	cpr3_info(vreg, "custom gpu undervolt: %d uV\n", custom_gpu_undervolt);
+
 	for (i = 0; i < vreg->fuse_corner_count; i++) {
-		fuse_volt[i] = cpr3_convert_open_loop_voltage_fuse(ref_volt[i],
-			SDM660_MMSS_FUSE_STEP_VOLT, fuse->init_voltage[i],
-			SDM660_MMSS_VOLTAGE_FUSE_SIZE);
+		fuse_volt[i] = cpr3_convert_open_loop_voltage_fuse(
+			ref_volt[i] - custom_gpu_undervolt,
+			SDM660_MMSS_FUSE_STEP_VOLT,
+			fuse->init_voltage[i],
+			SDM660_MMSS_VOLTAGE_FUSE_SIZE
+		);
+		/* Also reduce both floor and ceiling voltages */
+		vreg->corner[i].floor_volt -= custom_gpu_undervolt;
+		vreg->corner[i].ceiling_volt -= custom_gpu_undervolt;
+
 		cpr3_info(vreg, "fuse_corner[%d] open-loop=%7d uV\n",
 			i, fuse_volt[i]);
 	}
@@ -289,6 +306,13 @@ done:
 	kfree(fuse_volt);
 	return rc;
 }
+
+static int __init set_gpu_uv(char *val)
+{
+	get_option(&val, &custom_gpu_undervolt);
+	return 0;
+}
+__setup("uv_gpu=", set_gpu_uv);
 
 /**
  * cpr4_mmss_parse_ldo_mode_data() - Parse the LDO mode enable state for each

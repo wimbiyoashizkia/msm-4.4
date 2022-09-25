@@ -107,6 +107,47 @@ case "$ZIPFILE" in
 esac
 # end selection of PELT
 
+## Undervolt (DO NOT CHANGE)
+# begin selection of Undervolt
+ui_print " " "Detect Undervolt..."
+case "$ZIPFILE" in
+	*20mV*|*20mv*)
+		ui_print " "
+		ui_print "Detected Undervolt"
+		ui_print "Set Undervolt 20mV..." " "
+		patch_cmdline "uv_gpu" "uv_gpu=20000"
+		patch_cmdline "uv_cpu" "uv_cpu=20000"
+		;;
+	*40mV*|*40mv*)
+		ui_print " "
+		ui_print "Detected Undervolt"
+		ui_print "Set Undervolt 40mV..." " "
+		patch_cmdline "uv_gpu" "uv_gpu=40000"
+		patch_cmdline "uv_cpu" "uv_cpu=40000"
+		;;
+	*60mV*|*60mv*)
+		ui_print " "
+		ui_print "Detected Undervolt"
+		ui_print "Set Undervolt 60mV..." " "
+		patch_cmdline "uv_gpu" "uv_gpu=60000"
+		patch_cmdline "uv_cpu" "uv_cpu=60000"
+		;;
+	*80mV*|*80mv*)
+		ui_print " "
+		ui_print "Detected Undervolt"
+		ui_print "Set Undervolt 80mV..." " "
+		patch_cmdline "uv_gpu" "uv_gpu=80000"
+		patch_cmdline "uv_cpu" "uv_cpu=80000"
+		;;
+	*)
+		ui_print " "
+		ui_print "Undervolt has no Detected!"
+		ui_print "Set to 0mV as default..." " "
+		patch_cmdline "uv_gpu" ""
+		patch_cmdline "uv_cpu" ""
+esac
+# begin selection of Undervolt
+
 write_boot;
 ## end boot install
 

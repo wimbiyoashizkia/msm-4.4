@@ -40,6 +40,9 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel boot install
 dump_boot;
 
+# Import Remover
+. /tmp/anykernel/tools/remover.sh;
+
 ## Get Android version (DO NOT CHANGE)
 # begin checker android version
 ver="$(file_getprop /system/build.prop ro.build.version.release)"

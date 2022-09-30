@@ -3,8 +3,8 @@
 # NEON Remover
 # remove junk from another kernel
 
-ui_print " ";
-ui_print "Removing junk from other kernel...";
+ui_print " "
+ui_print "Removing junk from other kernel..."
 
 if [ -f $ramdisk/balance.txt ]; then
   rm -rf $ramdisk/balance.txt;
@@ -71,4 +71,4 @@ remove_line $ramdisk/init.rc "import /init.pk.rc"
 remove_line $ramdisk/init.rc "import /init.boost.rc"
 remove_line $ramdisk/init.rc "import /init.Singh.rc"
 
-ui_print "Removing junk Finish...";
+ui_print "Removing junk Done!"

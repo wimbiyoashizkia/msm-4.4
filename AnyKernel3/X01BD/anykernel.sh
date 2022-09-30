@@ -40,86 +40,11 @@ set_perm_recursive 0 0 750 750 $ramdisk/init* $ramdisk/sbin;
 ## AnyKernel boot install
 dump_boot;
 
-# Import Remover
-. /tmp/anykernel/tools/remover.sh;
+# begin installation changes
 
-## Get Android version (DO NOT CHANGE)
-# begin checker android version
-ver="$(file_getprop /system/build.prop ro.build.version.release)"
-if [ ! -z "$ver" ]; then
-	ui_print " "
-	ui_print "Checking Android version..."
-	ui_print "Android version $ver" " "
-	patch_cmdline "androidboot.version" "androidboot.version=$ver"
-else
-	patch_cmdline "androidboot.version" ""
-fi
-#end checker android version
+. /tmp/anykernel/tools/install.sh;
 
-## LV/NLV (DO NOT CHANGE)
-# begin selection of LV/NLV
-ui_print " " "Detect supported vibration..."
-case "$ZIPFILE" in
-	*NLV*|*nlv*)
-		ui_print " "
-		ui_print "Detected No Leds Vibration"
-		ui_print "Set to No Leds Vibration support..." " "
-		patch_cmdline "vibration" "vibration=0"
-		;;
-	*LV*|*lv*)
-		ui_print " "
-		ui_print "Detected Leds Vibration"
-		ui_print "Set to Leds Vibration support..." " "
-		patch_cmdline "vibration" "vibration=1"
-		;;
-	*)
-		ui_print " "
-		ui_print "File naming LV/NLV has no Detected!"
-		ui_print "Set to LV as default..." " "
-		patch_cmdline "vibration" ""
-esac
-# begin selection of LV/NLV
-
-## Undervolt (DO NOT CHANGE)
-# begin selection of Undervolt
-ui_print " " "Detect Undervolt..."
-case "$ZIPFILE" in
-	*20mV*|*20mv*)
-		ui_print " "
-		ui_print "Detected Undervolt"
-		ui_print "Set Undervolt 20mV..." " "
-		patch_cmdline "uv_gpu" "uv_gpu=20000"
-		patch_cmdline "uv_cpu" "uv_cpu=20000"
-		;;
-	*40mV*|*40mv*)
-		ui_print " "
-		ui_print "Detected Undervolt"
-		ui_print "Set Undervolt 40mV..." " "
-		patch_cmdline "uv_gpu" "uv_gpu=40000"
-		patch_cmdline "uv_cpu" "uv_cpu=40000"
-		;;
-	*60mV*|*60mv*)
-		ui_print " "
-		ui_print "Detected Undervolt"
-		ui_print "Set Undervolt 60mV..." " "
-		patch_cmdline "uv_gpu" "uv_gpu=60000"
-		patch_cmdline "uv_cpu" "uv_cpu=60000"
-		;;
-	*80mV*|*80mv*)
-		ui_print " "
-		ui_print "Detected Undervolt"
-		ui_print "Set Undervolt 80mV..." " "
-		patch_cmdline "uv_gpu" "uv_gpu=80000"
-		patch_cmdline "uv_cpu" "uv_cpu=80000"
-		;;
-	*)
-		ui_print " "
-		ui_print "Undervolt has no Detected!"
-		ui_print "Set to 0mV as default..." " "
-		patch_cmdline "uv_gpu" ""
-		patch_cmdline "uv_cpu" ""
-esac
-# begin selection of Undervolt
+# end installation changes
 
 write_boot;
 ## end boot install

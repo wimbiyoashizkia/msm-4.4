@@ -3291,8 +3291,11 @@ retry:
 		goto noretry;
 
 	/* Boost when memory is low so allocation latency doesn't get too bad */
-	cpu_input_boost_kick_max(100);
-	devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
+	if (cpu_input_boost_within_input(75))
+		cpu_input_boost_kick_max(100);
+
+	if (df_boost_within_input(75))
+		devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 100);
 
 	/* Keep reclaiming pages as long as there is reasonable progress */
 	pages_reclaimed += did_some_progress;

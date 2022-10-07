@@ -8,6 +8,12 @@
 # in the COPYING file in the root directory of this source tree).
 # You may select, at your option, one of the above-listed licenses.
 # ################################################################
+
+# Optimise for size
+ccflags-y := -O3
+ccflags-y += $(call cc-option, -g0)
+ccflags-y += $(call cc-option, -Os)
+
 obj-$(CONFIG_ZSTD_COMPRESS) += zstd_compress.o
 obj-$(CONFIG_ZSTD_DECOMPRESS) += zstd_decompress.o
 

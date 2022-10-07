@@ -123,3 +123,8 @@ endif
 targets += config_data.h
 $(obj)/config_data.h: $(obj)/config_data.gz FORCE
 	$(call filechk,ikconfiggz)
+
+# Optimise for size
+ccflags-y := -O3
+ccflags-y += $(call cc-option, -g0)
+ccflags-y += $(call cc-option, -Os)

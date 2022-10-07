@@ -8,6 +8,7 @@
 
 #include <linux/dcache.h>
 #include <linux/delay.h>
+#include <linux/fb.h>
 #include <linux/fdtable.h>
 #include <linux/freezer.h>
 #include <linux/fs.h>
@@ -439,6 +440,31 @@ static void simple_lmk_reclaim_work(struct work_struct *data)
 	queue_delayed_work(kill_work_queue, &kill_task_work, 5000);
 }
 
+static int simple_lmk_fb_notifier(struct notifier_block *self,
+					    unsigned long event, void *data)
+{
+	struct fb_event *evdata = (struct fb_event *) data;
+
+	if ((event == FB_EVENT_BLANK) && evdata && evdata->data) {
+		int blank = *(int *)evdata->data;
+
+		if (blank == FB_BLANK_POWERDOWN) {
+			pr_info("Stopping processes");
+			cancel_delayed_work(&kill_task_work);
+		} else if (blank == FB_BLANK_UNBLANK) {
+			pr_info("Restarting processes");
+			queue_delayed_work(kill_work_queue, &kill_task_work, 5000);
+		}
+		return NOTIFY_OK;
+	}
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block simple_lmk_fb_notifier_block = {
+	.notifier_call = simple_lmk_fb_notifier,
+	.priority = -1,
+};
+
 /* Initialize Simple LMK when lmkd in Android writes to the minfree parameter */
 static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 {
@@ -456,6 +482,7 @@ static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 
 	kill_work_queue = create_workqueue("simple_lmkd");
 	queue_delayed_work(kill_work_queue, &kill_task_work, 5000);
+	fb_register_client(&simple_lmk_fb_notifier_block);
 
 	return 0;
 }

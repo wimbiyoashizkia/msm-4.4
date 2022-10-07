@@ -6,8 +6,10 @@
 
 #define pr_fmt(fmt) "simple_lmk: " fmt
 
+#include <linux/cpu_input_boost.h>
 #include <linux/dcache.h>
 #include <linux/delay.h>
+#include <linux/devfreq_boost.h>
 #include <linux/fb.h>
 #include <linux/fdtable.h>
 #include <linux/freezer.h>
@@ -391,6 +393,10 @@ final_check:
 
 			pr_info("Killing task, pid: %d, system_mm_usage: %d\n", tsk->pid,
 				get_mm_usage());
+
+			/* Boost when decide to kill a task */
+			cpu_input_boost_kick_max(500);
+			devfreq_boost_kick_max(DEVFREQ_MSM_CPUBW, 500);
 
 			/* Call function of speed up the death process */
 			kill_task(tsk);

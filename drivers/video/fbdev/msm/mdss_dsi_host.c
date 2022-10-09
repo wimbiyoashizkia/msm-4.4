@@ -23,10 +23,6 @@
 
 #include <linux/msm-bus.h>
 
-#ifdef CONFIG_MACH_ASUS_SDM660
-#include <linux/errno.h>
-#endif
-
 #include "mdss.h"
 #include "mdss_dsi.h"
 #include "mdss_panel.h"
@@ -1253,9 +1249,6 @@ int mdss_dsi_reg_status_check(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		else if (sctrl_pdata)
 			ret = ctrl_pdata->check_read_status(sctrl_pdata);
 	} else {
-#ifdef CONFIG_MACH_ASUS_SDM660
-		ret = -ENOTSUPP;
-#endif
 		pr_err("%s: Read status register returned error\n", __func__);
 	}
 

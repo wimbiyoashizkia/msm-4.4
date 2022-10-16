@@ -487,6 +487,7 @@ static int msm_comm_vote_bus(struct msm_vidc_core *core)
 	struct hfi_device *hdev;
 	struct msm_vidc_inst *inst = NULL;
 	struct vidc_bus_vote_data *vote_data = NULL;
+	struct vidc_bus_vote_data vote_data_onstack[1] __aligned(8);
 	unsigned long core_freq = 0;
 
 	if (!core) {
@@ -512,6 +513,21 @@ static int msm_comm_vote_bus(struct msm_vidc_core *core)
 		rc = -ENOMEM;
 		goto fail_alloc;
 	}
+
+	if (vote_data_count > 1) {
+		vote_data = kzalloc(sizeof(*vote_data) * vote_data_count,
+				GFP_TEMPORARY);
+		if (!vote_data) {
+			dprintk(VIDC_ERR, "%s: failed to allocate memory\n", __func__);
+			mutex_unlock(&core->lock);
+			rc = -ENOMEM;
+			return rc;
+		}
+	} else {
+		memset(vote_data_onstack, 0, sizeof(struct vidc_bus_vote_data));
+		vote_data = vote_data_onstack;
+	}
+	vote_data_count = 0;
 
 	core_freq = call_hfi_op(hdev, get_core_clock_rate,
 			hdev->hfi_device_data, 0);
@@ -570,7 +586,8 @@ static int msm_comm_vote_bus(struct msm_vidc_core *core)
 	if (rc)
 		dprintk(VIDC_ERR, "Failed to scale bus: %d\n", rc);
 
-	kfree(vote_data);
+	if (vote_data != vote_data_onstack)
+		kfree(vote_data);
 	return rc;
 
 fail_alloc:

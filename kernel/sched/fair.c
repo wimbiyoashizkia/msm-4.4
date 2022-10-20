@@ -5094,7 +5094,11 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	struct sched_entity *se = &p->se;
 #ifdef CONFIG_SMP
 	int task_new = flags & ENQUEUE_WAKEUP_NEW;
+#ifdef CONFIG_CGROUP_SCHEDTUNE
 	bool prefer_idle = schedtune_prefer_idle(p) > 0;
+#else
+	bool prefer_idle = uclamp_latency_sensitive(p) > 0;
+#endif /* CONFIG_CGROUP_SCHEDTUNE */
 
 	/*
 	 * Update SchedTune accounting.
@@ -7246,6 +7250,9 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu)
 #ifdef CONFIG_CGROUP_SCHEDTUNE
 	boosted = schedtune_task_boost(p) > 0;
 	prefer_idle = schedtune_prefer_idle(p) > 0;
+#elif CONFIG_UCLAMP_TASK
+	boosted = uclamp_boosted(p) > 0;
+	prefer_idle = uclamp_latency_sensitive(p) > 0;
 #else
 	boosted = get_sysctl_sched_cfs_boost() > 0;
 	prefer_idle = 0;

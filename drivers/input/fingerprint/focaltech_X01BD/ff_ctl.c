@@ -204,7 +204,7 @@ static int ff_ctl_enable_irq(bool on)
     return err;
 }
 
-static void ff_ctl_device_event(struct work_struct *ws)
+static void __maybe_unused ff_ctl_device_event(struct work_struct *ws)
 {
     ff_ctl_context_t *ctx = container_of(ws, ff_ctl_context_t, work_queue);
     char *uevent_env[2] = {"FF_INTERRUPT", NULL};

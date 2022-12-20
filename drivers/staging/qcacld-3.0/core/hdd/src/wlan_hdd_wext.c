@@ -9440,14 +9440,14 @@ static int __iw_get_char_setnone(struct net_device *dev,
 
 			buf =
 				scnprintf(extra + len, WE_MAX_STR_LEN - len,
-					  "\n HDD Conn State - %s "
-					  "\n\n SME State:"
-					  "\n Neighbour Roam State - %s"
-					  "\n CSR State - %s"
-					  "\n CSR Substate - %s",
-					  hdd_connection_state_string
-						  (pHddStaCtx->conn_info.connState),
-					  mac_trace_get_neighbour_roam_state
+                      "\n HDD Conn State - %s "
+                      "\n\n SME State:"
+                      "\n Neighbour Roam State - %d"
+                      "\n CSR State - %d"
+                      "\n CSR Substate - %d",
+                      hdd_connection_state_string
+                          (pHddStaCtx->conn_info.connState),
+                      mac_trace_get_neighbour_roam_state
 						  (sme_get_neighbor_roam_state
 							  (hHal, useAdapter->sessionId)),
 					  mac_trace_getcsr_roam_state
@@ -9465,12 +9465,12 @@ static int __iw_get_char_setnone(struct net_device *dev,
 			/* Printing Lim State starting with global lim states */
 			buf =
 				scnprintf(extra + len, WE_MAX_STR_LEN - len,
-					  "\n\n LIM STATES:-"
-					  "\n Global Sme State - %s "
-					  "\n Global mlm State - %s " "\n",
-					  mac_trace_get_lim_sme_state
-						  (sme_get_lim_sme_state(hHal)),
-					  mac_trace_get_lim_mlm_state
+                      "\n\n LIM STATES:-"
+                      "\n Global Sme State - %d "
+                      "\n Global mlm State - %d " "\n",
+                      mac_trace_get_lim_sme_state
+                          (sme_get_lim_sme_state(hHal)),
+                      mac_trace_get_lim_mlm_state
 						  (sme_get_lim_sme_state(hHal))
 					  );
 			len += buf;
@@ -9480,13 +9480,13 @@ static int __iw_get_char_setnone(struct net_device *dev,
 					buf =
 						scnprintf(extra + len,
 							  WE_MAX_STR_LEN -
-							  len,
-							  "\n Lim Valid Session %d:-"
-							  "\n PE Sme State - %s "
-							  "\n PE Mlm State - %s "
-							  "\n", check,
-							  mac_trace_get_lim_sme_state
-								  (sme_get_lim_sme_session_state
+                              len,
+                              "\n Lim Valid Session %d:-"
+                              "\n PE Sme State - %d "
+                              "\n PE Mlm State - %d "
+                              "\n", check,
+                              mac_trace_get_lim_sme_state
+                                  (sme_get_lim_sme_session_state
 									  (hHal, count)),
 							  mac_trace_get_lim_mlm_state
 								  (sme_get_lim_mlm_session_state

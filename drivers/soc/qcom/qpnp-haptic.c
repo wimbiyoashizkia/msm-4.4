@@ -12,6 +12,7 @@
 
 #define pr_fmt(fmt)	"haptic: %s: " fmt, __func__
 
+#include <linux/android_version.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -3180,7 +3181,10 @@ static struct platform_driver qpnp_haptic_driver = {
 
 static int __init qpnp_haptic_init(void)
 {
-	return platform_driver_register(&qpnp_haptic_driver);
+	if (get_android_version() > 10)
+		return platform_driver_register(&qpnp_haptic_driver);
+	else
+		return 0;
 }
 module_init(qpnp_haptic_init);
 

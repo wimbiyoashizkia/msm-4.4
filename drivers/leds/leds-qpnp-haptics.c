@@ -2733,9 +2733,9 @@ static struct platform_driver qpnp_haptics_driver = {
 static int __init qpnp_haptics_init(void)
 {
 	if (get_android_version() < 11)
-		return platform_driver_register(&qpnp_haptics_driver);
-	else
 		return 0;
+
+	return platform_driver_register(&qpnp_haptics_driver);
 }
 module_init(qpnp_haptics_init);
 

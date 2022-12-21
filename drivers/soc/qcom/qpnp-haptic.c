@@ -3182,9 +3182,9 @@ static struct platform_driver qpnp_haptic_driver = {
 static int __init qpnp_haptic_init(void)
 {
 	if (get_android_version() > 10)
-		return platform_driver_register(&qpnp_haptic_driver);
-	else
 		return 0;
+
+	return platform_driver_register(&qpnp_haptic_driver);
 }
 module_init(qpnp_haptic_init);
 

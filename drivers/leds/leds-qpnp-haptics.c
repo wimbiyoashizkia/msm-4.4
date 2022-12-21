@@ -13,6 +13,7 @@
 
 #define pr_fmt(fmt)	"haptics: %s: " fmt, __func__
 
+#include <linux/android_version.h>
 #include <linux/atomic.h>
 #include <linux/delay.h>
 #include <linux/hrtimer.h>
@@ -2545,7 +2546,21 @@ static struct platform_driver qpnp_haptics_driver = {
 	.remove		= qpnp_haptics_remove,
 	.shutdown	= qpnp_haptics_shutdown,
 };
-module_platform_driver(qpnp_haptics_driver);
+
+static int __init qpnp_haptics_init(void)
+{
+	if (get_android_version() < 11)
+		return 0;
+
+	return platform_driver_register(&qpnp_haptics_driver);
+}
+module_init(qpnp_haptics_init);
+
+static void __exit qpnp_haptics_exit(void)
+{
+	return platform_driver_unregister(&qpnp_haptics_driver);
+}
+module_exit(qpnp_haptics_exit);
 
 MODULE_DESCRIPTION("QPNP haptics driver");
 MODULE_LICENSE("GPL v2");

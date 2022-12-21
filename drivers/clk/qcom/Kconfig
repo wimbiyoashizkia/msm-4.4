@@ -240,4 +240,22 @@ config CLOCK_QPNP_DIV
 	  clkdiv outputs on the PMIC. These clocks are typically wired
 	  through alternate functions on gpio pins.
 
+config PWRCL_BOOT_RATE
+	int "Global cpufreq lp boot-rate controller"
+	default "1401600000"
+	help
+	  Support for setting up lp cluster of cpufreq for boot-rate controller on
+	  Qualcomm Technologies, Inc SDM660 devices.
+
+	  A value of default will disable this override functionality.
+
+config PERFCL_BOOT_RATE
+	int "Global cpufreq perf boot-rate controller"
+	default "1747200000"
+	help
+	  Support for setting up perf cluster of cpufreq for boot-rate controller on
+	  Qualcomm Technologies, Inc SDM660 devices.
+
+	  A value of default will disable this override functionality.
+
 source "drivers/clk/qcom/mdss/Kconfig"

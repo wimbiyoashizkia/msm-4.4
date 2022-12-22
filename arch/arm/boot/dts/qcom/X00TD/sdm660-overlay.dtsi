@@ -1,5 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 
+/ {
+	reserved-memory {
+		ramoops_mem: ramoops_region@b0000000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0xb0000000 0x0 0x00400000>;
+		};
+	};
+};
+
 &firmware {
 	android {
 		fstab {
@@ -53,5 +63,14 @@
 			gpio-key,wakeup;
 			debounce-interval = <15>;
 		};
+	};
+
+	ramoops {
+		compatible = "ramoops";
+		status = "ok";
+		memory-region = <&ramoops_mem>;
+
+		console-size = <0x0 0x200000>; /* 2 MB */
+		pmsg-size    = <0x0 0x200000>; /* 2 MB */
 	};
 };

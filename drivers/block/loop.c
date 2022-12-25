@@ -49,6 +49,7 @@
  *
  */
 
+#include <linux/android_version.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/sched.h>
@@ -2084,7 +2085,7 @@ static int __init loop_init(void)
 		nr = max_loop;
 		range = max_loop << part_shift;
 	} else {
-		nr = CONFIG_BLK_DEV_LOOP_MIN_COUNT;
+		nr = (get_android_version() <= 9) ? 8 : 16;
 		range = 1UL << MINORBITS;
 	}
 

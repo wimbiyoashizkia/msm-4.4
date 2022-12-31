@@ -2385,10 +2385,6 @@ int msm_aux_pcm_snd_startup(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 
-#ifdef CONFIG_MACH_ASUS_SDM660
-	struct msm_asoc_mach_data *pdata = snd_soc_card_get_drvdata(rtd->card);
-#endif
-
 	dev_dbg(rtd->card->dev,
 		"%s: substream = %s  stream = %d, dai name %s, dai ID %d\n",
 		__func__, substream->name, substream->stream,

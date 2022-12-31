@@ -311,7 +311,7 @@ HOSTCC       = $(CCACHE) gcc
 HOSTCXX      = $(CCACHE) g++
 endif
 
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -std=gnu89 -pipe
+HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -Wno-deprecated-declarations -O3 -fomit-frame-pointer -std=gnu89 -pipe
 HOSTCXXFLAGS = -O3
 
 # Decide whether to build built-in, modular, or both.

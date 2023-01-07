@@ -1091,7 +1091,7 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 				keycode = gesture_key_array[6];
 			}
 			break;
-		case GESTURE_WORD_E:
+		case GESTURE_WORD_e:
 			if (allow_gesture) {
 				NVT_LOG("Gesture : Word-e.\n");
 				keycode = gesture_key_array[7];

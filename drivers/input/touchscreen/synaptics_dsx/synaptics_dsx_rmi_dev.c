@@ -43,7 +43,7 @@
 #include <linux/uaccess.h>
 #include <linux/cdev.h>
 #include <linux/platform_device.h>
-#include <linux/input/synaptics_dsx_X00TD.h>
+#include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 
 #define CHAR_DEVICE_NAME "rmi"
@@ -156,7 +156,7 @@ static struct class *rmidev_device_class;
 
 static struct rmidev_handle *rmidev;
 
-DECLARE_COMPLETION(rmidev_remove_complete_X00TD);
+DECLARE_COMPLETION(rmidev_remove_complete);
 
 static irqreturn_t rmidev_sysfs_irq(int irq, void *data)
 {
@@ -1022,7 +1022,7 @@ static void rmidev_remove_device(struct synaptics_rmi4_data *rmi4_data)
 	rmidev = NULL;
 
 exit:
-	complete(&rmidev_remove_complete_X00TD);
+	complete(&rmidev_remove_complete);
 
 	return;
 }
@@ -1051,7 +1051,7 @@ static void __exit rmidev_module_exit(void)
 {
 	synaptics_rmi4_new_function(&rmidev_module, false);
 
-	wait_for_completion(&rmidev_remove_complete_X00TD);
+	wait_for_completion(&rmidev_remove_complete);
 
 	return;
 }

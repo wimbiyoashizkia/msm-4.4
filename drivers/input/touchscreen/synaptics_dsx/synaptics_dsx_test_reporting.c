@@ -40,7 +40,7 @@
 #include <linux/ctype.h>
 #include <linux/hrtimer.h>
 #include <linux/platform_device.h>
-#include <linux/input/synaptics_dsx_X00TD.h>
+#include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_core.h"
 /* Huaqin modify for ZQL1650-1522 by diganyun at 2018/06/06  start */
 #include <linux/seq_file.h>

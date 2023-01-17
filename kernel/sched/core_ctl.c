@@ -80,6 +80,8 @@ static void apply_need(struct cluster_data *state);
 static void wake_up_core_ctl_thread(struct cluster_data *state);
 static bool initialized;
 
+ATOMIC_NOTIFIER_HEAD(core_ctl_notifier);
+
 static unsigned int get_active_cpu_count(const struct cluster_data *cluster);
 
 /* ========================= sysfs interface =========================== */
@@ -711,6 +713,16 @@ int core_ctl_set_boost(bool boost)
 	return ret;
 }
 EXPORT_SYMBOL(core_ctl_set_boost);
+
+void core_ctl_notifier_register(struct notifier_block *n)
+{
+	atomic_notifier_chain_register(&core_ctl_notifier, n);
+}
+
+void core_ctl_notifier_unregister(struct notifier_block *n)
+{
+	atomic_notifier_chain_unregister(&core_ctl_notifier, n);
+}
 
 void core_ctl_check(u64 wallclock)
 {

@@ -19,14 +19,12 @@
 #include <linux/cpufreq.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
+#include <linux/sched/core_ctl.h>
 #include <linux/sched/rt.h>
 
 #include <trace/events/sched.h>
 
 #include "sched.h"
-
-#define MAX_CPUS_PER_CLUSTER 4
-#define MAX_CLUSTERS 2
 
 struct cluster_data {
 	bool inited;

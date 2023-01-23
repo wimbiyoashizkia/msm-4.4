@@ -3111,11 +3111,6 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->off_cmds,
 		"qcom,mdss-dsi-off-command", "qcom,mdss-dsi-off-command-state");
 
-#ifdef CONFIG_MACH_ASUS_SDM660
-	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->esd_recover_cmds,
-		"qcom,mdss-dsi-esd-recover-command", "qcom,mdss-dsi-esd-recover-command-state");
-#endif
-
 	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->idle_on_cmds,
 		"qcom,mdss-dsi-idle-on-command",
 		"qcom,mdss-dsi-idle-on-command-state");

@@ -106,12 +106,6 @@ extern const uint16_t gesture_key_array[];
 //huaqin modify for update firmware by limengxia at 20190213 start
 #define BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_v8D.bin"
 //huaqin modify for update firmware by limengxia at 20190213 end
-//---ESD Protect.---
-/* Huaqin add ZQL1820-663 by zhangxiude for ESD  function on start */
-#define NVT_TOUCH_ESD_PROTECT 0
-/* Huaqin add ZQL1820-663 by zhangxiude for ESD  function on end */
-#define NVT_TOUCH_ESD_CHECK_PERIOD 1500	/* ms */
-
 
 struct nvt_ts_data {
 	struct i2c_client *client;
@@ -191,9 +185,6 @@ extern int32_t nvt_check_fw_reset_state(RST_COMPLETE_STATE check_reset_state);
 extern int32_t nvt_get_fw_info(void);
 extern int32_t nvt_clear_fw_status(void);
 extern int32_t nvt_check_fw_status(void);
-#if NVT_TOUCH_ESD_PROTECT
-extern void nvt_esd_check_enable(uint8_t enable);
-#endif /* #if NVT_TOUCH_ESD_PROTECT */
 extern void nvt_stop_crc_reboot(void);
 
 #endif /* _LINUX_NVT_TOUCH_H */

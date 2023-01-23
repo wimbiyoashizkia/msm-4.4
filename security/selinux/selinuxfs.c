@@ -128,43 +128,21 @@ static unsigned long sel_last_ino = SEL_INO_NEXT - 1;
 #define SEL_INO_MASK			0x00ffffff
 
 #define TMPBUFLEN	12
-#ifdef CONFIG_SECURITY_SELINUX_FAKE_ENFORCING
-static int enforcing_status = 1;
-#endif
 static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 				size_t count, loff_t *ppos)
 {
 	char tmpbuf[TMPBUFLEN];
 	ssize_t length;
 
-#ifdef CONFIG_SECURITY_SELINUX_FAKE_ENFORCING
-	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", enforcing_status);
-#else /* CONFIG_SECURITY_SELINUX_FAKE_ENFORCING */
 	length = scnprintf(tmpbuf, TMPBUFLEN, "%d", selinux_enforcing);
-#endif
 	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
 }
-
-#ifdef CONFIG_SECURITY_SELINUX_FAKE_ENFORCING
-static int __init selinux_permissive_param(char *str)
-{
-	if (*str)
-		return 0;
-
-	enforcing_status = 0;
-	pr_info("selinux: ROM requested to be permissive, disabling spoofing\n");
-
-	return 1;
-}
-__setup("androidboot.selinux=permissive", selinux_permissive_param);
-#endif
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
 static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 				 size_t count, loff_t *ppos)
 
 {
-#ifndef CONFIG_SECURITY_SELINUX_FAKE_ENFORCING
 	char *page = NULL;
 	ssize_t length;
 	int new_value;
@@ -191,8 +169,6 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	if (sscanf(page, "%d", &new_value) != 1)
 		goto out;
 
-	new_value = !!new_value;
-
 	if (new_value != selinux_enforcing) {
 		length = task_has_security(current, SECURITY__SETENFORCE);
 		if (length)
@@ -212,9 +188,6 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 out:
 	free_page((unsigned long) page);
 	return length;
-#else /* CONFIG_SECURITY_SELINUX_FAKE_ENFORCING */
-	return count;
-#endif
 }
 #else
 #define sel_write_enforce NULL

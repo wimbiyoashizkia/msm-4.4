@@ -815,6 +815,7 @@ static void fs_sync_func(struct work_struct *work)
 {
 	struct qpnp_pon *pon = sys_reset_dev;
 	int rc;
+	u32 key_status;
 	uint pon_rt_sts;
 	u8 sync_counter;
 
@@ -824,13 +825,11 @@ static void fs_sync_func(struct work_struct *work)
 			dev_err(&pon->pdev->dev, "Unable to read PON RT status\n");
 			return;
 		}
-		rc = !(pon_rt_sts & QPNP_PON_KPDPWR_N_SET) && !(pon_rt_sts & QPNP_PON_KPDPWR_RESIN_BARK_N_SET);
-		if (rc)
+
+		key_status = (pon_rt_sts & QPNP_PON_KPDPWR_N_SET) || (pon_rt_sts & QPNP_PON_KPDPWR_RESIN_BARK_N_SET);
+		if (!key_status)
 			return;
-
-		dev_info(&pon->pdev->dev, "Syncing filesystem\n");
 	}
-
 	sys_sync();
 
 	spin_lock_irq(&pon->fs_sync_lock);
@@ -913,7 +912,8 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 		input_sync(pon->pon_input);
 	}
 
-	if ((cfg->pon_type == PON_KPDPWR || cfg->pon_type == PON_KPDPWR_RESIN)	&& key_status) {
+	if ((cfg->pon_type == PON_KPDPWR ||
+		cfg->pon_type == PON_KPDPWR_RESIN) && key_status) {
 		spin_lock(&pon->fs_sync_lock);
 		pon->fs_sync_counter = 0;
 		spin_unlock(&pon->fs_sync_lock);

@@ -1289,8 +1289,10 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
 	cpumask_t allowed_mask;
 
 	/* Don't allow perf-critical threads to have non-perf affinities */
-	if ((p->flags & PF_PERF_CRITICAL) && new_mask != cpu_lp_mask &&
-		new_mask != cpu_perf_mask)
+	if ((p->pf_flags & PF_LP_CRITICAL) && new_mask != cpu_lp_mask)
+		return -EINVAL;
+
+	if ((p->pf_flags & PF_PERF_CRITICAL) && new_mask != cpu_perf_mask)
 		return -EINVAL;
 
 	rq = task_rq_lock(p, &flags);

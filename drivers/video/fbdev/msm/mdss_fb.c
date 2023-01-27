@@ -96,7 +96,7 @@
 extern int focal_detect_flag;
 #endif
 
-#ifdef CONFIG_MACH_ASUS_X00TD
+#ifdef CONFIG_MACH_ASUS_SDM660
 static struct wake_lock early_unblank_wakelock;
 #endif
 
@@ -127,10 +127,6 @@ static u32 mdss_fb_pseudo_palette[16] = {
 };
 
 static struct msm_mdp_interface *mdp_instance;
-
-#ifdef CONFIG_MACH_ASUS_X01BD
-static struct wake_lock early_unblank_wakelock;
-#endif
 
 static int mdss_fb_register(struct msm_fb_data_type *mfd);
 static int mdss_fb_open(struct fb_info *info, int user);
@@ -1462,7 +1458,7 @@ static int mdss_fb_probe(struct platform_device *pdev)
 			pr_err("failed to register input handler\n");
 
 	INIT_DELAYED_WORK(&mfd->idle_notify_work, __mdss_fb_idle_notify_work);
-#ifdef CONFIG_MACH_ASUS_X01BD
+#ifdef CONFIG_MACH_ASUS_SDM660
 	INIT_DELAYED_WORK(&mfd->early_unblank_work, asus_lcd_early_unblank_func);
 	mfd->early_unblank_work_queued = false;
 #endif

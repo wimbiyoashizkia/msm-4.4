@@ -162,45 +162,59 @@
 &soc {
 	tlmm: pinctrl@03000000 {
 		ts_mux {
-			commonfp_reset_reset: commonfp_reset_reset {
-				mux {
-					pins = "gpio20";
-					function = "gpio";
+			cdfinger_reset {
+				cdfinger_reset_active: cdfinger_reset_active {
+					mux {
+						pins = "gpio20";
+						function = "gpio";
+					};
+
+					config {
+						pins = "gpio20";
+						drive-strength = <2>;
+						bias-pull-up;
+					};
 				};
 
-				config {
-					pins = "gpio20";
-					drive-strength = <2>;
-					bias-disable = <0>;
-					output-low;
+				cdfinger_reset_sleep: cdfinger_reset_sleep {
+					mux {
+						pins = "gpio20";
+						function = "gpio";
+					};
+
+					config {
+						pins = "gpio20";
+						drive-strength = <2>;
+						bias-pull-up;
+					};
 				};
 			};
 
-			commonfp_reset_active: commonfp_reset_active {
-				mux {
-					pins = "gpio20";
-					function = "gpio";
+			cdfinger_irq {
+				cdfinger_irq_active: cdfinger_irq_active {
+					mux {
+						pins = "gpio72";
+						function = "gpio";
+					};
+
+					config {
+						pins = "gpio72";
+						drive-strength = <2>;
+						bias-disable;
+					};
 				};
 
-				config {
-					pins = "gpio20";
-					drive-strength = <2>;
-					bias-disable = <0>;
-					output-high;
-				};
-			};
+				cdfinger_irq_sleep: cdfinger_irq_sleep {
+					mux {
+						pins = "gpio72";
+						function = "gpio";
+					};
 
-			commonfp_irq_active: commonfp_irq_active {
-				mux {
-					pins = "gpio72";
-					function = "gpio";
-				};
-
-				config {
-					pins = "gpio72";
-					drive-strength = <2>;
-					bias-disable = <0>;
-					input-enable;
+					config {
+						pins = "gpio72";
+						drive-strength = <2>;
+						bias-disable;
+					};
 				};
 			};
 

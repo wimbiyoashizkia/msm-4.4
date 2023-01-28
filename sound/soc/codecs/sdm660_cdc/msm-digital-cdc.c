@@ -69,6 +69,13 @@ static const DECLARE_TLV_DB_SCALE(digital_gain, 0, 1, 0);
 struct snd_soc_codec *registered_digcodec;
 struct hpf_work tx_hpf_work[NUM_DECIMATORS];
 
+struct sound_control {
+	int default_headphone_l_value;
+	int default_headphone_r_value;
+	int default_mic_value;
+	int default_earpiece_value;
+} soundcontrol;
+
 /* Codec supports 2 IIR filters */
 enum {
 	IIR1 = 0,
@@ -1281,11 +1288,164 @@ static void sdm660_tx_mute_update_callback(struct work_struct *work)
 	}
 }
 
+static struct snd_soc_codec *sound_control_codec_ptr;
+
+/* Headphones */
+static int headphones_boost_l = 0;
+static int headphones_boost_r = 0;
+static int headphones_boost_min = -20;
+static int headphones_boost_limit = 20;
+/* Mic */
+static int mic_boost = 0;
+static int mic_boost_min = -20;
+static int mic_boost_limit = 20;
+/* Earpiece */
+static int earpiece_boost = 0;
+static int earpiece_boost_min = -20;
+static int earpiece_boost_limit = 20;
+
+static void update_headphones_volume_boost(unsigned int vol_boost_l, unsigned int vol_boost_r)
+{
+	int default_val_l = soundcontrol.default_headphone_l_value;
+	int boosted_val_l = default_val_l + vol_boost_l;
+	int default_val_r = soundcontrol.default_headphone_r_value;
+	int boosted_val_r = default_val_r + vol_boost_r;
+
+	snd_soc_write(sound_control_codec_ptr, MSM89XX_CDC_CORE_RX1_VOL_CTL_B2_CTL, boosted_val_l);
+	snd_soc_write(sound_control_codec_ptr, MSM89XX_CDC_CORE_RX2_VOL_CTL_B2_CTL, boosted_val_r);
+}
+
+static void update_mic_gain(int vol_boost)
+{
+	int default_val = soundcontrol.default_mic_value;
+	int boosted_val = default_val + vol_boost;
+
+	snd_soc_write(sound_control_codec_ptr, MSM89XX_CDC_CORE_TX1_VOL_CTL_GAIN, boosted_val);
+}
+
+static void update_earpiece_gain(int vol_boost)
+{
+	int default_val = soundcontrol.default_earpiece_value;
+	int boosted_val = default_val + vol_boost;
+
+	snd_soc_write(sound_control_codec_ptr, MSM89XX_CDC_CORE_RX3_VOL_CTL_B2_CTL, boosted_val);
+}
+
+static ssize_t headphone_gain_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d %d\n", headphones_boost_l, headphones_boost_r);
+}
+
+static ssize_t headphone_gain_store(struct kobject *kobj,
+		struct kobj_attribute *attr, const char *buf, size_t count)
+{
+
+	int input_l, input_r;
+
+	sscanf(buf, "%d %d", &input_l, &input_r);
+
+	if ((input_l != headphones_boost_l) || (input_r != headphones_boost_r)) {
+		if (input_l < headphones_boost_min)
+			input_l = headphones_boost_min;
+		if (input_l > headphones_boost_limit)
+			input_l = headphones_boost_limit;
+		if (input_r < headphones_boost_min)
+			input_r = headphones_boost_min;
+		if (input_r > headphones_boost_limit)
+			input_r = headphones_boost_limit;
+
+		headphones_boost_l = input_l;
+		headphones_boost_r = input_r;
+		update_headphones_volume_boost(headphones_boost_l, headphones_boost_r);
+	}
+
+	return count;
+}
+static struct kobj_attribute headphone_gain_attribute =
+	__ATTR(headphone_gain, 0664,
+		headphone_gain_show,
+		headphone_gain_store);
+
+static ssize_t mic_gain_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", mic_boost);
+}
+
+static ssize_t mic_gain_store(struct kobject *kobj,
+		struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	int input;
+	sscanf(buf, "%d", &input);
+
+	if (input != mic_boost) {
+		if (input < mic_boost_min)
+			input = mic_boost_min;
+
+		if (input > mic_boost_limit)
+			input = mic_boost_limit;
+
+		mic_boost = input;
+		update_mic_gain(mic_boost);
+	}
+	return count;
+}
+static struct kobj_attribute mic_gain_attribute =
+	__ATTR(mic_gain, 0664,
+		mic_gain_show,
+		mic_gain_store);
+
+static ssize_t earpiece_gain_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", earpiece_boost);
+}
+
+static ssize_t earpiece_gain_store(struct kobject *kobj,
+		struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	int input;
+
+	sscanf(buf, "%d", &input);
+
+	if (input != earpiece_boost) {
+		if (input < earpiece_boost_min)
+			input = earpiece_boost_min;
+
+		if (input > earpiece_boost_limit)
+			input = earpiece_boost_limit;
+
+		earpiece_boost = input;
+		update_earpiece_gain(earpiece_boost);
+	}
+	return count;
+}
+static struct kobj_attribute earpiece_gain_attribute =
+	__ATTR(earpiece_gain, 0664,
+		earpiece_gain_show,
+		earpiece_gain_store);
+
+static struct attribute *sound_control_attrs[] = {
+		&headphone_gain_attribute.attr,
+		&mic_gain_attribute.attr,
+		&earpiece_gain_attribute.attr,
+		NULL,
+};
+
+static struct attribute_group sound_control_attr_group = {
+		.attrs = sound_control_attrs,
+};
+
+static struct kobject *sound_control_kobj;
+
 static int msm_dig_cdc_soc_probe(struct snd_soc_codec *codec)
 {
 	struct msm_dig_priv *msm_dig_cdc = dev_get_drvdata(codec->dev);
 	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(codec);
 	int i, ret;
+
+	sound_control_codec_ptr = codec;
 
 	msm_dig_cdc->codec = codec;
 
@@ -1330,6 +1490,11 @@ static int msm_dig_cdc_soc_probe(struct snd_soc_codec *codec)
 	snd_soc_dapm_ignore_suspend(dapm, "PDM_OUT_RX3");
 
 	snd_soc_dapm_sync(dapm);
+
+	soundcontrol.default_headphone_l_value = snd_soc_read(codec, MSM89XX_CDC_CORE_RX1_VOL_CTL_B2_CTL);
+	soundcontrol.default_headphone_r_value = snd_soc_read(codec, MSM89XX_CDC_CORE_RX2_VOL_CTL_B2_CTL);
+	soundcontrol.default_mic_value = snd_soc_read(codec, MSM89XX_CDC_CORE_TX1_VOL_CTL_GAIN);
+	soundcontrol.default_earpiece_value = snd_soc_read(codec, MSM89XX_CDC_CORE_RX3_VOL_CTL_B2_CTL);
 
 	return 0;
 }
@@ -1890,13 +2055,13 @@ static const struct snd_kcontrol_new msm_dig_snd_controls[] = {
 			0,  -84, 40, digital_gain),
 
 	SOC_SINGLE_SX_TLV("RX1 Digital Volume",
-		MSM89XX_CDC_CORE_RX1_VOL_CTL_B2_CTL,
+		MSM89XX_CDC_CORE_RX1_VOL_CTL_B2_CTL_DUMMY,
 		0, -84, 40, digital_gain),
 	SOC_SINGLE_SX_TLV("RX2 Digital Volume",
-		MSM89XX_CDC_CORE_RX2_VOL_CTL_B2_CTL,
+		MSM89XX_CDC_CORE_RX2_VOL_CTL_B2_CTL_DUMMY,
 		0, -84, 40, digital_gain),
 	SOC_SINGLE_SX_TLV("RX3 Digital Volume",
-		MSM89XX_CDC_CORE_RX3_VOL_CTL_B2_CTL,
+		MSM89XX_CDC_CORE_RX3_VOL_CTL_B2_CTL_DUMMY,
 		0, -84, 40, digital_gain),
 
 	SOC_SINGLE_EXT("IIR1 Enable Band1", IIR1, BAND1, 1, 0,
@@ -2130,6 +2295,16 @@ static int msm_dig_cdc_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "%s: could not find %s entry in dt\n",
 			__func__, "reg");
 		return ret;
+	}
+
+	sound_control_kobj = kobject_create_and_add("sound_control", kernel_kobj);
+	if (sound_control_kobj == NULL) {
+		pr_warn("%s kobject create failed!\n", __func__);
+	}
+
+	ret = sysfs_create_group(sound_control_kobj, &sound_control_attr_group);
+	if (ret) {
+		pr_warn("%s sysfs file create failed!\n", __func__);
 	}
 
 	msm_dig_cdc->dig_base = ioremap(dig_cdc_addr,

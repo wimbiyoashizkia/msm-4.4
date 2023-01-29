@@ -3850,6 +3850,8 @@ void asus_chg_flow_work(struct work_struct *work)
 		return;
 	}
 
+	set_icl = ICL_3000mA;
+
 	switch (apsd_result->bit) {
 	case SDP_CHARGER_BIT:
 	case FLOAT_CHARGER_BIT:
@@ -3858,8 +3860,6 @@ void asus_chg_flow_work(struct work_struct *work)
 		if (rc < 0)
 			pr_err("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n",
 				__func__);
-
-		set_icl = ICL_500mA;
 
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 						USBIN_CURRENT_LIMIT_MASK,
@@ -3873,8 +3873,6 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	case CDP_CHARGER_BIT:
-		set_icl = ICL_1500mA;
-
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 						USBIN_CURRENT_LIMIT_MASK,
 						set_icl);
@@ -3893,8 +3891,6 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	case OCP_CHARGER_BIT:
-		set_icl = ICL_1000mA;
-
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 						USBIN_CURRENT_LIMIT_MASK,
 						set_icl);
@@ -3915,8 +3911,6 @@ void asus_chg_flow_work(struct work_struct *work)
 		if (rc < 0)
 			pr_err("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n",
 				__func__);
-
-		set_icl = ICL_1000mA;
 
 		rc = smblib_masked_write(smbchg_dev, USBIN_CURRENT_LIMIT_CFG_REG,
 						USBIN_CURRENT_LIMIT_MASK,

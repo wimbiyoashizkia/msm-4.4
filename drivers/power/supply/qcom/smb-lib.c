@@ -3477,23 +3477,13 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA 	0x52
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA 	0x78
 
-#ifdef CONFIG_MACH_ASUS_X01BD
-#define ASUS_CUSTOM_JEITA_SET_MODIFY
-#endif
-
 enum JEITA_state {
 	JEITA_STATE_INITIAL,
 	JEITA_STATE_LESS_THAN_0,
 	JEITA_STATE_RANGE_0_to_100,
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	JEITA_STATE_RANGE_100_to_450,
-	JEITA_STATE_RANGE_450_to_550,
-	JEITA_STATE_LARGER_THAN_550,
-#else
 	JEITA_STATE_RANGE_100_to_500,
 	JEITA_STATE_RANGE_500_to_600,
 	JEITA_STATE_LARGER_THAN_600,
-#endif
 };
 
 static int SW_recharge(struct smb_charger *chg)
@@ -3557,17 +3547,6 @@ int smbchg_jeita_judge_state(int old_State, int batt_tempr)
 	/* 0 <= batt_tempr < 10 */
 	} else if (batt_tempr < 100) {
 		result_State = JEITA_STATE_RANGE_0_to_100;
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	/* 10 <= batt_tempr < 45 */
-	} else if (batt_tempr < 450) {
-		result_State = JEITA_STATE_RANGE_100_to_450;
-	/* 45 <= batt_tempr < 55 */
-	} else if (batt_tempr < 550) {
-		result_State = JEITA_STATE_RANGE_450_to_550;
-	/* 55 <= batt_tempr */
-	} else
-		result_State = JEITA_STATE_LARGER_THAN_550;
-#else
 	/* 10 <= batt_tempr < 50 */
 	} else if (batt_tempr < 500) {
 		result_State = JEITA_STATE_RANGE_100_to_500;
@@ -3577,31 +3556,13 @@ int smbchg_jeita_judge_state(int old_State, int batt_tempr)
 	/* 60 <= batt_tempr */
 	} else
 		result_State = JEITA_STATE_LARGER_THAN_600;
-#endif
 
 	/* BSP david: do 3 degree hysteresis */
 	if (old_State == JEITA_STATE_LESS_THAN_0 &&
 		result_State == JEITA_STATE_RANGE_0_to_100) {
 		if (batt_tempr <= 30)
 			result_State = old_State;
-	}
-
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	else if (old_State == JEITA_STATE_RANGE_0_to_100 &&
-		result_State == JEITA_STATE_RANGE_100_to_450) {
-		if (batt_tempr <= 130)
-			result_State = old_State;
-	} else if (old_State == JEITA_STATE_RANGE_450_to_550 &&
-		result_State == JEITA_STATE_RANGE_100_to_450) {
-		if (batt_tempr >= 420)
-			result_State = old_State;
-	} else if (old_State == JEITA_STATE_LARGER_THAN_550 &&
-		result_State == JEITA_STATE_RANGE_450_to_550) {
-		if (batt_tempr >= 520)
-			result_State = old_State;
-	}
-#else
-	else if (old_State == JEITA_STATE_RANGE_0_to_100 &&
+	} else if (old_State == JEITA_STATE_RANGE_0_to_100 &&
 		result_State == JEITA_STATE_RANGE_100_to_500) {
 		if (batt_tempr <= 130)
 			result_State = old_State;
@@ -3614,7 +3575,6 @@ int smbchg_jeita_judge_state(int old_State, int batt_tempr)
 		if (batt_tempr >= 570)
 			result_State = old_State;
 	}
-#endif
 
 	return result_State;
 }
@@ -3782,11 +3742,7 @@ void jeita_rule(void)
 
 		break;
 
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	case JEITA_STATE_RANGE_100_to_450:
-#else
 	case JEITA_STATE_RANGE_100_to_500:
-#endif
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
 		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA;
@@ -3797,21 +3753,13 @@ void jeita_rule(void)
 
 		break;
 
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	case JEITA_STATE_RANGE_450_to_550:
-#else
 	case JEITA_STATE_RANGE_500_to_600:
-#endif
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P095;
 		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA;
 		break;
 
-#ifdef ASUS_CUSTOM_JEITA_SET_MODIFY
-	case JEITA_STATE_LARGER_THAN_550:
-#else
 	case JEITA_STATE_LARGER_THAN_600:
-#endif
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
 		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1475MA;

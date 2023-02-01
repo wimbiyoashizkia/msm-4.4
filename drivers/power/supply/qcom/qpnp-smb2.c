@@ -212,6 +212,11 @@ module_param_named(
 	try_sink_enabled, __try_sink_enabled, int, 0600
 );
 
+static bool disable_thermal = true;
+module_param_named(
+	disable_thermal, disable_thermal, bool, 0600
+);
+
 #define MICRO_1P5A		1500000
 #define MICRO_P1A		100000
 #define OTG_DEFAULT_DEGLITCH_TIME_MS	50
@@ -1115,6 +1120,7 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 {
 	int rc = 0;
 	struct smb_charger *chg = power_supply_get_drvdata(psy);
+	union power_supply_propval pval = {0, };
 
 	switch (prop) {
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
@@ -1126,7 +1132,10 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 		break;
 #endif
 	case POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL:
-		rc = smblib_set_prop_system_temp_level(chg, val);
+		if (disable_thermal)
+			smblib_set_prop_system_temp_level(chg, &pval);
+		else
+			rc = smblib_set_prop_system_temp_level(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
 		rc = smblib_set_prop_batt_capacity(chg, val);

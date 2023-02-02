@@ -1364,7 +1364,15 @@ static int fg_load_learned_cap_from_sram(struct fg_chip *chip)
 		return rc;
 	}
 
+
+#ifdef CONFIG_MACH_ASUS_SDM660
+	if (act_cap_mah >= chip->cl.nom_cap_uah)
+		chip->cl.learned_cc_uah = act_cap_mah * 1000;
+	else
+		chip->cl.learned_cc_uah = chip->cl.nom_cap_uah * 1000;
+#else
 	chip->cl.learned_cc_uah = act_cap_mah * 1000;
+#endif
 
 	if (chip->cl.learned_cc_uah != chip->cl.nom_cap_uah) {
 		if (chip->cl.learned_cc_uah == 0)

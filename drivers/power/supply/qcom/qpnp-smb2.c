@@ -2288,7 +2288,7 @@ static void smb2_create_debugfs(struct smb2 *chip)
 
 #ifdef CONFIG_MACH_ASUS_SDM660
 #define ATD_CHG_LIMIT_SOC	70
-int charger_limit_enable_flag;
+int charger_limit_enable_flag = 1;
 int charger_limit_value = 100;
 static char charger_limit[8] = "0";
 static struct proc_dir_entry *limit_enable_entry;

@@ -2294,8 +2294,8 @@ static char charger_limit[8] = "0";
 static struct proc_dir_entry *limit_enable_entry;
 static struct proc_dir_entry *limit_entry;
 extern int asus_get_prop_batt_capacity(struct smb_charger *chg);
-#define CHARGER_LIMIT_EN_PROC_FILE	"driver/charger_limit_enable"
-#define CHARGER_LIMIT_PROC_FILE		"driver/charger_limit"
+#define CHARGER_LIMIT_EN_PROC_FILE	"enable_charger_limit"
+#define CHARGER_LIMIT_PROC_FILE		"charger_limit_value"
 
 ssize_t charger_limit_enable_read_proc(struct file *file, char __user *page,
 					size_t size, loff_t *ppos)

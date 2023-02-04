@@ -74,6 +74,7 @@ int asus_get_prop_batt_volt(struct smb_charger *chg);
 int asus_get_prop_batt_capacity(struct smb_charger *chg);
 int asus_get_prop_batt_health(struct smb_charger *chg);
 int asus_get_prop_usb_present(struct smb_charger *chg);
+int flag_repeat = 0;
 
 enum ADAPTER_ID {
 	NONE = 0,
@@ -3419,7 +3420,7 @@ void asus_batt_RTC_work(struct work_struct *dat)
 	new_batAlarm_time.tv_sec = 0;
 	new_batAlarm_time.tv_nsec = 0;
 
-	RTCSetInterval = 60;
+	RTCSetInterval = 10800;
 
 	new_batAlarm_time.tv_sec = mtNow.tv_sec + RTCSetInterval;
 	pr_debug("%s: alarm start after %ds\n", __func__, RTCSetInterval);
@@ -3443,8 +3444,9 @@ void asus_batt_RTC_work(struct work_struct *dat)
 #define ICL_1500mA	0x3C
 #define ICL_1900mA	0x4C
 #define ICL_2000mA	0x50
+#define ICL_2500mA	0x64
 #define ICL_2850mA	0x72
-#define ICL_3000mA	0x78
+#define ICL_3000mA	0xF8
 #define ASUS_MONITOR_CYCLE	60000
 #define TITAN_750K_MIN	675
 #define TITAN_750K_MAX	851
@@ -3468,6 +3470,8 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P064		0x4D
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P350		0x73
 #define SMBCHG_FLOAT_VOLTAGE_VALUE_4P357		0x74
+#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P485		0xF8
+#define SMBCHG_FLOAT_VOLTAGE_VALUE_4P492		0xF9
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_850MA 	0x22
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_925MA 	0x25
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1400MA 	0x38
@@ -3475,7 +3479,9 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1500MA 	0x3C
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA 	0x50
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA 	0x52
-#define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA 	0x78
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_2500MA 	0x64
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA 	0x72
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA 	0xF8
 
 enum JEITA_state {
 	JEITA_STATE_INITIAL,
@@ -3548,14 +3554,14 @@ int smbchg_jeita_judge_state(int old_State, int batt_tempr)
 	} else if (batt_tempr < 100) {
 		result_State = JEITA_STATE_RANGE_0_to_100;
 	/* 10 <= batt_tempr < 50 */
-	} else if (batt_tempr < 500) {
+	} else if (batt_tempr < 550) {
 		result_State = JEITA_STATE_RANGE_100_to_500;
-	/* 50 <= batt_tempr < 60 */
-	} else if (batt_tempr < 600) {
-		result_State = JEITA_STATE_RANGE_500_to_600;
 	/* 60 <= batt_tempr */
-	} else
+	} else if (batt_tempr < 600) {
+		result_State = JEITA_STATE_RANGE_100_to_500;
+	} else {
 		result_State = JEITA_STATE_LARGER_THAN_600;
+	}
 
 	/* BSP david: do 3 degree hysteresis */
 	if (old_State == JEITA_STATE_LESS_THAN_0 &&
@@ -3728,13 +3734,13 @@ void jeita_rule(void)
 	case JEITA_STATE_LESS_THAN_0:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_850MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
 		break;
 
 	case JEITA_STATE_RANGE_0_to_100:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_925MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P485;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
 
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -3744,8 +3750,8 @@ void jeita_rule(void)
 
 	case JEITA_STATE_RANGE_100_to_500:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P485;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
 
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -3755,14 +3761,14 @@ void jeita_rule(void)
 
 	case JEITA_STATE_RANGE_500_to_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P095;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P485;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
 		break;
 
 	case JEITA_STATE_LARGER_THAN_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1475MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1500MA;
 		break;
 	}
 
@@ -3961,40 +3967,50 @@ static void CHG_TYPE_judge(struct smb_charger *chg)
 	adc_result = get_ID_vadc_voltage();
 
 	/* vdm1 < 0.3v */
-	if (adc_result <= VADC_THD_300MV) {
-		ret = gpio_direction_output(global_gpio->ADCPWREN_PMI_GP1, 1);
-		if (ret)
-			pr_err("%s: failed to pull-high ADCPWREN_PMI_GP1-gpios34\n",
-				__func__);
-		else
-			pr_debug("%s: Pull high ADC_VH_EN\n", __func__);
-
-		msleep(500);
-
-		/* vdm2 > 1v */
-		adc_result = get_ID_vadc_voltage();
-		if (adc_result >= VADC_THD_1000MV) {
+	if (flag_repeat == 0) {
+		/* vdm1 < 0.3v */
+		if (adc_result <= VADC_THD_300MV) {
+			ret = gpio_direction_output(global_gpio->ADCPWREN_PMI_GP1, 1);
+			if (ret) {
+				pr_err("%s: failed to pull-high ADCPWREN_PMI_GP1-gpios34\n",
+					__func__);
+			} else {
+				pr_debug("%s: Pull high ADC_VH_EN\n", __func__);
+			}
+			msleep(500);
+		} else if (adc_result >= VADC_THD_1000MV) {
+			/* vdm2 > 1v */
+			/* For Others only */
 			ASUS_ADAPTER_ID = OTHERS;
-		} else {
+			flag_repeat = 1;
+		} else if (adc_result >= MIN_750K && adc_result <= MAX_750K) {
 			/* 0.675 < adc_result < 0.851 */
-			if (adc_result >= MIN_750K && adc_result <= MAX_750K) {
-				ASUS_ADAPTER_ID = ASUS_750K;
-			/* 0.306 < adc_result <  0.406 */
-			} else if (adc_result >= MIN_200K &&
-					adc_result <= MAX_200K)
-				ASUS_ADAPTER_ID = ASUS_200K;
-			else
+			/* For asus only */   
+			ASUS_ADAPTER_ID = ASUS_750K;
+			flag_repeat = 1;
+		} else if (adc_result >= MIN_200K && adc_result <= MAX_200K) {
+			/* 0.306 < adc_result < 0.406 */
+			ASUS_ADAPTER_ID = ASUS_200K;
+			flag_repeat = 1;
+		} else {
+			/* vdm1 */
+			if (adc_result >= VADC_THD_900MV) {
+				ASUS_ADAPTER_ID = PB;
+			} else {
 				ASUS_ADAPTER_ID = OTHERS;
+			}
 		}
-	/* vdm1 */
-	} else {
-		if (adc_result >= VADC_THD_900MV)
-			ASUS_ADAPTER_ID = PB;
-		else
-			ASUS_ADAPTER_ID = OTHERS;
 	}
 
-	pr_debug("CHG_TYPE_judge  ASUS_ADAPTER_ID=%d\n", ASUS_ADAPTER_ID);
+	if (ASUS_ADAPTER_ID == 4 || ASUS_ADAPTER_ID == 3) {
+		/* Non-Asus-Charger */
+		pr_info("OTHER_CHARGER\n");
+	} else if (ASUS_ADAPTER_ID == 1 || ASUS_ADAPTER_ID == 2) {
+		/* Asus-Charger */
+		pr_info("ASUS_CHARGER\n");
+	} else {
+		pr_info("POWER_BANK");
+	}
 }
 
 void asus_adapter_adc_work(struct work_struct *work)
@@ -4020,27 +4036,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 	CHG_TYPE_judge(smbchg_dev);
 
 	/* determine current-setting value for DCP type AC: */
-	switch (ASUS_ADAPTER_ID) {
-	case ASUS_750K:
-		usb_max_current = ICL_2000mA;
-		break;
-
-	case ASUS_200K:
-		usb_max_current = ICL_2000mA;
-		break;
-
-	case PB:
-		usb_max_current = ICL_2000mA;
-		break;
-
-	case OTHERS:
-		usb_max_current = ICL_2000mA;
-		break;
-
-	case ADC_NOT_READY:
-		usb_max_current = ICL_1000mA;
-		break;
-	}
+	usb_max_current = ICL_3000mA;
 
 	rc = smblib_set_usb_suspend(smbchg_dev, 0);
 	if (rc < 0)
@@ -4079,6 +4075,8 @@ void asus_insertion_initial_settings(struct smb_charger *chg)
 {
 	int rc;
 	u8 USBIN_cc;
+
+	flag_repeat = 0;
 
 	rc = smblib_write(chg, PRE_CHARGE_CURRENT_CFG_REG, 0x06);
 	if (rc < 0)

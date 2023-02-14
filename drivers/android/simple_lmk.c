@@ -5,6 +5,7 @@
 
 #define pr_fmt(fmt) "simple_lmk: " fmt
 
+#include <linux/fb.h>
 #include <linux/freezer.h>
 #include <linux/kthread.h>
 #include <linux/mm.h>
@@ -36,10 +37,13 @@ static struct victim_info victims[MAX_VICTIMS] __cacheline_aligned_in_smp;
 static struct task_struct *task_bucket[SHRT_MAX + 1] __cacheline_aligned;
 static DECLARE_WAIT_QUEUE_HEAD(oom_waitq);
 static DECLARE_COMPLETION(reclaim_done);
+static DEFINE_SPINLOCK(pressure_lock);
 static __cacheline_aligned_in_smp DEFINE_RWLOCK(mm_free_lock);
 static int nr_victims;
+static unsigned long min_pressure;
 static atomic_t needs_reclaim = ATOMIC_INIT(0);
 static atomic_t nr_killed = ATOMIC_INIT(0);
+static bool screen_on = true;
 
 #define ADJ_MAX 1000
 #define ADJ_DIVISOR 50
@@ -324,18 +328,82 @@ void simple_lmk_trigger(void)
 		wake_up(&oom_waitq);
 }
 
+static bool is_oom_conditions(unsigned long old_pressure, unsigned long new_pressure, unsigned long min_pressure)
+{
+	return old_pressure >= 80 && new_pressure == old_pressure && new_pressure >= min_pressure;
+}
+
+static unsigned long get_min_pressure(void)
+{
+	unsigned long value;
+
+	spin_lock(&pressure_lock);
+	value = min_pressure;
+	spin_unlock(&pressure_lock);
+
+	return value;
+}
+
+static void set_min_pressure(unsigned long value)
+{
+	spin_lock(&pressure_lock);
+	min_pressure = value;
+	spin_unlock(&pressure_lock);
+}
+
 static int simple_lmk_vmpressure_cb(struct notifier_block *nb,
 				    unsigned long pressure, void *data)
 {
-	if (pressure >= 80)
+	unsigned long min_pressure_margin = get_min_pressure();
+	static unsigned long new_pressure = 0;
+	static unsigned long old_pressure;
+
+	old_pressure = new_pressure;
+	new_pressure = pressure;
+
+	if (is_oom_conditions(old_pressure, new_pressure, min_pressure_margin))
 		simple_lmk_trigger();
 
+	return NOTIFY_OK;
+}
+
+static int fb_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data)
+{
+	struct fb_event *evdata = data;
+	int *blank;
+
+	if (event != FB_EVENT_BLANK)
+		goto out;
+
+	if (!evdata || !evdata->data)
+		goto out;
+
+	blank = evdata->data;
+	if (*blank == FB_BLANK_UNBLANK) {
+		if (screen_on)
+			goto out;
+		screen_on = true;
+		set_min_pressure(100);
+	} else {
+		if (!screen_on)
+			goto out;
+		screen_on = false;
+		set_min_pressure(95);
+	}
+	goto out;
+
+out:
 	return NOTIFY_OK;
 }
 
 static struct notifier_block vmpressure_notif = {
 	.notifier_call = simple_lmk_vmpressure_cb,
 	.priority = INT_MAX
+};
+
+static struct notifier_block fb_notifier_block = {
+	.notifier_call = fb_notifier_callback,
 };
 
 /* Initialize Simple LMK when lmkd in Android writes to the minfree parameter */
@@ -349,6 +417,7 @@ static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 				    NULL, "simple_lmkd");
 		BUG_ON(IS_ERR(thread));
 		BUG_ON(vmpressure_notifier_register(&vmpressure_notif));
+		BUG_ON(fb_register_client(&fb_notifier_block));
 	}
 
 	return 0;

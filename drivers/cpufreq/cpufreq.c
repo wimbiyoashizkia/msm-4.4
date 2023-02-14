@@ -2412,6 +2412,110 @@ static struct notifier_block __refdata cpufreq_cpu_notifier = {
 	.notifier_call = cpufreq_cpu_callback,
 };
 
+static bool underclocked;
+
+static int cluster_0_lastfreq;
+static int cluster_0[4] = { 0, 1, 2, 3 };
+static int cluster_0_ucfreq = CONFIG_CPU_UNDERCLOCK_FREQ_LP;
+module_param_named(cluster_0_ucfreq, cluster_0_ucfreq, int, 0644);
+
+static int cluster_1_lastfreq;
+static int cluster_1[4] = { 4, 5, 6, 7 };
+static int cluster_1_ucfreq = CONFIG_CPU_UNDERCLOCK_FREQ_PERF;
+module_param_named(cluster_1_ucfreq, cluster_1_ucfreq, int, 0644);
+
+
+static inline
+int cpufreq_underclock_check_cluster(int cpu)
+{
+	int length = 0, i = 0;
+
+	/* Low-Power */
+	length = sizeof(cluster_0) / sizeof(int);
+	for (i = 0; i < length; i++) {
+		if (cluster_0[i] == cpu)
+			return 0;
+	}
+
+	/* Performance */
+	length = sizeof(cluster_1) / sizeof(int);
+	for (i = 0;i < length; i++) {
+		if (cluster_1[i] == cpu)
+			return 1;
+	}
+
+	return -EINVAL;
+}
+
+static inline
+void cpufreq_underclock_set(int cluster,
+	    struct cpufreq_policy *policy, bool underclock)
+{
+	if (underclock) {
+		if (cluster_0_ucfreq == 0 || cluster_1_ucfreq == 0 || underclocked)
+			return;
+
+		switch(cluster) {
+			case 0:
+				cluster_0_lastfreq = policy->max;
+				policy->max = cluster_0_ucfreq;
+				pr_info("Underclocked lp-clusterl to %d \n", cluster_0_ucfreq);
+				break;
+			case 1:
+				cluster_1_lastfreq = policy->max;
+				policy->max = cluster_1_ucfreq;
+				pr_info("Underclocked perf-cluster to %d \n", cluster_1_ucfreq);
+				break;
+		}
+	} else {
+		if (cluster_0_lastfreq == 0 || cluster_1_lastfreq == 0 || !underclocked)
+			return;
+
+		switch(cluster) {
+			case 0:
+				policy->max = cluster_0_lastfreq;
+				pr_info("Resumed lp-cluster to %d \n", cluster_0_lastfreq);
+				break;
+			case 1:
+				policy->max = cluster_1_lastfreq;
+				pr_info("Resumed perf-cluster to %d \n", cluster_1_lastfreq);
+				break;
+		}
+	}
+
+}
+
+int trigger_cpufreq_underclock(void)
+{
+	struct cpufreq_policy *policy;
+	
+	pr_info("Triggered cpu underclock\n");
+
+	for_each_policy(policy) {
+		cpufreq_underclock_set(cpufreq_underclock_check_cluster(policy->cpu), policy, true);
+		__cpufreq_governor(policy, CPUFREQ_GOV_STOP);
+		__cpufreq_governor(policy, CPUFREQ_GOV_START);
+	}
+	underclocked = true;
+	return 0;
+}
+
+int resume_cpufreq_underclock(void)
+{
+	struct cpufreq_policy *policy;
+
+	pr_info("Resumed cpu underclock\n");
+
+	for_each_policy(policy) {
+		cpufreq_underclock_set(cpufreq_underclock_check_cluster(policy->cpu), policy, false);
+		__cpufreq_governor(policy, CPUFREQ_GOV_STOP);
+		__cpufreq_governor(policy, CPUFREQ_GOV_START);
+
+	}
+	underclocked = false;
+	return 0;
+}
+
 /*********************************************************************
  *               BOOST						     *
  *********************************************************************/

@@ -1,0 +1,13 @@
+
+name: Build Kernel
+on:
+  push:
+    branches:
+      - sdm660-test
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Building Kernel
+      run: ./build.sh

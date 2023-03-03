@@ -533,12 +533,9 @@ static int gf_open(struct inode *inode, struct file *filp)
                 pr_err("failed to request IRQ:%d\n", status);
                 return status;
             }
-            gf_enable_irq(gf_dev);
             gf_dev->irq_enabled = true;
             gf_disable_irq(gf_dev);
 
-            if (gf_dev->users == 1)
-                gf_enable_irq(gf_dev);
             gf_hw_reset(gf_dev, 3);
             gf_dev->device_available = true;
         }

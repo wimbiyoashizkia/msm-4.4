@@ -216,6 +216,13 @@ config THERMAL_MONITOR
 	  entity starts running in the userspace. Monitors TSENS temperature
 	  and limits the max frequency of the cores.
 
+config THERMAL_PROFILE
+	default y
+	bool "Support thermal config profile"
+	help
+	  This enables to expose thermal config profile in the kernel,
+	  it allow device to manage throttling based on user profile.
+
 config HISI_THERMAL
 	tristate "Hisilicon thermal driver"
 	depends on (ARCH_HISI && CPU_THERMAL && OF) || COMPILE_TEST

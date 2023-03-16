@@ -17,6 +17,7 @@
 
 #include <linux/module.h>
 #include <linux/devfreq.h>
+#include <linux/display_state.h>
 #include <linux/msm_adreno_devfreq.h>
 
 #define ADRENO_IDLER_MAJOR_VERSION 1
@@ -50,8 +51,13 @@ static unsigned int idlecount = 0;
 int adreno_idler(struct devfreq_dev_status stats, struct devfreq *devfreq,
 		 unsigned long *freq)
 {
+	bool display_on;
+
 	if (!adreno_idler_active)
 		return 0;
+
+	/* Let us know if the display is on*/
+	display_on = is_display_on();
 
 	if (stats.busy_time < idleworkload) {
 		/* busy_time >= idleworkload should be considered as a non-idle workload. */
@@ -70,6 +76,10 @@ int adreno_idler(struct devfreq_dev_status stats, struct devfreq *devfreq,
 			idlecount--;
 			return 1;
 		}
+	} else if (!display_on) {
+		/* GPU shouldn't be used for much while display is off, so ramp down the frequency */
+		*freq = devfreq->profile->freq_table[devfreq->profile->max_state - 1];
+		return 1;
 	} else {
 		idlecount = 0;
 		/* 

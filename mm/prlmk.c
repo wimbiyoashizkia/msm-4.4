@@ -46,8 +46,8 @@ static inline void lowmem_dbg(unsigned long filepgs, ...) { }
 #define MAX_ATASK SWAP_CLUSTER_MAX
 
 #define SWAP_EFF_WIN 2
-#define SWAP_OPT_EFF 50
-#define PER_SWAP_SIZE (SWAP_CLUSTER_MAX * 32)
+#define SWAP_OPT_EFF 30
+#define PER_SWAP_SIZE 512
 
 struct selected_task {
 	struct task_struct *p;
@@ -93,7 +93,7 @@ static struct selected_task selected[MAX_KTASK] ____cacheline_aligned_in_smp;
 static atomic_t skip_reclaim = ATOMIC_INIT(0);
 static int tcnt, total_sz, m_eff;
 
-static unsigned long pressure_max = 90;
+static unsigned long pressure_max = 70;
 module_param_named(pressure_max, pressure_max, ulong, 0644);
 
 static short min_adj = 300;

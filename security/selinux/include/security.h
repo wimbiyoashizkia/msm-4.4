@@ -266,5 +266,10 @@ extern void selnl_notify_policyload(u32 seqno);
 extern int selinux_nlmsg_lookup(u16 sclass, u16 nlmsg_type, u32 *perm);
 extern void selinux_nlmsg_init(void);
 
+#ifdef CONFIG_USERLAND_WORKER
+extern int get_enforce_value(void);
+extern void set_selinux(int value);
+#endif /* CONFIG_USERLAND_WORKER */
+
 #endif /* _SELINUX_SECURITY_H_ */
 

@@ -95,6 +95,11 @@
 #include "audit.h"
 #include "avc_ss.h"
 
+#ifdef CONFIG_USERLAND_WORKER
+#include "security.h"
+#include "avc_ss_reset.h"
+#endif /* CONFIG_USERLAND_WORKER */
+
 /* SECMARK reference count */
 static atomic_t selinux_secmark_refcount = ATOMIC_INIT(0);
 
@@ -6351,6 +6356,21 @@ void selinux_complete_init(void)
 	printk(KERN_DEBUG "SELinux:  Setting up existing superblocks.\n");
 	iterate_supers(delayed_superblock_init, NULL);
 }
+
+#ifdef CONFIG_USERLAND_WORKER
+int get_enforce_value(void)
+{
+	return selinux_enforcing;
+}
+void set_selinux(int value)
+{
+	selinux_enforcing = value;
+	if (value)
+		avc_ss_reset(0);
+	selnl_notify_setenforce(value);
+	selinux_status_update_setenforce(value);
+}
+#endif /* CONFIG_USERLAND_WORKER */
 
 /* SELinux requires early initialization in order to label
    all processes and objects when they are created. */

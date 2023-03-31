@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (C) 2017, andip71 <andreasp@gmx.de>
+ */
+
+#define WAKELOCK_BLOCKER_VERSION	"1.1.0"
+
+#define LIST_WAKELOCK_DEFAULT				""
+
+#define LENGTH_LIST_WAKELOCK				255
+#define LENGTH_LIST_WAKELOCK_DEFAULT		123
+#define LENGTH_LIST_WAKELOCK_SEARCH		LENGTH_LIST_WAKELOCK + LENGTH_LIST_WAKELOCK_DEFAULT + 5

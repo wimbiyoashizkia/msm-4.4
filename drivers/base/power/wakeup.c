@@ -20,6 +20,13 @@
 #include <trace/events/power.h>
 
 #include "power.h"
+#include "wakelock_blocker.h"
+
+char list_wakelock_search[LENGTH_LIST_WAKELOCK_SEARCH] = {0};
+bool wakelock_blocker_active = false;
+bool wakelock_blocker_debug = false;
+
+static void wakeup_source_deactivate(struct wakeup_source *ws);
 
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
@@ -593,19 +600,68 @@ static void wakeup_source_activate(struct wakeup_source *ws)
 	trace_wakeup_source_activate(ws->name, cec);
 }
 
+/*
+ * Function to check if a wakelock is on
+ * the wakelock blocker list.
+ */
+static bool check_for_block(struct wakeup_source *ws)
+{
+	char wakelock_name[52] = {0};
+	int length;
+
+	/* If debug mode on, print every wakelock requested */
+	if (wakelock_blocker_debug)
+		printk("wakelock blocker: %s requested\n", ws->name);
+
+	/*
+	 * If there is no list of wakelocks to be blocked,
+	 * exit without futher checking
+	 */
+	if (!wakelock_blocker_active)
+		return false;
+
+	/* Only if ws structure is valid */
+	if (ws) {
+		length = strlen(ws->name);
+		if ((length > 50) || (length < 1))
+			return false;
+
+		sprintf(wakelock_name, ";%s;", ws->name);
+
+		if (strstr(list_wakelock_search, wakelock_name) == NULL)
+			return false;
+
+		if (wakelock_blocker_debug)
+			printk("wakelock blocker: %s blocked\n", ws->name);
+
+		if (ws->active) {
+			wakeup_source_deactivate(ws);
+
+			if (wakelock_blocker_debug)
+				printk("wakelock blocker: %s killed\n", ws->name);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 /**
  * wakeup_source_report_event - Report wakeup event using the given source.
  * @ws: Wakeup source to report the event for.
  */
 static void wakeup_source_report_event(struct wakeup_source *ws)
 {
-	ws->event_count++;
-	/* This is racy, but the counter is approximate anyway. */
-	if (events_check_enabled)
-		ws->wakeup_count++;
+	if (!check_for_block(ws)) {
+		ws->event_count++;
+		/* This is racy, but the counter is approximate anyway. */
+		if (events_check_enabled)
+			ws->wakeup_count++;
 
-	if (!ws->active)
-		wakeup_source_activate(ws);
+		if (!ws->active)
+			wakeup_source_activate(ws);
+	}
 }
 
 /**
@@ -893,7 +949,8 @@ void pm_print_active_wakeup_sources(void)
 	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
 		if (ws->active) {
 			pr_info("active wakeup source: %s\n", ws->name);
-			active = 1;
+			if (!check_for_block(ws))
+				active = 1;
 		} else if (!active &&
 			   (!last_activity_ws ||
 			    ktime_to_ns(ws->last_time) >

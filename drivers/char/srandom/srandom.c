@@ -32,7 +32,7 @@
  * Dev name as it appears in /proc/devices
  */
 #define SDEVICE_NAME "srandom"
-#define APP_VERSION "1.41.0"
+#define APP_VERSION "1.41.1"
 
 /*
  * Amount of time in seconds, worker thread
@@ -546,7 +546,6 @@ int work_thread(void *data)
                 ssleep(THREAD_SLEEP_VALUE);
         }
 
-        do_exit(0);
         return 0;
 }
 

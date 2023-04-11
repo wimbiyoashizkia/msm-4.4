@@ -71,7 +71,7 @@ You can load the kernel module temporary, or you can install the kernel module t
 # cat /proc/srandom
 -----------------------:----------------------
 Device                 : /dev/srandom
-Module version         : 1.41.0
+Module version         : 1.41.1
 Current open count     : 5
 Total open count       : 3665
 Total K bytes          : 55146567

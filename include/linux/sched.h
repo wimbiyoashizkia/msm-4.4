@@ -2126,6 +2126,13 @@ struct task_struct {
 	int pagefault_disabled;
     atomic64_t *concurrent_active_time;
     atomic64_t *concurrent_policy_time;
+
+    /*
+	 * User pointer to hwui DrawFrameTask::mFrameInfo.
+	 * (used by hwui monitor)
+	 */
+	s64 __user *ui_frame_info;
+
 /* CPU-specific state of this task */
 	struct thread_struct thread;
 /*

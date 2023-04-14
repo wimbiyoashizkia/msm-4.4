@@ -57,6 +57,7 @@
 #include <linux/oom.h>
 #include <linux/compat.h>
 #include <linux/user_namespace.h>
+#include <linux/hwui_mon.h>
 
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
@@ -1567,6 +1568,8 @@ static int do_execveat_common(int fd, struct filename *filename,
 #ifdef CONFIG_KSU
 	ksu_handle_execveat(&fd, &filename, &argv, &envp, &flags);
 #endif
+
+	hwui_mon_handle_exec(filename);
 
 	if (IS_ERR(filename))
 		return PTR_ERR(filename);

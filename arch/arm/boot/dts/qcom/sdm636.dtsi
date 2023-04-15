@@ -19,34 +19,42 @@
 
 	cpus {
 		CPU0: cpu@0 {
+			efficiency = <615>;
 			clock-frequency = <1612800000>;
 		};
 
 		CPU1: cpu@1 {
+			efficiency = <615>;
 			clock-frequency = <1612800000>;
 		};
 
 		CPU2: cpu@2 {
+			efficiency = <615>;
 			clock-frequency = <1612800000>;
 		};
 
 		CPU3: cpu@3 {
+			efficiency = <615>;
 			clock-frequency = <1612800000>;
 		};
 
 		CPU4: cpu@100 {
+			efficiency = <1024>;
 			clock-frequency = <1804800000>;
 		};
 
 		CPU5: cpu@101 {
+			efficiency = <1024>;
 			clock-frequency = <1804800000>;
 		};
 
 		CPU6: cpu@102 {
+			efficiency = <1024>;
 			clock-frequency = <1804800000>;
 		};
 
 		CPU7: cpu@103 {
+			efficiency = <1024>;
 			clock-frequency = <1804800000>;
 		};
 	};
@@ -56,12 +64,12 @@
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				633600	41
-				902400	70
-				1113600	83
-				1401600	146
-				1536000	158
-				1612800	183
+				633600	51
+				902400	74
+				1113600	88
+				1401600	148
+				1536000	162
+				1612800	181
 			>;
 			idle-cost-data = <
 				20 16 10 8
@@ -70,10 +78,10 @@
 
 		CPU_COST_1: core-cost1 {
 			busy-cost-data = <
-				1113600	307
-				1401600	485
-				1747200	857
-				1804800	883
+				1113600	292
+				1401600	368
+				1747200	562
+				1804800	559
 			>;
 			idle-cost-data = <
 				100 80 60 40
@@ -82,12 +90,12 @@
 
 		CLUSTER_COST_0: cluster-cost0 {
 			busy-cost-data = <
-				633600	4
-				902400	5
-				1113600	7
-				1401600	9
-				1536000	9
-				1612800	10
+				633600	3
+				902400	8
+				1113600	13
+				1401600	23
+				1536000	32
+				1612800	39
 			>;
 			idle-cost-data = <
 				4 3 2 1
@@ -96,10 +104,10 @@
 
 		CLUSTER_COST_1: cluster-cost1 {
 			busy-cost-data = <
-				1113600	14
-				1401600	17
-				1747200	25
-				1804800	31
+				1113600	34
+				1401600	63
+				1747200	111
+				1804800	178
 			>;
 			idle-cost-data = <
 				4 3 2 1

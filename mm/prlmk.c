@@ -223,18 +223,24 @@ static inline int is_low_mem(void)
 	const int lru_base = NR_LRU_BASE - LRU_BASE;
 	int ret;
 
+	unsigned long cur_fpgs =
+			global_page_state(NR_FILE_PAGES);
+
 	unsigned long cur_file_mem =
 			global_page_state(lru_base + LRU_ACTIVE_FILE);
 
 	unsigned long cur_swap_mem = (get_nr_swap_pages() << (PAGE_SHIFT - 10));
-	unsigned long swap_mem = free_swap_limit * 1024;
 
-	bool swap_limit = cur_swap_mem < swap_mem;
+	int swap_mem = (total_swap_pages ? cur_swap_mem >> 10 :
+			(si_mem_available() + cur_fpgs) * 100 / totalram_pages());
+
+	bool swap_limit = swap_mem < free_swap_limit;
 	bool file_limit = cur_file_mem < free_file_limit;
 
-	bool lowmem_normal = (swap_mem ? swap_limit : file_limit);
-	bool lowmem_critical = (swap_mem ? file_limit : true) &&
-				lowmem_normal && !cur_swap_mem;
+	bool lowmem_normal = (free_swap_limit ? swap_limit : file_limit);
+	bool lowmem_critical = lowmem_normal &&
+				(free_swap_limit ? file_limit : true) &&
+				(total_swap_pages ? !swap_mem : true);
 
 	if (lowmem_critical)
 		ret = LOWMEM_CRITICAL;
@@ -243,7 +249,7 @@ static inline int is_low_mem(void)
 	else
 		ret = LOWMEM_NONE;
 
-	lowmem_dbg(cur_file_mem, cur_swap_mem, ret);
+	lowmem_dbg(cur_file_mem, swap_mem, ret);
 
 	return ret;
 }

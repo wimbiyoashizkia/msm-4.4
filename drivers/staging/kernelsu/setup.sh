@@ -19,7 +19,7 @@ test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/tiann/KernelSU
 cd "$GKI_ROOT/KernelSU"
 git stash && git pull
 git checkout "$(git describe --abbrev=0 --tags)"
-if [ ! "$1" ]; then
+if [ -z "${1-}" ]; then
     git checkout "$(git describe --abbrev=0 --tags)"
 else
     git checkout "$1"

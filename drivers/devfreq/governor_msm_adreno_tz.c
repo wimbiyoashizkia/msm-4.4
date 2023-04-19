@@ -20,6 +20,7 @@
 #include <linux/ftrace.h>
 #include <linux/mdss_refresh_rate.h>
 #include <linux/mm.h>
+#include <linux/swap.h>
 #include <linux/msm_adreno_devfreq.h>
 #include <asm/cacheflush.h>
 #include <soc/qcom/scm.h>
@@ -169,11 +170,15 @@ static const struct device_attribute *adreno_tz_attr_list[] = {
 		NULL
 };
 
+/* GPU load % threshold */
+#define GPU_LOAD_TRIGGER 75 
+
 void compute_work_load(struct devfreq_dev_status *stats,
 		struct devfreq_msm_adreno_tz_data *priv,
 		struct devfreq *devfreq)
 {
 	u64 busy;
+	unsigned long adreno_load;
 
 	spin_lock(&sample_lock);
 	/*
@@ -185,6 +190,16 @@ void compute_work_load(struct devfreq_dev_status *stats,
 	busy = (u64)stats->busy_time * stats->current_frequency;
 	do_div(busy, devfreq->profile->freq_table[0]);
 	acc_relative_busy += busy;
+	if (acc_total)
+		adreno_load = ((acc_relative_busy * 100) / acc_total);
+	else
+		adreno_load = 0;
+
+	/* High GPU usage - typically while gaming */
+	if (adreno_load > GPU_LOAD_TRIGGER) {
+		vm_swappiness = 1;
+		pr_info("GPU LOAD detected 75%, reduce to %d", vm_swappiness);
+	}
 
 	spin_unlock(&sample_lock);
 }

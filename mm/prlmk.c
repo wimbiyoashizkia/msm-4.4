@@ -64,8 +64,17 @@ struct selected_task {
  */
 static const short adj_ignore[] = {
 	0,   /* Foreground */
-	50,  /* Service */
-	200, /* Service */
+	100, /* Visible */
+	200, /* Perceptible */
+	300, /* Backup */
+	400, /* Heavy Weight */
+	500, /* Service */
+	600, /* Home */
+	700, /* Pervious */
+	800, /* Service B */
+	900, /* Cache App */
+	950, /* Cache App LMK */
+	SHRT_MAX + 1, /* Include all positive adjs */
 };
 
 /*

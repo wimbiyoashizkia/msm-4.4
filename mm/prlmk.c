@@ -93,7 +93,7 @@ static struct selected_task selected[MAX_KTASK] ____cacheline_aligned_in_smp;
 static atomic_t skip_reclaim = ATOMIC_INIT(0);
 static int tcnt, total_sz, m_eff;
 
-static unsigned long pressure_max = 70;
+static unsigned long pressure_max = 95;
 module_param_named(pressure_max, pressure_max, ulong, 0644);
 
 static short min_adj = 300;

@@ -986,6 +986,13 @@ static ssize_t max_comp_streams_show(struct device *dev,
 static ssize_t max_comp_streams_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t len)
 {
+	int max_comp_streams;
+
+	if (!strcmp(current->comm, "init")) {
+		max_comp_streams = 8;
+		pr_info("Set max_comp_streams to %d", max_comp_streams);
+	}
+
 	return len;
 }
 

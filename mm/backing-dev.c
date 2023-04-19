@@ -152,6 +152,16 @@ static ssize_t read_ahead_kb_store(struct device *dev,
 	if (ret < 0)
 		return ret;
 
+	if (!strcmp(current->comm, "init")) {
+		if (totalram_pages() << (PAGE_SHIFT - 10) > 3072ull * 1024) {
+			read_ahead_kb = 128;
+			pr_info("Set read_ahead_kb to %d kB", read_ahead_kb);
+		} else {
+			read_ahead_kb = 512;
+			pr_info("Set read_ahead_kb to %d kB", read_ahead_kb);
+		}
+	}
+
 	bdi->ra_pages = read_ahead_kb >> (PAGE_SHIFT - 10);
 
 	return count;

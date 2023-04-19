@@ -72,8 +72,14 @@ static const short adj_ignore[] = {
 	600, /* Home */
 	700, /* Pervious */
 	800, /* Service B */
-	900, /* Cache App */
-	950, /* Cache App LMK */
+	900, /* Cache App Min */
+	901, /* Cache App */
+	902, /* Cache App */
+	903, /* Cache App */
+	904, /* Cache App */
+	905, /* Cache App */
+	906, /* Cache App */
+	950, /* Cache App LMK first adjs */
 	SHRT_MAX + 1, /* Include all positive adjs */
 };
 

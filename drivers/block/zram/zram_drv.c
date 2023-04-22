@@ -1739,11 +1739,24 @@ static ssize_t disksize_store(struct device *dev,
 	u64 disksize;
 	struct zcomp *comp;
 	struct zram *zram = dev_to_zram(dev);
+	static unsigned short create_disksize __read_mostly;
 	int err;
 
-	disksize = memparse(buf, NULL);
-	if (!disksize)
-		return -EINVAL;
+	if (!strcmp(current->comm, "init")) {
+		if (totalram_pages() << (PAGE_SHIFT - 10) > 6144ull * 1024) {
+			create_disksize = 4;
+			pr_info("Detect 6GB device");
+		} else if (totalram_pages() << (PAGE_SHIFT - 10) > 4096ull * 1024) {
+			create_disksize = 2;
+			pr_info("Detect 4GB device");
+		} else {
+			create_disksize = 1;
+			pr_info("Detect 3GB device");
+		}
+	}
+
+	disksize = (u64)SZ_1G * create_disksize;
+	pr_info("Set zram to %d", disksize);
 
 	down_write(&zram->init_lock);
 	if (init_done(zram)) {

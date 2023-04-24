@@ -1,4 +1,5 @@
 /* Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1149,7 +1150,8 @@ static inline bool _verify_ib(struct kgsl_device_private *dev_priv,
 	}
 
 	/* Make sure that the address is mapped */
-	if (!kgsl_mmu_gpuaddr_in_range(private->pagetable, ib->gpuaddr)) {
+	if (!kgsl_mmu_gpuaddr_in_range(private->pagetable, ib->gpuaddr,
+		ib->size)) {
 		pr_context(device, context, "ctxt %d invalid ib gpuaddr %llX\n",
 			context->id, ib->gpuaddr);
 		return false;
@@ -1477,9 +1479,7 @@ int adreno_dispatcher_queue_cmds(struct kgsl_device_private *dev_priv,
 
 	spin_unlock(&drawctxt->lock);
 
-	if (device->pwrctrl.l2pc_update_queue)
-		kgsl_pwrctrl_update_l2pc(&adreno_dev->dev,
-				KGSL_L2PC_QUEUE_TIMEOUT);
+	kgsl_pwrctrl_update_l2pc(&adreno_dev->dev);
 
 	/* Add the context to the dispatcher pending list */
 	dispatcher_queue_context(adreno_dev, drawctxt);

@@ -138,7 +138,7 @@ module_param_named(free_swap_limit, free_swap_limit, int, 0644);
  * group ID, and chooses the heaviest task from them to
  * be considered when tasks are getting killed.
  */
-static bool kill_heaviest_gid = true;
+static bool kill_heaviest_gid = false;
 module_param_named(kill_heaviest_gid, kill_heaviest_gid, bool, 0644);
 
 static inline int atask_limit(void)

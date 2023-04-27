@@ -1,0 +1,16 @@
+
+name: Build Kernel
+on:
+  push:
+    branches:
+      - sdm660-test
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Building Kernel
+      run: ./build.sh

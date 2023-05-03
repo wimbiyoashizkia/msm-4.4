@@ -856,8 +856,7 @@
 		clock-names = "osm";
 		clocks = <&clock_cpu PWRCL_CLK>;
 		qcom,cxip-lm-enable = <1>;
-		qcom,vdd-restriction-temp = <5>;
-		qcom,vdd-restriction-temp-hysteresis = <10>;
+		qcom,disable-vdd-rstr;
 
 		vdd-dig-supply = <&pm660l_s3_floor_level>;
 		vdd-gfx-supply = <&gfx_vreg_corner>;

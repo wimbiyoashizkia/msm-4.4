@@ -2107,6 +2107,9 @@ struct task_struct {
 #ifdef CONFIG_ANDROID_SIMPLE_LMK
 	struct task_struct		*simple_lmk_next;
 #endif
+#ifdef CONFIG_MMU
+	struct list_head oom_reaper_list;
+#endif
     atomic64_t *concurrent_active_time;
     atomic64_t *concurrent_policy_time;
 #ifdef CONFIG_THREAD_INFO_IN_TASK

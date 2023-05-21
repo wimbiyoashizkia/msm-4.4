@@ -173,8 +173,14 @@ static int sensor_cnt;
 static int psm_rails_cnt;
 static int ocr_rail_cnt;
 static int limit_idx;
+module_param_named(thermal_limit_idx, limit_idx, int, 0664);
+
 static int limit_idx_low;
+module_param_named(thermal_limit_idx_low, limit_idx_low, int, 0664);
+
 static int limit_idx_high;
+module_param_named(thermal_limit_idx_high, limit_idx_high, int, 0664);
+
 static int max_tsens_num;
 static struct cpufreq_frequency_table *table;
 static uint32_t usefreq;
@@ -1002,6 +1008,32 @@ void devmgr_unregister_mitigation_client(struct device *dev,
 	if (dev_mgr->update)
 		dev_mgr->update(dev_mgr);
 }
+
+/* module parameters */
+module_param_named(poll_ms,
+			msm_thermal_info.poll_ms, uint, 0664);
+module_param_named(freq_control_mask,
+			msm_thermal_info.bootup_freq_control_mask, uint, 0664);
+module_param_named(core_control_mask,
+			msm_thermal_info.core_control_mask, uint, 0664);
+module_param_named(freq_step,
+			msm_thermal_info.bootup_freq_step, uint, 0644);
+module_param_named(hotplug_temp,
+			msm_thermal_info.hotplug_temp_degC, uint, 0644);
+module_param_named(hotplug_temp_hysteresis,
+			msm_thermal_info.hotplug_temp_hysteresis_degC, uint, 0644);
+module_param_named(psm_temp,
+			msm_thermal_info.psm_temp_degC, uint, 0644);
+module_param_named(psm_temp_hysteresis,
+			msm_thermal_info.psm_temp_hyst_degC, uint, 0644);
+module_param_named(limit_temp_degC,
+			msm_thermal_info.limit_temp_degC, int, 0664);
+module_param_named(core_limit_temp_degC,
+			msm_thermal_info.core_limit_temp_degC, int, 0664);
+module_param_named(temp_hysteresis_degC,
+			msm_thermal_info.temp_hysteresis_degC, int, 0664);
+module_param_named(core_temp_hysteresis_degC,
+			msm_thermal_info.core_temp_hysteresis_degC, int, 0664);
 
 static int  msm_thermal_cpufreq_callback(struct notifier_block *nfb,
 		unsigned long event, void *data)

@@ -175,10 +175,10 @@ static int ocr_rail_cnt;
 static int limit_idx;
 module_param_named(thermal_limit_idx, limit_idx, int, 0664);
 
-static int limit_idx_low;
+static int limit_idx_low = 8;
 module_param_named(thermal_limit_idx_low, limit_idx_low, int, 0664);
 
-static int limit_idx_high;
+static int limit_idx_high = 20;
 module_param_named(thermal_limit_idx_high, limit_idx_high, int, 0664);
 
 static int max_tsens_num;

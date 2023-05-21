@@ -125,6 +125,52 @@
 	};
 };
 
+&soc {
+	qcom,msm-thermal-simple {
+		zone@0 {
+			reg = <0>;
+			qcom,silver-khz = <1612800>;
+			qcom,gold-khz = <1804800>;
+			qcom,trip-deg = <53>;
+		};
+
+		zone@1 {
+			reg = <1>;
+			qcom,silver-khz = <1612800>;
+			qcom,gold-khz = <1804800>;
+			qcom,trip-deg = <58>;
+		};
+
+		zone@2 {
+			reg = <2>;
+			qcom,silver-khz = <1536000>;
+			qcom,gold-khz = <1747200>;
+			qcom,trip-deg = <62>;
+		};
+
+		zone@3 {
+			reg = <3>;
+			qcom,silver-khz = <1401600>;
+			qcom,gold-khz = <1747200>;
+			qcom,trip-deg = <65>;
+		};
+
+		zone@4 {
+			reg = <4>;
+			qcom,silver-khz = <1113600>;
+			qcom,gold-khz = <1401600>;
+			qcom,trip-deg = <68>;
+		};
+
+		zone@5 {
+			reg = <5>;
+			qcom,silver-khz = <902400>;
+			qcom,gold-khz = <1113600>;
+			qcom,trip-deg = <70>;
+		};
+	};
+};
+
 /* GPU overrides */
 &msm_gpu {
 		/* Update GPU chip ID*/

@@ -3124,6 +3124,7 @@ static void __ref do_core_control(int temp)
 static int __ref update_offline_cores(int val)
 {
 	uint32_t cpu = 0;
+	uint32_t previous_cpus_offlined = 0;
 	int rval = 0;
 	int ret = 0;
 	bool pend_hotplug_req = false;
@@ -3132,6 +3133,7 @@ static int __ref update_offline_cores(int val)
 	if (!core_control_enabled)
 		return 0;
 
+	previous_cpus_offlined = cpus_offlined;
 	cpus_offlined = msm_thermal_info.core_control_mask & val;
 
 	for_each_possible_cpu(cpu) {

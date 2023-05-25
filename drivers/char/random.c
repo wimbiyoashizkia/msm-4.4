@@ -1249,7 +1249,8 @@ static ssize_t urandom_read_iter(struct kiocb *kiocb, struct iov_iter *iter)
 	return get_random_bytes_user(iter);
 }
 
-static ssize_t random_read_iter(struct kiocb *kiocb, struct iov_iter *iter)
+static ssize_t __maybe_unused
+random_read_iter(struct kiocb *kiocb, struct iov_iter *iter)
 {
 	int ret;
 
@@ -1329,7 +1330,7 @@ static int random_fasync(int fd, struct file *filp, int on)
 }
 
 const struct file_operations random_fops = {
-	.read_iter = random_read_iter,
+	.read_iter = urandom_read_iter,
 	.write_iter = random_write_iter,
 	.poll = random_poll,
 	.unlocked_ioctl = random_ioctl,

@@ -100,7 +100,7 @@ int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
 	if (issec)
 		inode->i_flags &= ~S_NOSEC;
 	if (inode->i_op->setxattr) {
-		error = inode->i_op->setxattr(dentry, name, value, size, flags);
+		error = inode->i_op->setxattr(dentry, inode, name, value, size, flags);
 		if (!error) {
 			fsnotify_xattr(dentry);
 			security_inode_post_setxattr(dentry, name, value,
@@ -762,7 +762,8 @@ generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
  * Find the handler for the prefix and dispatch its set() operation.
  */
 int
-generic_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags)
+generic_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
+		 const void *value, size_t size, int flags)
 {
 	const struct xattr_handler *handler;
 
@@ -771,7 +772,7 @@ generic_setxattr(struct dentry *dentry, const char *name, const void *value, siz
 	handler = xattr_resolve_name(dentry->d_sb->s_xattr, &name);
 	if (!handler)
 		return -EOPNOTSUPP;
-	return handler->set(handler, dentry, name, value, size, flags);
+	return handler->set(handler, dentry, inode, name, value, size, flags);
 }
 
 /*

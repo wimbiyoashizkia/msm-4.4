@@ -69,6 +69,8 @@ static int dynamic_stune_boost = 40;
 show_one(dynamic_stune_boost);
 store_one(dynamic_stune_boost);
 cpu_boost_attr_rw(dynamic_stune_boost);
+
+static bool stune_boost_active;
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 static struct delayed_work input_boost_rem;
@@ -205,7 +207,10 @@ static void do_input_boost_rem(struct work_struct *work)
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Reset dynamic stune boost value to the default value */
-	reset_stune_boost("top-app");
+	if (stune_boost_active) {
+		reset_stune_boost("top-app");
+		stune_boost_active = false;
+	}
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 	/* Update policies for all online CPUs */
@@ -228,6 +233,11 @@ static void do_input_boost(struct work_struct *work)
 		return;
 
 	cancel_delayed_work_sync(&input_boost_rem);
+	if (stune_boost_active) {
+		reset_stune_boost("top-app");
+		stune_boost_active = false;
+	}
+
 	if (sched_boost_active) {
 		sched_set_boost(0);
 		sched_boost_active = false;
@@ -254,7 +264,9 @@ static void do_input_boost(struct work_struct *work)
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Set dynamic stune boost value */
-	do_stune_boost("top-app", dynamic_stune_boost);
+	ret = do_stune_boost("top-app", dynamic_stune_boost);
+	if (!ret)
+		stune_boost_active = true;
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 	queue_delayed_work(cpu_boost_wq, &input_boost_rem,

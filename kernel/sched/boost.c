@@ -200,6 +200,11 @@ int sched_boost_handler(struct ctl_table *table, int write,
 		goto done;
 
 	if (verify_boost_params(old_val, *data)) {
+		if (*data > 0)
+			stune_boost("top-app");
+		else
+			reset_stune_boost("top-app");
+
 		_sched_set_boost(old_val, *data);
 	} else {
 		/*

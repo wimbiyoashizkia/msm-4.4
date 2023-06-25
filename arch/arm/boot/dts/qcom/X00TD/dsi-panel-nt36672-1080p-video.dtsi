@@ -297,5 +297,6 @@
                      16555 14945 30910 7790 3415>;
                  qcom,mdss-dsi-panel-peak-brightness = <5643000>;
                  qcom,mdss-dsi-panel-blackness-level = <6134>;
+                 qcom,ulps-enabled;
 	};
 };

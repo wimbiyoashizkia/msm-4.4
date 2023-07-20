@@ -2576,44 +2576,34 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
 	 * Take out anonymous pages first, anonymous shared vmas are
 	 * not dirty accountable.
 	 */
-	if (PageAnon(old_page) && !PageKsm(old_page)) {
-		if (!trylock_page(old_page)) {
-			page_cache_get(old_page);
-			pte_unmap_unlock(page_table, ptl);
-			lock_page(old_page);
-			if (!pte_map_lock(vmf2)) {
-				unlock_page(old_page);
-				put_page(old_page);
-				return VM_FAULT_RETRY;
-			}
-			page_table = vmf2->pte;
-			ptl = vmf2->ptl;
-			if (!pte_same(*page_table, orig_pte)) {
-				unlock_page(old_page);
-				pte_unmap_unlock(page_table, ptl);
-				page_cache_release(old_page);
-				return 0;
-			}
-			page_cache_release(old_page);
-		}
-		if (reuse_swap_page(old_page)) {
-			/*
-			 * The page is all ours.  Move it to our anon_vma so
-			 * the rmap code will not search our parent or siblings.
-			 * Protected against the rmap code by the page lock.
-			 */
-			page_move_anon_rmap(old_page, vma, address);
+	if (PageAnon(old_page)) {
+		if (PageKsm(old_page) && (PageSwapCache(old_page) ||
+					  page_count(old_page) != 1))
+			goto copy;
+		/* PageKsm() doesn't necessarily raise the page refcount */
+		if (PageKsm(old_page) || page_count(old_page) != 1)
+			goto copy;
+		if (!trylock_page(old_page))
+			goto copy;
+		if (PageKsm(old_page) || page_mapcount(old_page) != 1 || page_count(old_page) != 1) {
 			unlock_page(old_page);
-			return wp_page_reuse(mm, vma, address, page_table, ptl,
-					     orig_pte, old_page, 0, 0, vmf2);
+			goto copy;
 		}
+		/*
+		 * Ok, we've got the only map reference, and the only
+		 * page count reference, and the page is locked,
+		 * it's dark out, and we're wearing sunglasses. Hit it.
+		 */
 		unlock_page(old_page);
+		wp_page_reuse(mm, vma, address, page_table, ptl,
+			      orig_pte, old_page, 0, 0, vmf2);
+		return VM_FAULT_WRITE;
 	} else if (unlikely((vmf2->vma_flags & (VM_WRITE|VM_SHARED)) ==
 					(VM_WRITE|VM_SHARED))) {
 		return wp_page_shared(mm, vma, address, page_table, pmd,
 				      ptl, orig_pte, old_page, vmf2);
 	}
-
+copy:
 	/*
 	 * Ok, we need to copy. Oh, well..
 	 */

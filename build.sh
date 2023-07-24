@@ -91,8 +91,8 @@ clone() {
 	git clone --depth=1 https://github.com/neonproject-org/AnyKernel3.git -b master
 
 	# Clone GCC ARM64 and ARM32
-	git clone https://github.com/neonproject-org/aarch64-gcc.git -b elf-12 --depth=1 gcc64
-	git clone https://github.com/neonproject-org/arm-gcc.git -b elf-12 --depth=1 gcc32
+	git clone https://github.com/neonproject-org/aarch64-gcc.git -b elf-10 --depth=1 gcc64
+	git clone https://github.com/neonproject-org/arm-gcc.git -b elf-10 --depth=1 gcc32
 	# Set environment for GCC ARM64 and ARM32
 	GCC64_DIR=$KERNEL_DIR/gcc64
 	GCC32_DIR=$KERNEL_DIR/gcc32

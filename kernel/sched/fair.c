@@ -2687,7 +2687,6 @@ static const u32 runnable_avg_yN_sum[] = {
 	17718,18340,18949,19545,20128,20698,21256,21802,22336,22859,23371,
 };
 
-#ifdef CONFIG_SMP
 int pelt_load_avg_period = PELT16_LOAD_AVG_PERIOD;
 int pelt_load_avg_max = PELT16_LOAD_AVG_MAX;
 int pelt_load_avg_max_n = PELT16_LOAD_AVG_MAX_N;

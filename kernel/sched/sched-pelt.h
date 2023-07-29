@@ -10,7 +10,7 @@ static const u32 pelt32_runnable_avg_yN_inv[] __maybe_unused = {
 };
 
 #define PELT32_LOAD_AVG_PERIOD 32
-#define LOAD_AVG_MAX 47742
+#define PELT32_LOAD_AVG_MAX 47742
 #define PELT32_LOAD_AVG_MAX_N 345
 
 static const u32 pelt16_runnable_avg_yN_inv[] __maybe_unused= {

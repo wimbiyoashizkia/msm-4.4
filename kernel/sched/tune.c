@@ -150,15 +150,6 @@ struct schedtune {
 	 * restore the value following any temporary changes to that flag.
 	 */
 	bool sched_boost_enabled_backup;
-
-	/*
-	 * Controls whether tasks of this cgroup should be colocated with each
-	 * other and tasks of other cgroups that have the same flag turned on.
-	 */
-	bool colocate;
-
-	/* Controls whether further updates are allowed to the colocate flag */
-	bool colocate_update_disabled;
 #endif
 
 	/* Performance Boost (B) region threshold params */
@@ -224,8 +215,6 @@ root_schedtune = {
 	.sched_boost_no_override = false,
 	.sched_boost_enabled = true,
 	.sched_boost_enabled_backup = true,
-	.colocate = false,
-	.colocate_update_disabled = false,
 #endif
 	.perf_boost_idx = 0,
 	.perf_constrain_idx = 0,
@@ -327,8 +316,6 @@ static inline void init_sched_boost(struct schedtune *st)
 	st->sched_boost_no_override = false;
 	st->sched_boost_enabled = true;
 	st->sched_boost_enabled_backup = st->sched_boost_enabled;
-	st->colocate = false;
-	st->colocate_update_disabled = false;
 }
 
 bool same_schedtune(struct task_struct *tsk1, struct task_struct *tsk2)
@@ -409,25 +396,36 @@ static int sched_boost_enabled_write(struct cgroup_subsys_state *css,
 	return 0;
 }
 
+static bool is_colocated(struct cgroup_subsys_state *css)
+{
+	static struct cgroup_subsys_state *top_app, *foreground;
+
+	if (likely(top_app && foreground))
+		return css == top_app || css == foreground;
+
+	if (!strcmp(css->cgroup->kn->name, "top-app")) {
+		top_app = css;
+		return true;
+	}
+
+	if (!strcmp(css->cgroup->kn->name, "foreground")) {
+		foreground = css;
+		return true;
+	}
+
+	return false;
+}
+
 static u64 sched_colocate_read(struct cgroup_subsys_state *css,
 			struct cftype *cft)
 {
-	struct schedtune *st = css_st(css);
-
-	return st->colocate;
+	return is_colocated(css);
 }
 
 static int sched_colocate_write(struct cgroup_subsys_state *css,
 			struct cftype *cft, u64 colocate)
 {
-	struct schedtune *st = css_st(css);
-
-	if (st->colocate_update_disabled)
-		return -EPERM;
-
-	st->colocate = !!colocate;
-	st->colocate_update_disabled = true;
-	return 0;
+	return -EPERM;
 }
 
 #else /* CONFIG_SCHED_HMP */
@@ -862,13 +860,11 @@ static void schedtune_attach(struct cgroup_taskset *tset)
 #ifdef CONFIG_SCHED_HMP
 	struct task_struct *task;
 	struct cgroup_subsys_state *css;
-	struct schedtune *st;
 	bool colocate;
 
 	cgroup_taskset_first(tset, &css);
-	st = css_st(css);
 
-	colocate = st->colocate;
+	colocate = is_colocated(css);
 
 	cgroup_taskset_for_each(task, css, tset)
 		sync_cgroup_colocation(task, colocate);

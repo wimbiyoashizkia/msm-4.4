@@ -1019,6 +1019,52 @@ config CPUSETS
 
 	  Say N if unsure.
 
+config CPUSETS_ASSIST
+	bool "Cpuset configuration helper"
+	depends on CPUSETS && ANDROID
+	help
+	  This option enables in-kernel overrides for cpuset values.
+
+if CPUSETS_ASSIST
+
+config CPUSETS_AUDIO_APP
+	string "Value for 'audio-app' cpuset"
+	default "0-7"
+	help
+	  The CPU mask to use for the audio-app cpuset.
+
+config CPUSETS_BACKGROUND
+	string "Value for 'background' cpuset"
+	default "0-3"
+	help
+	  The CPU mask to use for the background cpuset.
+
+config CPUSETS_FOREGROUND
+	string "Value for 'foreground' cpuset"
+	default "0-7"
+	help
+	  The CPU mask to use for the foreground cpuset.
+
+config CPUSETS_TOP_APP
+	string "Value for 'top-app' cpuset"
+	default "0-7"
+	help
+	  The CPU mask to use for the top-app cpuset.
+
+config CPUSETS_RESTRICTED
+	string "Value for 'restricted' cpuset"
+	default "0-3"
+	help
+	  The CPU mask to use for the restricted cpuset.
+
+config CPUSETS_SYSTEM_BACKGROUND
+	string "Value for 'system-background' cpuset"
+	default "0-3"
+	help
+	  The CPU mask to use for the system-background cpuset.
+
+endif
+
 config PROC_PID_CPUSET
 	bool "Include legacy /proc/<pid>/cpuset file"
 	depends on CPUSETS

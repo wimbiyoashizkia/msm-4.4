@@ -17,104 +17,6 @@
 	compatible = "qcom,sdm636";
 	qcom,msm-id = <345 0x0>;
 
-	cpus {
-		CPU0: cpu@0 {
-			efficiency = <615>;
-			clock-frequency = <1612800000>;
-		};
-
-		CPU1: cpu@1 {
-			efficiency = <615>;
-			clock-frequency = <1612800000>;
-		};
-
-		CPU2: cpu@2 {
-			efficiency = <615>;
-			clock-frequency = <1612800000>;
-		};
-
-		CPU3: cpu@3 {
-			efficiency = <615>;
-			clock-frequency = <1612800000>;
-		};
-
-		CPU4: cpu@100 {
-			efficiency = <1024>;
-			clock-frequency = <1804800000>;
-		};
-
-		CPU5: cpu@101 {
-			efficiency = <1024>;
-			clock-frequency = <1804800000>;
-		};
-
-		CPU6: cpu@102 {
-			efficiency = <1024>;
-			clock-frequency = <1804800000>;
-		};
-
-		CPU7: cpu@103 {
-			efficiency = <1024>;
-			clock-frequency = <1804800000>;
-		};
-	};
-
-	energy_costs: energy-costs {
-		compatible = "sched-energy";
-
-		CPU_COST_0: core-cost0 {
-			busy-cost-data = <
-				633600	51
-				902400	74
-				1113600	88
-				1401600	148
-				1536000	162
-				1612800	181
-			>;
-			idle-cost-data = <
-				20 16 10 8
-			>;
-		};
-
-		CPU_COST_1: core-cost1 {
-			busy-cost-data = <
-				1113600	292
-				1401600	368
-				1747200	562
-				1804800	559
-			>;
-			idle-cost-data = <
-				100 80 60 40
-			>;
-		};
-
-		CLUSTER_COST_0: cluster-cost0 {
-			busy-cost-data = <
-				633600	3
-				902400	8
-				1113600	13
-				1401600	23
-				1536000	32
-				1612800	39
-			>;
-			idle-cost-data = <
-				4 3 2 1
-			>;
-		};
-
-		CLUSTER_COST_1: cluster-cost1 {
-			busy-cost-data = <
-				1113600	34
-				1401600	63
-				1747200	111
-				1804800	178
-			>;
-			idle-cost-data = <
-				4 3 2 1
-			>;
-		};
-	};
-
 	reserved-memory {
 		/delete-node/ cdsp_fw_region@94a00000;
 
@@ -137,41 +39,6 @@
 			/delete-node/ port@4;
 		};
 	};
-
-	devfreq_memlat_0: qcom,arm-memlat-mon-0 {
-		qcom,core-dev-table =
-			< 902400 762 >,
-			< 1401600 2086 >,
-			< 1612800 3879 >;
-	};
-
-	devfreq_memlat_4: qcom,arm-memlat-mon-4 {
-		qcom,core-dev-table =
-			< 1113600 762 >,
-			< 1401600 3879 >,
-			< 1804800 5163 >;
-	};
-
-	devfreq_cpufreq: devfreq-cpufreq {
-		mincpubw-cpufreq {
-			cpu-to-dev-map-0 =
-				< 633600 762 >,
-				< 1401600 1571 >,
-				< 1612800 2929 >;
-			cpu-to-dev-map-4 =
-				< 1113600 762 >,
-				< 1401600 2086 >,
-				< 1747200 2929 >,
-				< 1804800 5163 >;
-		};
-	};
-
-	devfreq_compute: qcom,devfreq-compute {
-		qcom,core-dev-table =
-			< 902400 762 >,
-			< 1401600 2086 >,
-			< 1612800 3879 >;
-	};
 };
 
 &soc {
@@ -186,52 +53,6 @@
 		/delete-node/ qcom,msm_fastrpc_compute_cb11;
 		/delete-node/ qcom,msm_fastrpc_compute_cb12;
 		/delete-node/ qcom,msm_fastrpc_compute_cb13;
-	};
-};
-
-&soc {
-	qcom,msm-thermal-simple {
-		zone@0 {
-			reg = <0>;
-			qcom,silver-khz = <1612800>;
-			qcom,gold-khz = <1804800>;
-			qcom,trip-deg = <53>;
-		};
-
-		zone@1 {
-			reg = <1>;
-			qcom,silver-khz = <1612800>;
-			qcom,gold-khz = <1804800>;
-			qcom,trip-deg = <58>;
-		};
-
-		zone@2 {
-			reg = <2>;
-			qcom,silver-khz = <1536000>;
-			qcom,gold-khz = <1747200>;
-			qcom,trip-deg = <62>;
-		};
-
-		zone@3 {
-			reg = <3>;
-			qcom,silver-khz = <1401600>;
-			qcom,gold-khz = <1747200>;
-			qcom,trip-deg = <65>;
-		};
-
-		zone@4 {
-			reg = <4>;
-			qcom,silver-khz = <1113600>;
-			qcom,gold-khz = <1401600>;
-			qcom,trip-deg = <68>;
-		};
-
-		zone@5 {
-			reg = <5>;
-			qcom,silver-khz = <902400>;
-			qcom,gold-khz = <1113600>;
-			qcom,trip-deg = <70>;
-		};
 	};
 };
 

@@ -2720,7 +2720,7 @@ static void thermal_unregister_governors(void)
 	thermal_gov_power_allocator_unregister();
 }
 
-unsigned int sconfig;
+/* unsigned int sconfig;
 
 static ssize_t sconfig_show(struct device *dev,struct device_attribute *attr, char *buf)
 {
@@ -2770,7 +2770,7 @@ void thermalsconfig_init(void)
 	result = device_create_file(dev, &dev_attr_thermal_config);
 	if (result < 0)
 		printk(KERN_ALERT"Failed to create attribute file.");
-}
+} */
 
 static int __init thermal_init(void)
 {
@@ -2801,7 +2801,7 @@ static int __init thermal_init(void)
 	if (result)
 		goto exit_netlink;
 
-	thermalsconfig_init();
+	/* thermalsconfig_init(); */
 
 	return 0;
 

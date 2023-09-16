@@ -16,10 +16,8 @@
 #include <linux/pagemap.h>
 #include <linux/quotaops.h>
 #include <linux/backing-dev.h>
+#include <linux/dynamic_sync.h>
 #include "internal.h"
-
-bool fsync_enabled = true;
-module_param(fsync_enabled, bool, 0644);
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
@@ -99,6 +97,19 @@ static void fdatawait_one_bdev(struct block_device *bdev, void *arg)
 }
 
 /*
+ * Sync all the data for all the filesystems (called by sys_sync() and
+ * emergency sync)
+ */
+void sync_filesystems(int wait)
+{
+	iterate_supers(sync_inodes_one_sb, NULL);
+	iterate_supers(sync_fs_one_sb, &wait);
+	iterate_supers(sync_fs_one_sb, &wait);
+	iterate_bdevs(fdatawrite_one_bdev, NULL);
+	iterate_bdevs(fdatawait_one_bdev, NULL);
+}
+
+/*
  * Sync everything. We start by waking flusher threads so that most of
  * writeback runs on all devices in parallel. Then we sync all inodes reliably
  * which effectively also waits for all flusher threads to finish doing
@@ -161,7 +172,7 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 	struct super_block *sb;
 	int ret;
 
-	if (!fsync_enabled)
+	if (likely(dyn_fsync_active && suspend_active))
 		return 0;
 
 	f = fdget(fd);
@@ -192,7 +203,7 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
 
-	if (!fsync_enabled)
+	if (likely(dyn_fsync_active && suspend_active))
 		return 0;
 
 	if (!file->f_op->fsync)
@@ -226,7 +237,7 @@ static int do_fsync(unsigned int fd, int datasync)
 	struct fd f;
 	int ret = -EBADF;
 
-	if (!fsync_enabled)
+	if (likely(dyn_fsync_active && suspend_active))
 		return 0;
 
 	f = fdget(fd);
@@ -304,7 +315,7 @@ SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
 	loff_t endbyte;			/* inclusive */
 	umode_t i_mode;
 
-	if (!fsync_enabled)
+	if (likely(dyn_fsync_active && suspend_active))
 		return 0;
 
 	ret = -EINVAL;

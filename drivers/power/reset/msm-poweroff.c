@@ -280,7 +280,7 @@ static void msm_restart_prepare(const char *cmd)
 	 * Kill download mode if master-kill switch is set
 	 */
 
-	set_dload_mode(false);
+	set_dload_mode(download_mode && restart_mode == RESTART_DLOAD);
 #endif
 
 	if (qpnp_pon_check_hard_reset_stored()) {

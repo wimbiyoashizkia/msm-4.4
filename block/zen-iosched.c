@@ -212,9 +212,10 @@ static ssize_t __FUNC(struct elevator_queue *e, char *page) \
 { \
 	struct zen_data *zdata = e->elevator_data; \
 	int __data = __VAR; \
-	if (__CONV) \
+	if (__CONV) { \
 		__data = jiffies_to_msecs(__data); \
 		return zen_var_show(__data, (page)); \
+	} \
 }
 SHOW_FUNCTION(zen_sync_expire_show, zdata->fifo_expire[SYNC], 1);
 SHOW_FUNCTION(zen_async_expire_show, zdata->fifo_expire[ASYNC], 1);
@@ -231,10 +232,11 @@ static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count) 
 		__data = (MIN); \
 	else if (__data > (MAX)) \
 		__data = (MAX); \
-	if (__CONV) \
+	if (__CONV) { \
 		*(__PTR) = msecs_to_jiffies(__data); \
-	else \
+	} else { \
 		*(__PTR) = __data; \
+	} \
 	return ret; \
 }
 STORE_FUNCTION(zen_sync_expire_store, &zdata->fifo_expire[SYNC], 0, INT_MAX, 1);

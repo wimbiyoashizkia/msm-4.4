@@ -4921,7 +4921,6 @@ int kgsl_device_platform_probe(struct kgsl_device *device)
 	int status = -EINVAL;
 	struct resource *res;
 	unsigned long irqflags = IRQF_TRIGGER_HIGH;
-	int cpu;
 
 	status = _register_device(device);
 	if (status)

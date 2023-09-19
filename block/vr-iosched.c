@@ -382,14 +382,16 @@ static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count) 
 	struct vr_data *vd = e->elevator_data; \
 	int __data; \
 	int ret = vr_var_store(&__data, (page), count); \
-	if (__data < (MIN)) \
+	if (__data < (MIN)) { \
 		__data = (MIN); \
-	else if (__data > (MAX)) \
+	} else if (__data > (MAX)) { \
 		__data = (MAX); \
-		if (__CONV) \
+		if (__CONV) { \
 			*(__PTR) = msecs_to_jiffies(__data); \
-		else \
+		} else { \
 			*(__PTR) = __data; \
+		} \
+	} \
 	return ret; \
 }
 STORE_FUNCTION(vr_sync_expire_store, &vd->fifo_expire[SYNC], 0, INT_MAX, 1);

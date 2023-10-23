@@ -5,7 +5,6 @@
 
 #define pr_fmt(fmt) "cpu_input_boost: " fmt
 
-#include <linux/cpuset.h>
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
 #include <linux/fb.h>
@@ -125,8 +124,6 @@ static void __cpu_input_boost_kick(struct boost_drv *b)
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
 
-	busy_background_cpuset();
-
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	ret = do_stune_boost("top-app", dynamic_stune_boost, &boost_slot);
 	if (!ret)
@@ -154,8 +151,6 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 
 	if (test_bit(SCREEN_OFF, &b->state))
 		return;
-
-	busy_background_cpuset();
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	do_stune_boost("top-app", dynamic_stune_boost, &boost_slot);
@@ -191,7 +186,6 @@ static void input_unboost_worker(struct work_struct *work)
 
 	clear_bit(INPUT_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-	idle_background_cpuset();
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
 		reset_stune_boost("top-app", boost_slot);
@@ -207,7 +201,6 @@ static void max_unboost_worker(struct work_struct *work)
 
 	clear_bit(MAX_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
-	idle_background_cpuset();
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
 		reset_stune_boost("top-app", boost_slot);
@@ -344,7 +337,6 @@ free_handle:
 
 static void cpu_input_boost_input_disconnect(struct input_handle *handle)
 {
-	idle_background_cpuset();
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
 		reset_stune_boost("top-app", boost_slot);

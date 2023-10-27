@@ -204,10 +204,12 @@ int sched_boost_handler(struct ctl_table *table, int write,
 		goto done;
 
 	if (verify_boost_params(old_val, *data)) {
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
 		if (*data > 0)
 			do_stune_sched_boost("top-app", &boost_slot);
 		else
 			reset_stune_boost("top-app", boost_slot);
+#endif
 
 		_sched_set_boost(old_val, *data);
 	} else {

@@ -164,6 +164,9 @@ struct schedtune {
 	bool colocate_update_disabled;
 #endif
 
+	/* Bias high performance cpus for the tasks on that SchedTune CGroup */
+	int boost_bias;
+
 	/* Performance Boost (B) region threshold params */
 	int perf_boost_idx;
 
@@ -230,6 +233,7 @@ root_schedtune = {
 	.colocate = false,
 	.colocate_update_disabled = false,
 #endif
+	.boost_bias = 0,
 	.perf_boost_idx = 0,
 	.perf_constrain_idx = 0,
 	.prefer_idle = 0,
@@ -823,20 +827,39 @@ int schedtune_task_boost(struct task_struct *p)
 	return task_boost;
 }
 
+int schedtune_boost_bias(struct task_struct *p)
+{
+	struct schedtune *st;
+	int boost_bias;
+
+	if (!unlikely(schedtune_initialized))
+		return 0;
+
+	/* Get boost_bias value */
+	rcu_read_lock();
+	st = task_schedtune(p);
+	boost_bias = st->boost_bias;
+	rcu_read_unlock();
+
+	return boost_bias;
+}
+
 /*  The same as schedtune_task_boost except assuming the caller has the rcu read
  *  lock.
  */
-int schedtune_task_boost_rcu_locked(struct task_struct *p)
+int schedtune_boost_bias_rcu_locked(struct task_struct *p)
 {
-	int task_boost;
+	struct schedtune *st;
+	int boost_bias;
 
-	if (unlikely(!schedtune_initialized))
+	if (!unlikely(schedtune_initialized))
 		return 0;
 
-	/* Get task boost value */
-	task_boost = schedtune_filter_boost(p);
+	/* Get boost_bias value */
+	st = task_schedtune(p);
+	boost_bias = st->boost_bias;
 
-	return task_boost;
+	return boost_bias;
 }
 
 int schedtune_prefer_idle(struct task_struct *p)
@@ -854,6 +877,24 @@ int schedtune_prefer_idle(struct task_struct *p)
 	rcu_read_unlock();
 
 	return prefer_idle;
+}
+
+static u64
+boost_bias_read(struct cgroup_subsys_state *css, struct cftype *cft)
+{
+	struct schedtune *st = css_st(css);
+
+	return st->boost_bias;
+}
+
+static int
+boost_bias_write(struct cgroup_subsys_state *css, struct cftype *cft,
+	    u64 boost_bias)
+{
+	struct schedtune *st = css_st(css);
+	st->boost_bias = !!boost_bias;
+
+	return 0;
 }
 
 static u64
@@ -1074,6 +1115,11 @@ static struct cftype files[] = {
 		.name = "boost",
 		.read_s64 = boost_read,
 		.write_s64 = boost_write_wrapper,
+	},
+	{
+		.name = "boost_bias",
+		.read_u64 = boost_bias_read,
+		.write_u64 = boost_bias_write,
 	},
 	{
 		.name = "prefer_idle",

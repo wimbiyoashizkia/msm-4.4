@@ -1957,7 +1957,7 @@ long _do_fork(unsigned long clone_flags,
 	/* Boost CPU to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current)) {
 #ifdef CONFIG_DYNAMIC_STUNE
-		dynstune_acquire_update();
+		dynstune_acquire_update(CORE);
 #endif
 
 		if (cpu_input_boost_within_input(75))

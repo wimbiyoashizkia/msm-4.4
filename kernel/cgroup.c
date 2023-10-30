@@ -3007,7 +3007,7 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
             !strcmp(of->kn->parent->name, "top-app") &&
             task_is_zygote(tsk->parent)) {
 #ifdef CONFIG_DYNAMIC_STUNE
-            dynstune_acquire_update();
+            dynstune_acquire_update(CORE);
 #endif
 
             if (cpu_input_boost_within_input(75))

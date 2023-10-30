@@ -53,6 +53,9 @@
 #include <sw_sync.h>
 #include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
+#ifdef CONFIG_DYNAMIC_STUNE
+#include <linux/dynamic_stune.h>
+#endif
 
 #include "mdss_fb.h"
 #include "mdss_mdp_splash_logo.h"
@@ -3600,6 +3603,10 @@ int mdss_fb_atomic_commit(struct fb_info *info,
 		pr_err("commit callback is not registered\n");
 		goto end;
 	}
+
+#ifdef CONFIG_DYNAMIC_STUNE
+		dynstune_acquire_update();
+#endif
 
 	commit_v1 = &commit->commit_v1;
 	if (commit_v1->flags & MDP_VALIDATE_LAYER) {

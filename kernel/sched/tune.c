@@ -941,6 +941,12 @@ int schedtune_prefer_idle(struct task_struct *p)
 	rcu_read_lock();
 	st = task_schedtune(p);
 	prefer_idle = st->prefer_idle;
+	/* 
+	 * If there's prefer_idle and adaptive boost then override 
+	 * prefer_idle according to adaptune state 
+	 */
+	if (prefer_idle && st->adaptive_boost)
+		prefer_idle *= adaptune_read_state(CORE);
 	rcu_read_unlock();
 
 	return prefer_idle;
@@ -1114,17 +1120,20 @@ boost_slots_release(struct schedtune *st)
 #ifdef CONFIG_ADAPTIVE_TUNE
 static void adaptive_schedtune_write(struct schedtune *st, bool state)
 {
-	if (!st->adaptive_boost)
+	u64 boost = st->adaptive_boost;
+
+	if (!boost)
 		return;
 
-	if (st->adaptive_boost > 1) {
-		u64 boost = state ? st->adaptive_boost : 0;
-		boost_write(&st->css, NULL, boost);
-	} else {
+	/*
+	 * Trigger write if boost is more than 1, else
+	 * we will only use bias to lessen latency if
+	 * desired.
+	 */
+	if (boost > 1)
+		boost_write(&st->css, NULL, boost * state);
+	else
 		st->boost_bias = state;
-	}
-
-	st->prefer_idle = state;
 }
 
 static u64
@@ -1173,11 +1182,6 @@ static int boost_write_wrapper(struct cgroup_subsys_state *css,
 {
 	if (!strcmp(current->comm, "init"))
 		return 0;
-
-#ifdef CONFIG_ADAPTIVE_TUNE
-	if (css_st(css)->adaptive_boost)
-		return 0;
-#endif
 
 	boost_write(css, NULL, boost);
 
@@ -1353,14 +1357,10 @@ static void write_default_values(struct cgroup_subsys_state *css)
 				tgt.name, tgt.boost, tgt.prefer_idle, tgt.override, tgt.enable, tgt.colocate, tgt.sched_boost);
 
 #ifdef CONFIG_ADAPTIVE_TUNE
-			if (tgt.boost) {
-				int ret = adaptive_boost_write(css, NULL, tgt.boost);
-				/* Skip other values if successful */
-				if (!ret)
-					continue;
-			}
+			adaptive_boost_write(css, NULL, tgt.boost);
 #else
 			boost_write(css, NULL, tgt.boost);
+			boost_bias_write(css, NULL, tgt.boost_bias);
 #endif
 			prefer_idle_write(css, NULL, tgt.prefer_idle);
 #ifdef CONFIG_SCHED_HMP

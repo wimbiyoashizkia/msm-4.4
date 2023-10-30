@@ -5,6 +5,9 @@
 #include <linux/printk.h>
 #include <linux/rcupdate.h>
 #include <linux/slab.h>
+#ifdef CONFIG_DYNAMIC_STUNE
+#include <linux/dynamic_stune.h>
+#endif
 
 #include <trace/events/sched.h>
 #include <linux/list.h>
@@ -166,6 +169,11 @@ struct schedtune {
 
 	/* Bias high performance cpus for the tasks on that SchedTune CGroup */
 	int boost_bias;
+
+#ifdef CONFIG_DYNAMIC_STUNE
+	/* Boost value for dynamic stune structure to use */
+	int dynamic_boost;
+#endif
 
 	/* Performance Boost (B) region threshold params */
 	int perf_boost_idx;
@@ -951,6 +959,12 @@ boost_bias_write(struct cgroup_subsys_state *css, struct cftype *cft,
 	    u64 boost_bias)
 {
 	struct schedtune *st = css_st(css);
+
+#ifdef CONFIG_DYNAMIC_STUNE
+	if (!strcmp(css->cgroup->kn->name, "foreground"))
+		return 0;
+#endif
+
 	st->boost_bias = !!boost_bias;
 
 	return 0;
@@ -1097,12 +1111,49 @@ boost_slots_release(struct schedtune *st)
 }
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
+#ifdef CONFIG_DYNAMIC_STUNE
+static s64
+dynamic_boost_read(struct cgroup_subsys_state *css, struct cftype *cft)
+{
+	struct schedtune *st = css_st(css);
+
+	return st->dynamic_boost;
+}
+
+static int
+dynamic_boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
+	    s64 dynamic_boost)
+{
+	struct schedtune *st = css_st(css);
+
+	/* Only allow write for top-app */
+	if (strcmp(css->cgroup->kn->name, "top-app"))
+		return 0;
+
+	if (dynamic_boost < 0 || dynamic_boost > 100)
+		return -EINVAL;
+
+	st->dynamic_boost = dynamic_boost;
+
+	/* Update boost */
+	if (dynamic_boost != st->boost)
+		boost_write(css, cft, dynamic_boost);
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_STUNE_ASSIST
 static int boost_write_wrapper(struct cgroup_subsys_state *css,
 			struct cftype *cft, s64 boost)
 {
 	if (!strcmp(current->comm, "init"))
 		return 0;
+
+#ifdef CONFIG_DYNAMIC_STUNE
+	if (!strcmp(css->cgroup->kn->name, "top-app"))
+		return 0;
+#endif
 
 	boost_write(css, NULL, boost);
 
@@ -1114,6 +1165,11 @@ static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 {
 	if (!strcmp(current->comm, "init"))
 		return 0;
+
+#ifdef CONFIG_DYNAMIC_STUNE
+	if (!strcmp(css->cgroup->kn->name, "top-app"))
+		return 0;
+#endif
 
 	prefer_idle_write(css, NULL, prefer_idle);
 
@@ -1180,6 +1236,13 @@ static struct cftype files[] = {
 		.read_u64 = boost_bias_read,
 		.write_u64 = boost_bias_write,
 	},
+#ifdef CONFIG_DYNAMIC_STUNE
+	{
+		.name = "dynamic_boost",
+		.read_s64 = dynamic_boost_read,
+		.write_s64 = dynamic_boost_write,
+	},
+#endif
 	{
 		.name = "prefer_idle",
 		.read_u64 = prefer_idle_read,
@@ -1265,7 +1328,12 @@ static void write_default_values(struct cgroup_subsys_state *css)
 			pr_info("stune_assist: setting values for %s: boost=%d prefer_idle=%d override=%d enable=%d colocate=%d sched_boost=%d\n",
 				tgt.name, tgt.boost, tgt.prefer_idle, tgt.override, tgt.enable, tgt.colocate, tgt.sched_boost);
 
-			boost_write(css, NULL, tgt.boost);
+#ifdef CONFIG_DYNAMIC_STUNE
+			if (!strcmp(css->cgroup->kn->name, "top-app"))
+				dynamic_boost_write(css, NULL, tgt.boost);
+			else
+				boost_write(css, NULL, tgt.boost);
+#endif
 			prefer_idle_write(css, NULL, tgt.prefer_idle);
 #ifdef CONFIG_SCHED_HMP
 			sched_boost_override_write(css, NULL, tgt.override);
@@ -1381,6 +1449,45 @@ schedtune_init_cgroups(void)
 
 	schedtune_initialized = true;
 }
+
+#ifdef CONFIG_DYNAMIC_STUNE
+static struct schedtune *stune_get_by_name(char *st_name)
+{
+	int idx;
+
+	for (idx = 1; idx < BOOSTGROUPS_COUNT; ++idx) {
+		char name_buf[NAME_MAX + 1];
+		struct schedtune *st = allocated_group[idx];
+
+		if (unlikely(!st))
+			break;
+
+		cgroup_name(st->css.cgroup, name_buf, sizeof(name_buf));
+		if (!strncmp(name_buf, st_name, strlen(st_name)))
+			return st;
+	}
+
+	pr_warn("schedtune: could not find %s\n", st_name);
+	return NULL;
+}
+
+void dynamic_schedtune_set(bool state)
+{
+	struct schedtune *st;
+
+	st = stune_get_by_name("top-app");
+	if (likely(st)) {
+		s64 boost = state ? st->dynamic_boost : 0;
+
+		boost_write(&st->css, NULL, boost);
+		st->prefer_idle = state;
+	}
+
+	st = stune_get_by_name("foreground");
+	if (likely(st))
+		st->boost_bias = state;
+}
+#endif
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 static struct schedtune *getSchedtune(char *st_name)

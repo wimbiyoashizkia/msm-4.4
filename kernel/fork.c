@@ -84,8 +84,8 @@
 #include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/simple_lmk.h>
-#ifdef CONFIG_DYNAMIC_STUNE
-#include <linux/dynamic_stune.h>
+#ifdef CONFIG_ADAPTIVE_TUNE
+#include <linux/adaptive_tune.h>
 #endif
 
 #include <asm/pgtable.h>
@@ -1956,8 +1956,8 @@ long _do_fork(unsigned long clone_flags,
 
 	/* Boost CPU to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current)) {
-#ifdef CONFIG_DYNAMIC_STUNE
-		dynstune_acquire_update(CORE);
+#ifdef CONFIG_ADAPTIVE_TUNE
+		adaptune_update(&atx);
 #endif
 
 		if (cpu_input_boost_within_input(75))

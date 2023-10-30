@@ -21,8 +21,8 @@
 #include <linux/mdss_refresh_rate.h>
 #include <linux/mm.h>
 #include <linux/msm_adreno_devfreq.h>
-#ifdef CONFIG_DYNAMIC_STUNE
-#include <linux/dynamic_stune.h>
+#ifdef CONFIG_ADAPTIVE_TUNE
+#include <linux/adaptive_tune.h>
 #endif
 #include <asm/cacheflush.h>
 #include <soc/qcom/scm.h>
@@ -549,10 +549,10 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 	priv->bin.busy_time = 0;
 
 	*freq = devfreq->profile->freq_table[level];
-#ifdef CONFIG_DYNAMIC_STUNE
-	/* Do not drop perf if GPU was and is running at a freq higher than min freq. */
+#ifdef CONFIG_ADAPTIVE_TUNE
+	/* Directly update adaptune if GPU is running at a higher frequency than min */
 	if (*freq > devfreq->min_freq && devfreq->previous_freq > devfreq->min_freq)
-		dynstune_acquire_update(INPUT);
+		adaptune_update(&atx);
 #endif
 	return 0;
 }

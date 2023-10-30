@@ -65,8 +65,8 @@
 #include <net/sock.h>
 #include <linux/binfmts.h>
 #include <linux/cpu_input_boost.h>
-#ifdef CONFIG_DYNAMIC_STUNE
-#include <linux/dynamic_stune.h>
+#ifdef CONFIG_ADAPTIVE_TUNE
+#include <linux/adaptive_tune.h>
 #endif
 
 #define CREATE_TRACE_POINTS
@@ -3006,8 +3006,8 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
         if (!ret && !threadgroup &&
             !strcmp(of->kn->parent->name, "top-app") &&
             task_is_zygote(tsk->parent)) {
-#ifdef CONFIG_DYNAMIC_STUNE
-            dynstune_acquire_update(CORE);
+#ifdef CONFIG_ADAPTIVE_TUNE
+            adaptune_update(&atx);
 #endif
 
             if (cpu_input_boost_within_input(75))

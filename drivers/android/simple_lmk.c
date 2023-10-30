@@ -13,6 +13,9 @@
 #include <linux/ratelimit.h>
 #include <linux/sort.h>
 #include <linux/vmpressure.h>
+#ifdef CONFIG_ADAPTIVE_TUNE
+#include <linux/adaptive_tune.h>
+#endif
 
 /* The minimum number of pages to free per reclaim */
 #define MIN_FREE_PAGES (CONFIG_ANDROID_SIMPLE_LMK_MINFREE * SZ_1M / PAGE_SIZE)
@@ -222,6 +225,11 @@ static void scan_and_kill(void)
 	write_lock(&mm_free_lock);
 	nr_victims = nr_to_kill;
 	write_unlock(&mm_free_lock);
+
+#ifdef CONFIG_ADAPTIVE_TUNE
+	/* Inform adaptune before killing victims */
+	adaptune_update(&atx);
+#endif
 
 	/* Kill the victims */
 	for (i = 0; i < nr_to_kill; i++) {

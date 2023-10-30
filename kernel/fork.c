@@ -84,6 +84,9 @@
 #include <linux/cpu_input_boost.h>
 #include <linux/devfreq_boost.h>
 #include <linux/simple_lmk.h>
+#ifdef CONFIG_DYNAMIC_STUNE
+#include <linux/dynamic_stune.h>
+#endif
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -1953,6 +1956,10 @@ long _do_fork(unsigned long clone_flags,
 
 	/* Boost CPU to the max for 50 ms when userspace launches an app */
 	if (task_is_zygote(current)) {
+#ifdef CONFIG_DYNAMIC_STUNE
+		dynstune_acquire_update();
+#endif
+
 		if (cpu_input_boost_within_input(75))
 			cpu_input_boost_kick_max(50);
 		

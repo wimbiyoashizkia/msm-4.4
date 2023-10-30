@@ -20,7 +20,7 @@ struct dynstune dss = {
 
 struct dynstune_priv {
 	struct dynstune *ds;
-	struct task_struct *thread;
+    struct task_struct *thread;
 	struct timer_list timer[MAX_DSS];
 	unsigned long duration[MAX_DSS];
 	int state[2];
@@ -28,7 +28,7 @@ struct dynstune_priv {
 
 static void wake_up_dynstune(struct dynstune_priv *dsp)
 {
-	struct task_struct *thread = dsp->thread;
+    struct task_struct *thread = dsp->thread;
 
 	if ((thread->state & TASK_IDLE) != 0)
 		wake_up_state(thread, TASK_IDLE);
@@ -78,6 +78,17 @@ static int dynstune_thread(void *data)
 	}
 
 	return 0;
+}
+
+void dynstune_extend_timer(struct dynstune *ds)
+{
+	struct dynstune_priv *dsp = ds->priv_data;
+
+	if (!dsp)
+		return;
+
+	if (!mod_timer(&dsp->timer[INPUT], jiffies + dsp->duration[INPUT]))
+		atomic_set(&ds->state[INPUT], 1);
 }
 
 static void core_timeout(unsigned long data)
@@ -171,11 +182,11 @@ static const struct input_device_id dynstune_ids[] = {
 };
 
 static struct input_handler dynstune_input_handler = {
-	.event			= dynstune_input,
-	.connect		= dynstune_input_connect,
-	.disconnect		= dynstune_input_disconnect,
-	.name			= "dynstune_h",
-	.id_table		= dynstune_ids,
+	.event          = dynstune_input,
+	.connect        = dynstune_input_connect,
+	.disconnect     = dynstune_input_disconnect,
+	.name           = "dynstune_h",
+	.id_table       = dynstune_ids,
 };
 
 static int __init dynamic_stune_init(void)
@@ -206,6 +217,8 @@ static int __init dynamic_stune_init(void)
 	ret = input_register_handler(&dynstune_input_handler);
 	if (ret)
 		goto err;
+
+	dss.priv_data = ds_priv;
 
 	return 0;
 

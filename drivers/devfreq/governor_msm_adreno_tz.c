@@ -21,6 +21,9 @@
 #include <linux/mdss_refresh_rate.h>
 #include <linux/mm.h>
 #include <linux/msm_adreno_devfreq.h>
+#ifdef CONFIG_DYNAMIC_STUNE
+#include <linux/dynamic_stune.h>
+#endif
 #include <asm/cacheflush.h>
 #include <soc/qcom/scm.h>
 #include "governor.h"
@@ -546,6 +549,11 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq,
 	priv->bin.busy_time = 0;
 
 	*freq = devfreq->profile->freq_table[level];
+#ifdef CONFIG_DYNAMIC_STUNE
+	/* Do not drop perf if GPU is running at its max freq so extend timer */
+	if (*freq == devfreq->max_freq)
+		dynstune_extend_timer(&dss);
+#endif
 	return 0;
 }
 

@@ -2854,6 +2854,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
 	struct oom_control oc = {
 		.zonelist = ac->zonelist,
 		.nodemask = ac->nodemask,
+		.memcg = NULL,
 		.gfp_mask = gfp_mask,
 		.order = order,
 	};

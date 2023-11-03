@@ -527,7 +527,9 @@ struct mm_struct {
 	int app_setting;
 #endif
 
+#ifdef CONFIG_MMU
 	struct work_struct async_put_work;
+#endif
 };
 
 static inline void mm_init_cpumask(struct mm_struct *mm)

@@ -634,8 +634,6 @@ void try_oom_reaper(struct task_struct *tsk)
 		for_each_process(p) {
 			if (!process_shares_mm(p, mm))
 				continue;
-			if (same_thread_group(p, tsk))
-				continue;
 			if (fatal_signal_pending(p))
 				continue;
 

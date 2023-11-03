@@ -538,7 +538,12 @@ static bool __oom_reap_task(struct task_struct *tsk)
 	set_bit(MMF_OOM_REAPED, &mm->flags);
 	exit_oom_victim(tsk);
 out:
-	mmput(mm);
+	/*
+	 * Drop our reference but make sure the mmput slow path is called from a
+	 * different context because we shouldn't risk we get stuck there and
+	 * put the oom_reaper out of the way.
+	 */
+	mmput_async(mm);
 	return ret;
 }
 

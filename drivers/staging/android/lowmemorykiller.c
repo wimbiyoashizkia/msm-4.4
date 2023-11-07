@@ -590,6 +590,22 @@ static void mark_lmk_victim(struct task_struct *tsk)
 	}
 }
 
+static int test_task_lmk_waiting(struct task_struct *p)
+{
+	struct task_struct *t = p;
+
+	do {
+		task_lock(t);
+		if (task_lmk_waiting(t)) {
+			task_unlock(t);
+			return 1;
+		}
+		task_unlock(t);
+	} while_each_thread(p, t);
+
+	return 0;
+}
+
 static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 {
 	struct task_struct *tsk;
@@ -682,7 +698,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 		} else {
 			if (time_before_eq(jiffies,
 					   lowmem_deathpending_timeout))
-				if (task_lmk_waiting(p)) {
+				if (test_task_lmk_waiting(p)) {
 					rcu_read_unlock();
 					mutex_unlock(&scan_mutex);
 					return 0;

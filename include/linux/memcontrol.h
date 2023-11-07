@@ -327,6 +327,8 @@ struct mem_cgroup *mem_cgroup_iter(struct mem_cgroup *,
 				   struct mem_cgroup *,
 				   struct mem_cgroup_reclaim_cookie *);
 void mem_cgroup_iter_break(struct mem_cgroup *, struct mem_cgroup *);
+int mem_cgroup_scan_tasks(struct mem_cgroup *,
+			  int (*)(struct task_struct *, void *), void *);
 
 static inline bool mem_cgroup_is_descendant(struct mem_cgroup *memcg,
 			      struct mem_cgroup *root)
@@ -411,6 +413,8 @@ static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
 }
 
 void mem_cgroup_handle_over_high(void);
+
+unsigned long mem_cgroup_get_limit(struct mem_cgroup *memcg);
 
 void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
 				struct task_struct *p);
@@ -582,6 +586,12 @@ mem_cgroup_iter(struct mem_cgroup *root,
 	return NULL;
 }
 
+static inline int mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
+		int (*fn)(struct task_struct *, void *), void *arg)
+{
+	return 0;
+}
+
 static inline void mem_cgroup_iter_break(struct mem_cgroup *root,
 					 struct mem_cgroup *prev)
 {
@@ -613,6 +623,11 @@ static inline void
 mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
 			      int increment)
 {
+}
+
+static inline unsigned long mem_cgroup_get_limit(struct mem_cgroup *memcg)
+{
+	return 0;
 }
 
 static inline void

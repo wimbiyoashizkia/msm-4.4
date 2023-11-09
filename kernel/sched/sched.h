@@ -2880,8 +2880,7 @@ static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
 	rq->load_reported_window = rq->window_start;
 #endif
 
-		data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
-						cpu_of(rq)));
+        data = rcu_dereference_sched(*this_cpu_ptr(&cpufreq_update_util_data));
         if (data)
                 data->func(data, sched_ktime_clock(), flags);
 }

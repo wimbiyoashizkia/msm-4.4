@@ -1278,11 +1278,6 @@ static inline bool hmp_capable(void)
 	return max_possible_capacity != min_max_possible_capacity;
 }
 
-static inline bool is_max_capacity_cpu(int cpu)
-{
-	return cpu_max_possible_capacity(cpu) == max_possible_capacity;
-}
-
 static inline bool is_min_capacity_cpu(int cpu)
 {
 	return cpu_max_possible_capacity(cpu) == min_max_possible_capacity;
@@ -1663,8 +1658,6 @@ static inline unsigned int nr_eligible_big_tasks(int cpu)
 {
 	return 0;
 }
-
-static inline bool is_max_capacity_cpu(int cpu) { return true; }
 
 static inline int pct_task_load(struct task_struct *p) { return 0; }
 

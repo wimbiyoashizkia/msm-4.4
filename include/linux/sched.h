@@ -180,9 +180,7 @@ extern u64 nr_running_integral(unsigned int cpu);
 #endif
 
 extern void sched_update_nr_prod(int cpu, long delta, bool inc);
-extern void sched_get_nr_running_avg(int *avg, int *iowait_avg, int *big_avg,
-				     unsigned int *max_nr,
-				     unsigned int *big_max_nr);
+extern void sched_get_nr_running_avg(int *avg, int *iowait_avg, int *big_avg);
 extern u64 sched_get_cpu_last_busy_time(int cpu);
 
 #ifdef CONFIG_SMP

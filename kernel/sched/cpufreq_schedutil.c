@@ -331,8 +331,11 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 		/*
 		 * Do not reduce the frequency if the CPU has not been idle
 		 * recently, as the reduction is likely to be premature then.
-		 */
-		if (busy && next_f < sg_policy->next_freq &&
+		 *
+	 	 * Except when the rq is capped by uclamp_max.
+	 	 */
+		if (!uclamp_rq_is_capped(cpu_rq(sg_cpu->cpu)) && busy
+			&& next_f < sg_policy->next_freq &&
 		    sg_policy->next_freq != UINT_MAX) {
 			next_f = sg_policy->next_freq;
 

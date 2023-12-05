@@ -2407,18 +2407,6 @@ extern unsigned int sysctl_sched_use_walt_cpu_util;
 extern unsigned int walt_ravg_window;
 extern bool walt_disabled;
 
-static inline unsigned long task_util(struct task_struct *p)
-{
-
-#ifdef CONFIG_SCHED_WALT
-	if (!walt_disabled && sysctl_sched_use_walt_task_util) {
-		unsigned long demand = p->ravg.demand;
-		return (demand << 10) / walt_ravg_window;
-	}
-#endif
-	return READ_ONCE(p->se.avg.util_avg);
-}
-
 /**
  * Amount of capacity of a CPU that is (estimated to be) used by CFS tasks
  * @cpu: the CPU to get the utilization of

@@ -180,7 +180,7 @@ penalty_scale_mayhalve(u64 delta, struct sched_entity *se, bool half)
 	if (half)
 		score >>= 1;
 
-	return mul_u64_u32_shr(delta, sched_prio_to_wmult[score], 22);
+	return mul_u64_u32_shr(delta, prio_to_wmult[score], 22);
 }
 
 #define penalty_scale(delta, se) \

@@ -1846,8 +1846,12 @@ ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
 
 	if (wake_flags & WF_MIGRATED)
 		schedstat_inc(p, se.statistics.nr_wakeups_migrate);
-
+	else
 #endif /* CONFIG_SMP */
+	if (p->in_iowait) {
+		delayacct_blkio_end(p);
+		atomic_dec(&task_rq(p)->nr_iowait);
+	}
 
 	schedstat_inc(rq, ttwu_count);
 	schedstat_inc(p, se.statistics.nr_wakeups);
@@ -2319,11 +2323,6 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 	if (READ_ONCE(p->on_rq) && ttwu_remote(p, wake_flags))
 		goto unlock;
 
-	if (p->in_iowait) {
-		delayacct_blkio_end(p);
-		atomic_dec(&task_rq(p)->nr_iowait);
-	}
-
 #ifdef CONFIG_SMP
 	/*
 	 * Ensure we load p->on_cpu _after_ p->on_rq, otherwise it would be
@@ -2419,6 +2418,11 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 	/* Refresh src_cpu as it could have changed since we last read it */
 	src_cpu = task_cpu(p);
 	if (src_cpu != cpu) {
+		if (p->in_iowait) {
+			delayacct_blkio_end(p);
+			atomic_dec(&task_rq(p)->nr_iowait);
+		}
+
 		wake_flags |= WF_MIGRATED;
 		set_task_cpu(p, cpu);
 	}

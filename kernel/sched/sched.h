@@ -2508,7 +2508,7 @@ static inline unsigned long cpu_util_freq(int cpu)
 #else
 static inline bool energy_aware(void)
 {
-	return sched_feat(ENERGY_AWARE);
+	return sysctl_sched_energy_aware;
 }
 #endif
 

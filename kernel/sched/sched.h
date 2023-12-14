@@ -980,6 +980,7 @@ queue_balance_callback(struct rq *rq,
 	rq->balance_callback = head;
 }
 
+extern void flush_smp_call_function_from_idle(void);
 extern void sched_ttwu_pending(void);
 
 #define rcu_dereference_check_sched_domain(p) \

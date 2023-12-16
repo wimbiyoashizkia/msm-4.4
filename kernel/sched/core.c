@@ -2767,6 +2767,12 @@ void sched_ttwu_pending(void)
 	while (llist) {
 		p = llist_entry(llist, struct task_struct, wake_entry);
 		llist = llist_next(llist);
+		if (WARN_ON_ONCE(p->on_cpu))
+			smp_cond_load_acquire(&p->on_cpu, !VAL);
+
+		if (WARN_ON_ONCE(task_cpu(p) != cpu_of(rq)))
+			set_task_cpu(p, cpu_of(rq));
+
 		ttwu_do_activate(rq, p, 0);
 	}
 
@@ -2907,6 +2913,9 @@ static inline bool ttwu_queue_cond(int cpu)
 static bool ttwu_queue_wakelist(struct task_struct *p, int cpu)
 {
 	if (sched_feat(TTWU_QUEUE) && ttwu_queue_cond(cpu)) {
+		if (WARN_ON_ONCE(cpu == smp_processor_id()))
+			return false;
+
 		sched_clock_cpu(cpu); /* Sync clocks across CPUs */
 		__ttwu_queue_wakelist(p, cpu);
 		return true;
@@ -3074,7 +3083,6 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 			goto out;
 
 		success = 1;
-		cpu = task_cpu(p);
 		trace_sched_waking(p);
 		p->state = TASK_RUNNING;
 		trace_sched_wakeup(p);
@@ -3157,8 +3165,21 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 	 * which potentially sends an IPI instead of spinning on p->on_cpu to
 	 * let the waker make forward progress. This is safe because IRQs are
 	 * disabled and the IPI will deliver after on_cpu is cleared.
+	 *
+	 * Ensure we load task_cpu(p) after p->on_cpu:
+	 *
+	 * set_task_cpu(p, cpu);
+	 *   STORE p->cpu = @cpu
+	 * __schedule() (switch to task 'p')
+	 *   LOCK rq->lock
+	 *   smp_mb__after_spin_lock()		smp_cond_load_acquire(&p->on_cpu)
+	 *   STORE p->on_cpu = 1		LOAD p->cpu
+	 *
+	 * to ensure we observe the correct CPU on which the task is currently
+	 * scheduling.
 	 */
-	if (READ_ONCE(p->on_cpu) && ttwu_queue_wakelist(p, cpu | WF_ON_RQ))
+	if (smp_load_acquire(&p->on_cpu) &&
+	    ttwu_queue_wakelist(p, task_cpu(p) | WF_ON_RQ))
 		goto unlock;
 
 	/*
@@ -3206,13 +3227,15 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags,
 	}
 
 	note_task_waking(p, wallclock);
+#else
+	cpu = task_cpu(p);
 #endif /* CONFIG_SMP */
 	ttwu_queue(p, cpu);
 unlock:
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
 out:
 	if (success)
-		ttwu_stat(p, cpu, wake_flags);
+		ttwu_stat(p, task_cpu(p), wake_flags);
 	preempt_enable();
 
 	if (freq_notif_allowed) {

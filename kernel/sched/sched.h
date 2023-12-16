@@ -39,6 +39,8 @@ static inline void update_cpu_load_active(struct rq *this_rq) { }
 static inline void check_for_migration(struct rq *rq, struct task_struct *p) { }
 #endif
 
+extern bool energy_aware(void);
+
 /*
  * Helpers for converting nanosecond timing to jiffy resolution
  */
@@ -2501,20 +2503,6 @@ static inline unsigned long cpu_util_freq(int cpu)
 	return (util >= capacity) ? capacity : util;
 }
 
-#endif
-
-#ifdef CONFIG_SCHED_HMP
-/*
- * HMP and EAS are orthogonal. Hopefully the compiler just elides out all code
- * with the energy_aware() check, so that we don't even pay the comparison
- * penalty at runtime.
- */
-#define energy_aware() false
-#else
-static inline bool energy_aware(void)
-{
-	return sched_feat(ENERGY_AWARE);
-}
 #endif
 
 static inline void sched_rt_avg_update(struct rq *rq, u64 rt_delta)

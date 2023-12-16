@@ -92,6 +92,11 @@ static unsigned int sched_nr_latency = 8;
 unsigned int sysctl_sched_child_runs_first __read_mostly;
 
 /*
+ * To enable/disable energy aware feature.
+ */
+unsigned int __read_mostly sysctl_sched_energy_aware = 1;
+
+/*
  * SCHED_OTHER wake-up granularity.
  * (default: 1 msec * (1 + ilog(ncpus)), units: nanoseconds)
  *
@@ -6530,6 +6535,20 @@ static void task_waking_fair(struct task_struct *p)
 	se->vruntime -= min_vruntime;
 	record_wakee(p);
 }
+
+#ifdef CONFIG_SCHED_HMP
+/*
+ * HMP and EAS are orthogonal. Hopefully the compiler just elides out all code
+ * with the energy_aware() check, so that we don't even pay the comparison
+ * penalty at runtime.
+ */
+#define energy_aware() false
+#else
+inline bool energy_aware(void)
+{
+	return sysctl_sched_energy_aware;
+}
+#endif
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 /*

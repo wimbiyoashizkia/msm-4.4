@@ -1,38 +1,31 @@
 Introduction
 ------------
+srandom is a Linux kernel module that can be used like the built-in /dev/urandom & /dev/random device files.  In the standard mode (ChaCha8) it is about 20%-40% faster than built-in urandom and should be secure enough for crypto.  In ultra high speed mode it is about 500% faster (5x faster) than the built-in urandom generator.  YMWV depending on hardware and software configuration.  It should compile and install on any Linux 3.17+ kernel.  Both ChaCha8 and (UHS)XorShift pass all the randomness tests using dieharder.
 
-srandom is a Linux kernel module that can be used to replace the built-in /dev/urandom & /dev/random device files.  It is VERY fast and probably the most secure PRNG available that can replace the built-in /dev/urandom device.   My tests show it can be over 150x faster then /dev/urandom.   It should compile and install on any Linux 3.10+ kernel.  It passes all the randomness tests using the dieharder tests.
+srandom was created as a performance improvement to the built-in PRNG /dev/urandom number generator.  I wanted a much faster random number generator to wipe ssd disks.  The UHS algorithm is many times faster than urandom, but still produces excellent random numbers that dieharder finds indistinguishable from true random numbers.  You can easily wipe multiple SSDs at the same time.
 
-srandom was created as a performance improvement to the built-in PRNG /dev/urandom number generator.  I wanted a much faster random number generator to wipe ssd disks.  Through many hours of testing, I came up with an algorithm that is many times faster than urandom, but still produces excellent random numbers that dieharder finds it indistinguishable from true random numbers.  You can wipe multiple SSDs at the same time.
-
-The built-in __PRNG__ generators (/dev/random and /dev/urandom) are technically not flawed.  It's just that they are very slow when compared to srandom.  YES, I said it...  __/dev/random and /dev/urandom are BOTH PRNG generators.__  So, ranting that srandom is flawed purely because it's PRNG is just ranting and ignorance.
+The built-in __PRNG__ generators (/dev/random and /dev/urandom) uses Chacha20 and are technically not flawed.  They are just very slow when compared to srandom.  __/dev/random and /dev/urandom are BOTH PRNG generators.__  
   > https://www.2uo.de/myths-about-urandom/
   ```
   Truth is, when state-of-the-art hash algorithms are broken, or when state-of-the-art block ciphers are broken, it doesn't matter that you get “philosophically insecure” random numbers because of them. You've got nothing left to securely use them for anyway.
   ```
 
-Generating random numbers which is indistinguishable from true randomness is the goal here...   There are arguments against using a PRNG and some argue that true randomness doesn't exist.   Personally, I don't get the point???  The built-in /dev/random and /dev/urandom are BOTH PRNG generators.
-
-What makes srandom a great PRNG generator?  It includes all these features to make it's generator produce the most unpredictable/random numbers.
-  * It uses two separate and different 64bit PRNGs.
-  * There are two different algorithms to XOR the the 64bit PRNGs together.
-  * srandom seeds and re-seeds the three separate seeds using nano timer.
-  * The module seeds the PRNGs twice on module init.
-  * It uses 16 x 512byte buffers and outputs them randomly.
-  * There is a separate kernel thread that constantly updates the buffers and seeds.
-  * srandom throws away a small amount of data.
-
-The best part of srandom is it's efficiency and very high speed...  I tested many PRNGs and found two that worked very fast and had a good distribution of numbers.  Two or three 64bit numbers are XORed.  The results is unpredictable and very high speed generation of numbers.
+What makes srandom a great PRNG generator?
+  * Higher speed vs the built-in random devices.
+  * It's configurable to use ChaCha8 or UHS(XorShift) depending on your use-case.
+  * ChaCha8 and UHS both pass Dieharder tests.
+  * Plug and play.
 
 
 Why do I need this?
 -------------------
+ * Use standard mode (ChaCha8) for any security type applications that rely heavily on random numbers.  For example, Apache SSL (Secure Socket Level), PGP (Pretty Good Privacy), VPN (Virtual Private Networks).  All types of Encryption, Password seeds, Tokens would rely on a source of random numbers.  There is many examples at https://www.random.org/testimonials/.
 
-The best use-case is disk wiping.  However you could use srandom to provide your applications with the fastest source of random numbers.  Why would you want to block your applications while waiting for random numbers?  Run "lsof|grep random", just to see how many applications have the random number device open...  Any security type applications rely heavily on random numbers.  For example, Apache SSL (Secure Socket Level), PGP (Pretty Good Privacy), VPN (Virtual Private Networks).  All types of Encryption, Password seeds, Tokens would rely on a source of random number.  There is many examples at https://www.random.org/testimonials/.
+ * Use UHS for disk wiping or any application that does not involve crypto, or if you're not overly concerned about random numbers affecting security.
+
 
 Compile and installation
 ------------------------
-
 To build & compile the kernel module.  A pre-req is "kernel-devel".  Use yum or apt to install.
 
     make
@@ -56,8 +49,7 @@ To uninstall the kernel module from your system.
 
 Ultra High Speed Mode
 ---------------------
-
-Release 1.41+ now includes an Ultra High Speed Mode.  This mode uses the faster of the two 64bit PRNGs, more buffers, disables the background thread and other tweaks to get more performance.  This mode performs much faster, but still passes dieharder tests.  To enable this mode, simply modify the following line in the source code before running make.
+This mode uses the two 64bit XorShift PRNGs.  This mode performs much faster than ChaCha8, but still passes dieharder tests.  To enable this mode, set the following line in the source code before running make.
 ```
 #define ULTRA_HIGH_SPEED_MODE 1
 ```
@@ -65,7 +57,6 @@ Release 1.41+ now includes an Ultra High Speed Mode.  This mode uses the faster 
 
 Usage
 -----
-
 You can load the kernel module temporary, or you can install the kernel module to be persistent on reboot.
 
   * If you want to just test the kernel module, you should run "make load".  This will load the kernel module into the running kernel and create a /dev/srandom accessible to root only.   It can be removed with "make unload".   You can monitor the load process in /var/log/messages.
@@ -75,14 +66,15 @@ You can load the kernel module temporary, or you can install the kernel module t
 # cat /proc/srandom
 -----------------------:----------------------
 Device                 : /dev/srandom
-Module version         : 1.41.1
-Current open count     : 5
-Total open count       : 3665
-Total K bytes          : 55146567
+Module version         : 2.0.0 UHS (XorShift)
+Current open count     : 3
+Total open count       : 42
+Total K bytes          : 38030518
 -----------------------:----------------------
 Author                 : Jonathan Senkerik
-Website                : http://www.jintegrate.co
-github                 : http://github.com/josenk/srandom
+Website                : https://www.jintegrate.co
+github                 : https://github.com/josenk/srandom
+
 ```
   * Use the /usr/bin/srandom tool to set srandom as the system PRNG, set the system back to default PRNG, or get the status.
 ```
@@ -97,48 +89,41 @@ srandom if functioning correctly
   * To completely remove the srandom module, use "make uninstall".   Depending if there is processes accessing /dev/srandom, you may not be able to remove the module from the running kernel.   Try "make unload", if the module is busy, then a reboot is required.
 
 
-
-
 Testing & performance
 ---------------------
-
 A simple dd command to read from the /dev/srandom device will show performance of the generator.  The results below are typical from my system.  Of course, your performance will vary.
 
 
-The "Improved" srandom number generator
+The "UHS" srandom number generator
 
 ```
 time dd if=/dev/srandom of=/dev/null count=64k bs=64k
-
 65536+0 records in
 65536+0 records out
-4294967296 bytes (4.3 GB) copied, 1.80974 s, 2.4 GB/s
+4294967296 bytes (4.3 GB, 4.0 GiB) copied, 1.88435 s, 2.3 GB/s
 
-real    0m1.811s
-user    0m0.012s
-sys     0m1.799s
+real    0m1.886s
+user    0m0.004s
+sys     0m1.866s
 ```
 
 
-The "Non-Blocking" urandom number generator
+The built-in urandom number generator
 
 ```
 time dd if=/dev/urandom of=/dev/null count=64k bs=64k
-
 65536+0 records in
 65536+0 records out
-4294967296 bytes (4.3 GB) copied, 277.96 s, 15.5 MB/s
+4294967296 bytes (4.3 GB, 4.0 GiB) copied, 9.75787 s, 440 MB/s
 
-real    4m37.961s
-user    0m0.028s
-sys     4m37.923s
-
+real    0m9.760s
+user    0m0.015s
+sys     0m9.680s
 ```
 
 
 Testing randomness
 ------------------
-
 The most important part of the random number device file is that is produces random/unpredictable numbers.  The golden standard of testing randomness is the dieharder test suite (http://www.phy.duke.edu/~rgb/General/dieharder.php).  The dieharder tool will easily detect flawed random number generators.   After you install dieharder, use the following command to put /dev/srandom through the battery of tests.
 
 A note about the possibility of a test showing as "WEAK"...  If a test is repeatedly "FAILED" or "WEAK", then that is a problem.   
@@ -151,7 +136,7 @@ dd if=/dev/srandom |dieharder -g 200 -f - -a
 #            dieharder version 3.31.1 Copyright 2003 Robert G. Brown          #
 #=============================================================================#
    rng_name    |           filename             |rands/second|
-stdin_input_raw|                               -|  2.83e+07  |
+stdin_input_raw|                               -|  5.85e+07  |
 #=============================================================================#
         test_name   |ntup| tsamples |psamples|  p-value |Assessment
 #=============================================================================#
@@ -182,17 +167,10 @@ diehard_count_1s_byt|   0|    256000|     100|0.18753110|  PASSED
 ```
 
 
-The challenge
--------------
-  >  https://github.com/josenk/srandom/releases/tag/1.37
-
-  If that's not enough data, just run the dd commands yourself...   For each block generate whatever amount of data you like.   Even 1TB of data if you like!  Then try to predict the final block.  Let me know your methods and results, I will be very happy to work with anyone with suspect results.
-
 
 How to configure your apps
 --------------------------
-
-  If you installed the kernel module to load on reboot, then you do not need to modify any applications to use the srandom kernel module.   It will be linked to /dev/urandom, so all applications will use it automatically.   However, if you do not want to link /dev/srandom to /dev/urandom, then you can configure your applications to use whichever device you want.   Here is a few examples....
+  If you installed the kernel module to load on reboot, then you do not need to modify any applications to use the srandom kernel module.   It will be linked to /dev/urandom, so all applications will use it automatically.   However, if you do not want to link /dev/srandom to /dev/urandom, then you can configure your applications to use which ever device you want.   Here is a few examples....
 
   Java:  Use the following command line argument to tell Java to use the new random device
 
@@ -231,8 +209,6 @@ How to configure your apps
 
 Using /dev/srandom to wipe all data from your SSD disks.
 -----------------------------------------------
-
-
 *** This will DESTROY DATA!   Use with caution! ***
 
 *** Replace /dev/sdXX with your disk device you want to wipe.
@@ -243,7 +219,6 @@ Using /dev/srandom to wipe all data from your SSD disks.
 
 License
 -------
-
 Copyright (C) 2019 Jonathan Senkerik
 
 This program is free software: you can redistribute it and/or modify

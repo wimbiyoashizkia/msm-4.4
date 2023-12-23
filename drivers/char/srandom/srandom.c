@@ -166,25 +166,25 @@ int mod_init(void)
 
         /* Register char device */
         if (misc_register(&srandom_dev))
-                pr_info("/dev/srandom registration failed..\n");
+                pr_debug("/dev/srandom registration failed..\n");
         else
-                pr_info("/dev/srandom registered..\n");
+                pr_debug("/dev/srandom registered..\n");
 
         /* Create /proc/srandom */
         if (!proc_create("srandom", 0, NULL, &proc_fops))
-                pr_info("/proc/srandom registration failed..\n");
+                pr_debug("/proc/srandom registration failed..\n");
         else
-                pr_info("/proc/srandom registration registered..\n");
+                pr_debug("/proc/srandom registration registered..\n");
 
 #if ULTRA_HIGH_SPEED_MODE
-        pr_info("Module version: "APP_VERSION" UHS Mode\n");
+        pr_debug("Module version: "APP_VERSION" UHS Mode\n");
 #else
-        pr_info("Module version: "APP_VERSION"\n");
+        pr_debug("Module version: "APP_VERSION"\n");
 #endif
 
         prngArrays = kzalloc((numberOfRndArrays + 1) * rndArraySize * sizeof(uint64_t), GFP_KERNEL);
         while (!prngArrays) {
-                pr_info("kzalloc failed to allocate initial memory. retrying...\n");
+                pr_debug("kzalloc failed to allocate initial memory. retrying...\n");
                 prngArrays = kzalloc((numberOfRndArrays + 1) * rndArraySize * sizeof(uint64_t), GFP_KERNEL);
         }
 
@@ -219,7 +219,7 @@ void mod_exit(void)
         kthread_stop(kthread);
         misc_deregister(&srandom_dev);
         remove_proc_entry("srandom", NULL);
-        pr_info("srandom deregistered..\n");
+        pr_debug("srandom deregistered..\n");
 }
 
 /*
@@ -234,8 +234,8 @@ static int device_open(struct inode *inode, struct file *file)
         sdevOpenTotal++;
         mutex_unlock(&Open_mutex);
 
-        pr_info("(current open) :%d\n", sdevOpenCurrent);
-        pr_info("(total open)   :%d\n", sdevOpenTotal);
+        pr_debug("(current open) :%d\n", sdevOpenCurrent);
+        pr_debug("(total open)   :%d\n", sdevOpenTotal);
 
         return 0;
 }
@@ -250,7 +250,7 @@ static int device_release(struct inode *inode, struct file *file)
         sdevOpenCurrent--;
         mutex_unlock(&Open_mutex);
 
-        pr_info("(current open) :%d\n", sdevOpenCurrent);
+        pr_debug("(current open) :%d\n", sdevOpenCurrent);
 
         return 0;
 }
@@ -267,11 +267,11 @@ ssize_t sdevice_read(struct file *file, char *buf, size_t requestedCount,
         char *new_buf;
         bool isVMalloc = 0;
 
-        pr_info("requestedCount:%zu\n", requestedCount);
+        pr_debug("requestedCount:%zu\n", requestedCount);
 
         new_buf = kzalloc((requestedCount + 512) * sizeof(uint8_t), GFP_KERNEL|__GFP_NOWARN);
         while (!new_buf) {
-                pr_info("Using vmalloc to allocate large blocksize.\n");
+                pr_debug("Using vmalloc to allocate large blocksize.\n");
 
                 isVMalloc = 1;
                 new_buf = vmalloc((requestedCount + 512) * sizeof(uint8_t));
@@ -282,7 +282,7 @@ ssize_t sdevice_read(struct file *file, char *buf, size_t requestedCount,
                 generatedCount++;
 
                 /* Fill new_buf from a prngArrays block until requestedCount is met */
-                pr_info("Block:%u buffer_id:%d\n", Block, buffer_id);
+                pr_debug("Block:%u buffer_id:%d\n", Block, buffer_id);
 
                 memcpy(new_buf + (Block * 512), prngArrays[buffer_id], 512);
 #if ULTRA_HIGH_SPEED_MODE
@@ -326,7 +326,7 @@ ssize_t sdevice_write(struct file *file, const char __user *buf,
         char *newdata;
         int result;
 
-        pr_info("receivedCount:%zu\n", receivedCount);
+        pr_debug("receivedCount:%zu\n", receivedCount);
 
         /* Allocate memory to read from device */
         newdata = kzalloc(receivedCount, GFP_KERNEL);
@@ -338,7 +338,7 @@ ssize_t sdevice_write(struct file *file, const char __user *buf,
         /* Free memory */
         kfree(newdata);
 
-        pr_info("sdevice_write COPY_FROM_USER receivedCount:%zu\n", receivedCount);
+        pr_debug("sdevice_write COPY_FROM_USER receivedCount:%zu\n", receivedCount);
 
         return receivedCount;
 }
@@ -401,7 +401,7 @@ void update_sarray(int buffer_id)
 
         mutex_unlock(&UpArr_mutex);
 
-        pr_info("update_sarray buffer_id:%d, X:%llu, Z:%llu", buffer_id, X, Z);
+        pr_debug("update_sarray buffer_id:%d, X:%llu, Z:%llu", buffer_id, X, Z);
 }
 
 /*
@@ -416,7 +416,7 @@ inline void shuffle_sarray(int buffer_id)
         uint8_t increment = (mixer & 3) + 1;
         int i;
 
-        pr_info("shuffle_sarray istart: %d, increment: %d, buffer_id:%d, first:%llu, last:%llu\n", istart, increment, buffer_id, prngArrays[buffer_id][0], prngArrays[buffer_id][rndArraySize - 1]);
+        pr_debug("shuffle_sarray istart: %d, increment: %d, buffer_id:%d, first:%llu, last:%llu\n", istart, increment, buffer_id, prngArrays[buffer_id][0], prngArrays[buffer_id][rndArraySize - 1]);
 
         for (i = istart; i < rndArraySize / 2; i = i + increment) {
                 if (mixtype == 0) {
@@ -549,7 +549,7 @@ int work_thread(void *data)
 
                 update_sarray(buffer_id);
 
-                pr_info("work_thread buffer_id:%d\n", buffer_id);
+                pr_debug("work_thread buffer_id:%d\n", buffer_id);
 
         }
 

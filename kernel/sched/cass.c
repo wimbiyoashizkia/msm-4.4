@@ -106,18 +106,19 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync)
 		       uclamp_eff_value(p, UCLAMP_MAX));
 
 	/*
-	 * Find the best CPU to wake @p on. The RCU read lock is needed for
-	 * idle_get_state().
+	 * Find the best CPU to wake @p on. Although idle_get_state() requires
+	 * an RCU read lock, an RCU read lock isn't needed because we're not
+	 * preemptible and RCU-sched is unified with normal RCU. Therefore,
+	 * non-preemptible contexts are implicitly RCU-safe.
 	 */
-	rcu_read_lock();
 	for_each_cpu_and(cpu, &p->cpus_allowed, cpu_active_mask) {
 		/* Use the free candidate slot */
 		curr = &cands[cidx];
 		curr->cpu = cpu;
 
 		/*
-		 * Check if this CPU is idle. For sync wakes, always treat the
-		 * current CPU as idle.
+		 * Check if this CPU is idle tasks. For sync wakes,
+		 * always treat the current CPU as idle.
 		 */
 		if ((sync && cpu == smp_processor_id()) || idle_cpu(cpu)) {
 			/* Discard any previous non-idle candidate */
@@ -173,19 +174,17 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync)
 			cidx ^= 1;
 		}
 	}
-	rcu_read_unlock();
 
 	return best->cpu;
 }
 
 static int cass_select_task_rq_fair(struct task_struct *p, int prev_cpu,
-				    int sd_flag, int wake_flags,
-				    int sibling_count_hint)
+				    int wake_flags)
 {
 	bool sync;
 
 	/* Don't balance on exec since we don't know what @p will look like */
-	if (sd_flag & SD_BALANCE_EXEC)
+	if (wake_flags & SD_BALANCE_EXEC)
 		return prev_cpu;
 
 	/*
@@ -194,10 +193,10 @@ static int cass_select_task_rq_fair(struct task_struct *p, int prev_cpu,
 	 * on inactive CPUs.
 	 */
 	if (unlikely(!cpumask_intersects(&p->cpus_allowed, cpu_active_mask)))
-		return cpumask_first(&p->cpus_allowed);
+ 		return cpumask_first(&p->cpus_allowed);
 
 	/* cass_best_cpu() needs the task's utilization, so sync it up */
-	if (!(sd_flag & SD_BALANCE_FORK))
+	if (!(wake_flags & SD_BALANCE_FORK))
 		sync_entity_load_avg(&p->se);
 
 	sync = (wake_flags & WF_SYNC) && !(current->flags & PF_EXITING);

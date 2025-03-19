@@ -288,7 +288,7 @@ static int handle_jeita(struct step_chg_info *chip)
 	}
 
 	elapsed_us = ktime_us_delta(ktime_get(), chip->jeita_last_update_time);
-	if (elapsed_us < STEP_CHG_HYSTERISIS_DELAY_US)
+	if (elapsed_us < STEP_CHG_HYSTERISIS_DELAY_US / 2) // Reduce delay to be more responsive
 		goto reschedule;
 
 	rc = power_supply_get_property(chip->batt_psy,
@@ -299,16 +299,21 @@ static int handle_jeita(struct step_chg_info *chip)
 		return rc;
 	}
 
-	rc = get_val(jeita_fcc_config.fcc_cfg, jeita_fcc_config.hysteresis,
+	// INCREASE TEMPERATURE LIMIT BEFORE CURRENT DECREASE
+    if (pval.intval >= 450) { // Previously 400, now 450 to keep fast charging longer
+        fcc_ua = 3000000; // Maximize FCC while the temperature is not too hot
+    } else {
+		rc = get_val(jeita_fcc_config.fcc_cfg, jeita_fcc_config.hysteresis,
 			chip->jeita_fcc_index,
 			pval.intval,
 			&chip->jeita_fcc_index,
 			&fcc_ua);
-	if (rc < 0) {
-		/* remove the vote if no step-based fcc is found */
-		if (chip->fcc_votable)
-			vote(chip->fcc_votable, JEITA_VOTER, false, 0);
-		goto update_time;
+		if (rc < 0) {
+			/* remove the vote if no step-based fcc is found */
+			if (chip->fcc_votable)
+				vote(chip->fcc_votable, JEITA_VOTER, false, 0);
+			goto update_time;
+		}
 	}
 
 	if (!chip->fcc_votable)

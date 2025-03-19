@@ -299,10 +299,12 @@ static int handle_jeita(struct step_chg_info *chip)
 		return rc;
 	}
 
-	// INCREASE TEMPERATURE LIMIT BEFORE CURRENT DECREASE
-    if (pval.intval >= 450) { // Previously 400, now 450 to keep fast charging longer
-        fcc_ua = 3000000; // Maximize FCC while the temperature is not too hot
-    } else {
+	// IMPROVING FCC AT MEDIUM TEMPERATURE (30°C - 40°C)
+	if (pval.intval >= 30 && pval.intval < 40) { 
+		fcc_ua = 3500000; // Set to 3.5A to not drop at this temperature
+	} else if (pval.intval >= 40 && pval.intval < 450) { // INCREASE TEMPERATURE LIMIT BEFORE CURRENT DECREASE
+		fcc_ua = 3000000; // Still fast charging at this temperature
+	} else {
 		rc = get_val(jeita_fcc_config.fcc_cfg, jeita_fcc_config.hysteresis,
 			chip->jeita_fcc_index,
 			pval.intval,

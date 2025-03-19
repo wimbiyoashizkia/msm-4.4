@@ -185,6 +185,7 @@ static int smblib_get_jeita_cc_delta(struct smb_charger *chg, int *cc_delta_ua)
 {
 	int rc, cc_minus_ua;
 	u8 stat;
+	int batt_temp;
 
 	rc = smblib_read(chg, BATTERY_CHARGER_STATUS_2_REG, &stat);
 	if (rc < 0) {
@@ -205,7 +206,22 @@ static int smblib_get_jeita_cc_delta(struct smb_charger *chg, int *cc_delta_ua)
 		return rc;
 	}
 
-	*cc_delta_ua = -cc_minus_ua;
+	/* Get battery temperature */
+	rc = smblib_get_prop_system_temp_level(chg, &batt_temp);
+	if (rc < 0) {
+		smblib_err(chg, "Couldn't get battery temp rc=%d\n", rc);
+		return rc;
+	}
+
+	/* Optimization: Reduce current limit gradually instead of abrupt drops */
+	if (batt_temp < 40000) { // 40°C threshold
+		*cc_delta_ua = 0; // No limit applied
+	} else if (batt_temp < 45000) { // 40°C - 45°C
+		*cc_delta_ua = cc_minus_ua / 2; // Reduce by 50% instead of full drop
+	} else {
+		*cc_delta_ua = -cc_minus_ua; // Apply normal reduction
+	}
+
 	return 0;
 }
 

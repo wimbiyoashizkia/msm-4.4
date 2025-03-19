@@ -214,12 +214,16 @@ static int smblib_get_jeita_cc_delta(struct smb_charger *chg, int *cc_delta_ua)
 	}
 
 	/* Optimization: Reduce current limit gradually instead of abrupt drops */
-	if (batt_temp < 40000) { // 40°C threshold
-		*cc_delta_ua = 0; // No limit applied
-	} else if (batt_temp < 45000) { // 40°C - 45°C
-		*cc_delta_ua = cc_minus_ua / 2; // Reduce by 50% instead of full drop
+	if (batt_temp < 45000) { // Up to 45°C remains stable
+	*cc_delta_ua = 0;
+	} else if (batt_temp < 50000) { // 45°C - 50°C
+		/* Only drops 25% */
+		*cc_delta_ua = cc_minus_ua / 4;
+	} else if (batt_temp < 55000) { // 50°C - 55°C drops further
+		/* Drops 50% */
+		*cc_delta_ua = cc_minus_ua / 2;
 	} else {
-		*cc_delta_ua = -cc_minus_ua; // Apply normal reduction
+		*cc_delta_ua = -cc_minus_ua; // Full reduction above 55°C
 	}
 
 	return 0;
@@ -268,9 +272,14 @@ int smblib_get_charge_param(struct smb_charger *chg,
 		return rc;
 	}
 
-	if (batt_temp >= 30000 && batt_temp < 40000) {
-		/* Ensure FCC remains at least 5A */
+	if (batt_temp < 45000) { // Up to 45°C remains stable
 		*val_u = max(*val_u, 5000000);
+	} else if (batt_temp < 50000) { // 45°C - 50°C slightly reduced
+		*val_u = max(*val_u, 4500000);
+	} else if (batt_temp < 55000) { // 50°C - 55°C dropped further
+		*val_u = max(*val_u, 4000000);
+	} else {
+		*val_u = max(*val_u, 3000000); // Full drop above 55°C
 	}
 
 	return rc;
@@ -1037,10 +1046,15 @@ int smblib_set_icl_current(struct smb_charger *chg, int icl_ua)
 {
 	int rc = 0;
 	bool override;
+	int batt_temp;
 
 	/* suspend and return if 25mA or less is requested */
-	if (icl_ua < USBIN_25MA)
+	if (batt_temp < 50000) { // Below 50°C do not lower the current
+		return icl_ua;
+	} else {
+		/* Only lower if the temperature is really high */
 		return smblib_set_usb_suspend(chg, true);
+	}
 
 	if (icl_ua == INT_MAX)
 		goto override_suspend_config;

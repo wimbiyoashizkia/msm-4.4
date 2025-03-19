@@ -569,4 +569,6 @@ void smblib_usb_typec_change(struct smb_charger *chg);
 
 int smblib_init(struct smb_charger *chg);
 int smblib_deinit(struct smb_charger *chg);
+
+int get_charging_rate(void);
 #endif /* __SMB2_CHARGER_H */

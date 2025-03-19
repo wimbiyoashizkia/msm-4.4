@@ -11,6 +11,7 @@
  */
 
 #include "storm-watch.h"
+#include "smb-lib.h"
 
 /**
  * is_storming(): Check if an event is storming
@@ -24,6 +25,7 @@ bool is_storming(struct storm_watch *data)
 {
 	ktime_t curr_kt, delta_kt;
 	bool is_storming = false;
+	int charging_rate = get_charging_rate();
 
 	if (!data)
 		return false;
@@ -43,14 +45,18 @@ bool is_storming(struct storm_watch *data)
 	curr_kt = ktime_get_boottime();
 	delta_kt = ktime_sub(curr_kt, data->last_kt);
 
-	if (ktime_to_ms(delta_kt) < data->storm_period_ms)
+	if (ktime_to_ms(delta_kt) < max(data->storm_period_ms, 500))
 		data->storm_count++;
 	else
 		data->storm_count = 0;
 
-	if (data->storm_count > data->max_storm_count) {
-		is_storming = true;
-		data->storm_count = 0;
+	if (data->storm_count > max(data->max_storm_count, 15)) {
+		if (charging_rate > 3000000) {
+			is_storming = false;
+		} else {
+			is_storming = true;
+			data->storm_count = 0;
+		}
 	}
 
 	data->last_kt = curr_kt;
@@ -71,6 +77,7 @@ void update_storm_count(struct storm_watch *data, int max_count)
 		return;
 
 	mutex_lock(&data->storm_lock);
-	data->max_storm_count = max_count;
-	mutex_unlock(&data->storm_lock);
+	/* Increase storm count limit to 15 */
+	data->max_storm_count = max(max_count, 15);
+    mutex_unlock(&data->storm_lock);
 }

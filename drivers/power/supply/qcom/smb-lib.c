@@ -181,11 +181,29 @@ unlock:
 	return rc;
 }
 
+int get_charging_rate(void)
+{
+	struct power_supply *batt_psy;
+	union power_supply_propval val = {0};
+	int rc;
+
+	batt_psy = power_supply_get_by_name("battery");
+	if (!batt_psy)
+		return -ENODEV;
+
+	rc = power_supply_get_property(batt_psy, POWER_SUPPLY_PROP_CURRENT_NOW, &val);
+	if (rc < 0)
+		return rc;
+
+	return val.intval;
+}
+
 static int smblib_get_jeita_cc_delta(struct smb_charger *chg, int *cc_delta_ua)
 {
 	int rc, cc_minus_ua;
 	u8 stat;
 	int batt_temp;
+	int charging_rate = get_charging_rate();
 
 	rc = smblib_read(chg, BATTERY_CHARGER_STATUS_2_REG, &stat);
 	if (rc < 0) {
@@ -214,16 +232,12 @@ static int smblib_get_jeita_cc_delta(struct smb_charger *chg, int *cc_delta_ua)
 	}
 
 	/* Optimization: Reduce current limit gradually instead of abrupt drops */
-	if (batt_temp < 45000) { // Up to 45°C remains stable
-	*cc_delta_ua = 0;
-	} else if (batt_temp < 50000) { // 45°C - 50°C
-		/* Only drops 25% */
-		*cc_delta_ua = cc_minus_ua / 4;
-	} else if (batt_temp < 55000) { // 50°C - 55°C drops further
-		/* Drops 50% */
-		*cc_delta_ua = cc_minus_ua / 2;
-	} else {
-		*cc_delta_ua = -cc_minus_ua; // Full reduction above 55°C
+	if (batt_temp > 50000) { 
+		if (charging_rate > 3000000) {
+			*cc_delta_ua = -cc_minus_ua / 2;
+		} else {
+			*cc_delta_ua = -cc_minus_ua;
+		}
 	}
 
 	return 0;
@@ -252,6 +266,7 @@ int smblib_get_charge_param(struct smb_charger *chg,
 	int rc = 0;
 	u8 val_raw;
 	int batt_temp;
+	int charging_rate = get_charging_rate();
 
 	rc = smblib_read(chg, param->reg, &val_raw);
 	if (rc < 0) {
@@ -272,14 +287,25 @@ int smblib_get_charge_param(struct smb_charger *chg,
 		return rc;
 	}
 
+	// Make sure the charging rate value does not force too rapid deceleration
 	if (batt_temp < 45000) { // Up to 45°C remains stable
 		*val_u = max(*val_u, 5000000);
 	} else if (batt_temp < 50000) { // 45°C - 50°C slightly reduced
 		*val_u = max(*val_u, 4500000);
 	} else if (batt_temp < 55000) { // 50°C - 55°C dropped further
-		*val_u = max(*val_u, 4000000);
-	} else {
-		*val_u = max(*val_u, 3000000); // Full drop above 55°C
+		if (charging_rate > 3000000) { // If charging is still above 3A, reduce it to a slower rate
+			*val_u = max(*val_u, 4200000);
+		} else {
+			*val_u = max(*val_u, 4000000);
+		}
+	} else if (batt_temp < 60000) { // 55°C - 60°C
+		if (charging_rate > 2500000) {
+			*val_u = max(*val_u, 3500000);
+		} else {
+			*val_u = max(*val_u, 3000000);
+		}
+	} else { // Above 60°C full throttling
+		*val_u = max(*val_u, 2500000);
 	}
 
 	return rc;

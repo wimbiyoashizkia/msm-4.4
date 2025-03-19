@@ -247,6 +247,7 @@ int smblib_get_charge_param(struct smb_charger *chg,
 {
 	int rc = 0;
 	u8 val_raw;
+	int batt_temp;
 
 	rc = smblib_read(chg, param->reg, &val_raw);
 	if (rc < 0) {
@@ -259,8 +260,18 @@ int smblib_get_charge_param(struct smb_charger *chg,
 		*val_u = param->get_proc(param, val_raw);
 	else
 		*val_u = val_raw * param->step_u + param->min_u;
-	smblib_dbg(chg, PR_REGISTER, "%s = %d (0x%02x)\n",
-		   param->name, *val_u, val_raw);
+	
+	/* Optimization: Avoid throttling too early */
+	rc = smblib_get_prop_system_temp_level(chg, &batt_temp);
+	if (rc < 0) {
+		smblib_err(chg, "Couldn't get battery temp rc=%d\n", rc);
+		return rc;
+	}
+
+	if (batt_temp >= 30000 && batt_temp < 40000) {
+		/* Ensure FCC remains at least 5A */
+		*val_u = max(*val_u, 5000000);
+	}
 
 	return rc;
 }
